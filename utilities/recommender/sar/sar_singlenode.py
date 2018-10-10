@@ -9,7 +9,6 @@ PS: there is plenty of room for improvement, especially around the very last ste
 """
 
 import numpy as np
-import pandas as pd
 import logging
 from scipy import sparse
 
@@ -27,7 +26,7 @@ from utilities.recommender.sar import (
     SIM_COOCCUR,
     HASHED_USERS,
     HASHED_ITEMS,
-    _user_item_return_type, _predict_column_type)
+)
 from utilities.recommender.sar import (
     TIME_DECAY_COEFFICIENT,
     TIME_NOW,
@@ -462,9 +461,9 @@ class SARSingleNodeReference:
             .rename(columns={self.col_rating: PREDICTION_COL})
             .astype(
                 {
-                    self.col_user: _user_item_return_type(),
-                    self.col_item: _user_item_return_type(),
-                    PREDICTION_COL: _predict_column_type()
+                    self.col_user: self._get_user_item_return_type(),
+                    self.col_item: self._get_user_item_return_type(),
+                    PREDICTION_COL: self._get_predict_column_type(),
                 }
             )
         )
@@ -530,9 +529,9 @@ class SARSingleNodeReference:
             .rename(columns={self.col_rating: PREDICTION_COL})
             .astype(
                 {
-                    self.col_user: _user_item_return_type(),
-                    self.col_item: _user_item_return_type(),
-                    PREDICTION_COL: _predict_column_type(),
+                    self.col_user: self._get_user_item_return_type(),
+                    self.col_item: self._get_user_item_return_type(),
+                    PREDICTION_COL: self._get_predict_column_type(),
                 }
             )
         )
