@@ -7,13 +7,19 @@ import time
 import datetime
 import numpy as np
 import pandas as pd
-import urllib.request
-import csv
-import codecs
-from utilities.common.constants import PREDICTION_COL
-from utilities.recommender.sar.sar_singlenode import SARSingleNodeReference
-from utilities.recommender.sar import TIME_NOW
 
+# TODO: better solution??
+from utilities.common.constants import PREDICTION_COL
+
+root = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir)
+)
+sys.path.append(root)
+from utilities.recommender.sar.sar_singlenode import SARSingleNodeReference
+from sklearn.model_selection import train_test_split as sklearn_train_test_split
+
+from utilities.recommender.sar import TIME_NOW
+from tests.conftest import header, csv_reader_url, load_pandas_dummy_timestamp_dataset
 
 # absolute tolerance parameter for matrix equivalnce in SAR tests
 ATOL = 1e-8
@@ -22,19 +28,6 @@ FILE_DIR = "http://recodatasets.blob.core.windows.net/sarunittest/"
 # user ID used in the test files (they are designed for this user ID, this is part of the test)
 TEST_USER_ID = "0003000098E85347"
 
-
-def _csv_reader_url(url, delimiter=",", encoding="utf-8"):
-    """
-    Read a csv file over http
-
-    Returns:
-         csv reader iterable
-    """
-    ftpstream = urllib.request.urlopen(url)
-    csvfile = csv.reader(codecs.iterdecode(ftpstream, encoding), delimiter=delimiter)
-    return csvfile
-
-
 # convenient way to invoke SAR with different parameters on different datasets
 # TODO: pytest class fixtures are not yet supported as of this release
 # @pytest.fixture
@@ -42,7 +35,6 @@ class setup_SAR:
     def __init__(
         self,
         data,
-        header,
         remove_seen=True,
         similarity_type="jaccard",
         timedecay_formula=False,
@@ -59,11 +51,11 @@ class setup_SAR:
             time_decay_coefficient=time_decay_coefficient,
             time_now=time_now,
             threshold=threshold,
-            **header
+            **header()
         )
 
-        unique_users, unique_items, user_map_dict, item_map_dict, index2user, index2item = _sar_hash(
-            data, None, header
+        unique_users, unique_items, user_map_dict, item_map_dict, index2user, index2item = airship_hash(
+            data, None
         )
 
         # we need to index the train and test sets for SAR matrix operations to work
@@ -86,19 +78,6 @@ class setup_SAR:
 def get_train_test(load_pandas_dummy_timestamp_dataset):
     trainset, testset = train_test_split(
         load_pandas_dummy_timestamp_dataset, test_size=0.2, random_state=0
-    )
-    return trainset, testset
-
-
-@pytest.fixture
-def load_dataset(load_pandas_dummy_timestamp_dataset):
-    """Load a fixture dataset"""
-    # TODO: DRY with get_train_test
-    trainset, testset = train_test_split(
-        load_pandas_dummy_timestamp_dataset,
-        test_size=None,
-        train_size=0.8,
-        random_state=0,
     )
     return trainset, testset
 
@@ -175,7 +154,7 @@ Fixtures to load and reconcile custom output from TLC
 @pytest.fixture
 def read_matrix(file, row_map=None, col_map=None):
     """read in test matrix and hash it"""
-    reader = _csv_reader_url(file)
+    reader = csv_reader_url(file)
     # skip the header
     col_ids = next(reader)[1:]
     row_ids = []
@@ -208,7 +187,7 @@ def rearrange_to_test(array, row_ids, col_ids, row_map, col_map):
 @pytest.fixture
 def load_affinity(file):
     """Loads user affinities from test dataset"""
-    reader = _csv_reader_url(file)
+    reader = csv_reader_url(file)
     items = next(reader)[1:]
     affinities = np.array(next(reader)[1:])
     return affinities, items
@@ -217,7 +196,7 @@ def load_affinity(file):
 @pytest.fixture
 def load_userped(file, k=10):
     """Loads test predicted items and their SAR scores"""
-    reader = _csv_reader_url(file)
+    reader = csv_reader_url(file)
     next(reader)
     values = next(reader)
     items = values[1 : (k + 1)]
@@ -226,21 +205,21 @@ def load_userped(file, k=10):
 
 
 @pytest.fixture
-def load_demo_usage_data(header):
+def load_demoUsage_data():
     # load the data
     data = pd.read_csv(FILE_DIR + "demoUsage.csv")
     data["rating"] = pd.Series([1] * data.shape[0])
     data = data.rename(
         columns={
-            "userId": header["col_user"],
-            "productId": header["col_item"],
-            "rating": header["col_rating"],
-            "timestamp": header["col_timestamp"],
+            "userId": header()["col_user"],
+            "productId": header()["col_item"],
+            "rating": header()["col_rating"],
+            "timestamp": header()["col_timestamp"],
         }
     )
 
     # convert timestamp
-    data[header["col_timestamp"]] = data[header["col_timestamp"]].apply(
+    data[header()["col_timestamp"]] = data[header()["col_timestamp"]].apply(
         lambda s: time.mktime(
             datetime.datetime.strptime(s, "%Y/%m/%dT%H:%M:%S").timetuple()
         )
@@ -254,12 +233,25 @@ Other fixtures are below
 """
 
 
-def sar_algo(header):
+@pytest.fixture
+def load_dataset():
+    """Load a fixture dataset"""
+    trainset, testset = sklearn_train_test_split(
+        load_pandas_dummy_timestamp_dataset(),
+        test_size=None,
+        train_size=0.8,
+        random_state=0,
+    )
+
+    return trainset, testset
+
+
+def sar_algo():
     """Add different SAR algos"""
     return [
         [
             SARSingleNodeReference(
-                remove_seen=True, similarity_type="jaccard", **header
+                remove_seen=True, similarity_type="jaccard", **header()
             ),
             "sar_ref",
         ],
@@ -269,22 +261,60 @@ def sar_algo(header):
                 similarity_type="jaccard",
                 time_decay_coefficient=30,
                 timedecay_formula=True,
-                **header
+                **header()
             ),
             "sar_ref",
         ],
     ]
 
 
-def test_predict(load_dataset, header):
-    """Test algo predict"""
-    trainset, testset = load_dataset
+def airship_hash(train, test, pandas_new=False):
+    # index all users and items which SAR will compute scores for
+    # bugfix to get around different pandas vesions in build servers
+    if test is not None:
+        if pandas_new:
+            df_all = pd.concat([train, test], sort=False)
+        else:
+            df_all = pd.concat([train, test])
+    else:
+        df_all = train
 
-    unique_users, unique_items, user_map_dict, item_map_dict, index2user, index2item = _sar_hash(
-        trainset, testset, header
+    # hash SAR
+    # Obtain all the users and items from both training and test data
+    unique_users = df_all[header()["col_user"]].unique()
+    unique_items = df_all[header()["col_item"]].unique()
+
+    # Hash users and items to smaller continuous space.
+    # Actually, this is an ordered set - it's discrete, but contiguous.
+    # This helps keep the matrices we keep in memory as small as possible.
+    enumerate_items_1, enumerate_items_2 = itertools.tee(enumerate(unique_items))
+    enumerate_users_1, enumerate_users_2 = itertools.tee(enumerate(unique_users))
+    item_map_dict = {x: i for i, x in enumerate_items_1}
+    user_map_dict = {x: i for i, x in enumerate_users_1}
+
+    # the reverse of the dictionary above - array index to actual ID
+    index2user = dict(enumerate_users_2)
+    index2item = dict(enumerate_items_2)
+
+    return (
+        unique_users,
+        unique_items,
+        user_map_dict,
+        item_map_dict,
+        index2user,
+        index2item,
     )
 
-    for recommender in sar_algo(header):
+
+def test_predict():
+    """Test algo predict"""
+    trainset, testset = load_dataset()
+
+    unique_users, unique_items, user_map_dict, item_map_dict, index2user, index2item = airship_hash(
+        trainset, testset
+    )
+
+    for recommender in sar_algo():
         recommender[0].set_index(
             unique_users,
             unique_items,
@@ -297,8 +327,8 @@ def test_predict(load_dataset, header):
         preds = recommender[0].predict(testset)
         assert len(preds) == 2
         assert isinstance(preds, pd.DataFrame)
-        assert preds[header["col_user"]].dtype == object
-        assert preds[header["col_item"]].dtype == object
+        assert preds[header()["col_user"]].dtype == object
+        assert preds[header()["col_item"]].dtype == object
         assert preds[PREDICTION_COL].dtype == float
 
 
@@ -321,13 +351,9 @@ params = "threshold,similarity_type,file"
         (3, "lift", "lift"),
     ],
 )
-def test_sar_item_similarity(
-    threshold, similarity_type, file, load_demo_usage_data, header
-):
-    data = load_demo_usage_data
-    tester = setup_SAR(
-        data, header, similarity_type=similarity_type, threshold=threshold
-    )
+def test_sar_item_similarity(threshold, similarity_type, file):
+    data = load_demoUsage_data()
+    tester = setup_SAR(data, similarity_type=similarity_type, threshold=threshold)
     true_item_similarity, row_ids, col_ids = read_matrix(
         FILE_DIR + "sim_" + file + str(threshold) + ".csv"
     )
@@ -360,59 +386,59 @@ def test_sar_item_similarity(
 
 
 # Test 7
-# def test_user_affinity():
-#     data = load_demo_usage_data()
-#     time_now = data[header()["col_timestamp"]].max()
-#     tester = setup_SAR(
-#         data,
-#         similarity_type="cooccurrence",
-#         timedecay_formula=True,
-#         time_now=time_now,
-#         time_decay_coefficient=30,
-#     )
-#     true_user_affinity, items = load_affinity(FILE_DIR + "user_aff.csv")
-#     user_index = tester.user_map_dict[TEST_USER_ID]
-#     test_user_affinity = np.reshape(
-#         np.array(
-#             rearrange_to_test(
-#                 tester.model.user_affinity, None, items, None, tester.item_map_dict
-#             )[user_index,].todense()
-#         ),
-#         -1,
-#     )
-#     assert np.allclose(
-#         true_user_affinity.astype(test_user_affinity.dtype),
-#         test_user_affinity,
-#         atol=ATOL,
-#     )
+def test_user_affinity():
+    data = load_demoUsage_data()
+    time_now = data[header()["col_timestamp"]].max()
+    tester = setup_SAR(
+        data,
+        similarity_type="cooccurrence",
+        timedecay_formula=True,
+        time_now=time_now,
+        time_decay_coefficient=30,
+    )
+    true_user_affinity, items = load_affinity(FILE_DIR + "user_aff.csv")
+    user_index = tester.user_map_dict[TEST_USER_ID]
+    test_user_affinity = np.reshape(
+        np.array(
+            rearrange_to_test(
+                tester.model.user_affinity, None, items, None, tester.item_map_dict
+            )[user_index,].todense()
+        ),
+        -1,
+    )
+    assert np.allclose(
+        true_user_affinity.astype(test_user_affinity.dtype),
+        test_user_affinity,
+        atol=ATOL,
+    )
 
 
 # Tests 8-10
 params = "threshold,similarity_type,file"
 
 
-# @pytest.mark.parametrize(
-#     params, [(3, "cooccurrence", "count"), (3, "jaccard", "jac"), (3, "lift", "lift")]
-# )
-# def test_userpred(threshold, similarity_type, file):
-#     data = load_demo_usage_data()
-#     time_now = data[header()["col_timestamp"]].max()
-#     tester = setup_SAR(
-#         data,
-#         remove_seen=True,
-#         similarity_type=similarity_type,
-#         timedecay_formula=True,
-#         time_now=time_now,
-#         time_decay_coefficient=30,
-#         threshold=threshold,
-#     )
-#     true_items, true_scores = load_userped(
-#         FILE_DIR + "userpred_" + file + str(threshold) + "_userid_only.csv"
-#     )
-#     test_results = tester.model.recommend_k_items(
-#         data[data[header()["col_user"]] == TEST_USER_ID], top_k=10
-#     )
-#     test_items = list(test_results[header()["col_item"]])
-#     test_scores = np.array(test_results["prediction"])
-#     assert true_items == test_items
-#     assert np.allclose(true_scores, test_scores, atol=ATOL)
+@pytest.mark.parametrize(
+    params, [(3, "cooccurrence", "count"), (3, "jaccard", "jac"), (3, "lift", "lift")]
+)
+def test_userpred(threshold, similarity_type, file):
+    data = load_demoUsage_data()
+    time_now = data[header()["col_timestamp"]].max()
+    tester = setup_SAR(
+        data,
+        remove_seen=True,
+        similarity_type=similarity_type,
+        timedecay_formula=True,
+        time_now=time_now,
+        time_decay_coefficient=30,
+        threshold=threshold,
+    )
+    true_items, true_scores = load_userped(
+        FILE_DIR + "userpred_" + file + str(threshold) + "_userid_only.csv"
+    )
+    test_results = tester.model.recommend_k_items(
+        data[data[header()["col_user"]] == TEST_USER_ID], top_k=10
+    )
+    test_items = list(test_results[header()["col_item"]])
+    test_scores = np.array(test_results["prediction"])
+    assert true_items == test_items
+    assert np.allclose(true_scores, test_scores, atol=ATOL)
