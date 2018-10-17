@@ -79,14 +79,3 @@ def load_pandas_dummy_timestamp_dataset():
 
     return dataframe
 
-
-@pytest.fixture(scope="module")
-def spark_test_settings():
-    return {
-        # absolute tolerance parameter for matrix equivalnce in SAR tests
-        "ATOL": 1e-1,
-        # directory of the current file - used to link unit test data
-        "FILE_DIR": "http://recodatasets.blob.core.windows.net/sarunittest/",
-        # user ID used in the test files (they are designed for this user ID, this is part of the test)
-        "TEST_USER_ID": "0003000098E85347"
-    }
