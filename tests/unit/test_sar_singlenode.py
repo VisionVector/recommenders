@@ -3,8 +3,6 @@ import os
 import itertools
 import pytest
 from sklearn.model_selection import train_test_split
-import time
-import datetime
 import numpy as np
 import pandas as pd
 import urllib.request
@@ -15,12 +13,16 @@ from utilities.recommender.sar.sar_singlenode import SARSingleNodeReference
 from utilities.recommender.sar import TIME_NOW
 
 
-# absolute tolerance parameter for matrix equivalnce in SAR tests
-ATOL = 1e-1
-# directory of the current file - used to link unit test data
-FILE_DIR = "http://recodatasets.blob.core.windows.net/sarunittest/"
-# user ID used in the test files (they are designed for this user ID, this is part of the test)
-TEST_USER_ID = "0003000098E85347"
+def csv_reader_url(file, delimiter=",", encoding="utf-8"):
+    """
+    Read a csv file over http
+
+    Returns:
+         csv reader iterable
+    """
+    ftpstream = urllib.request.urlopen(file)
+    csvfile = csv.reader(codecs.iterdecode(ftpstream, encoding), delimiter=delimiter)
+    return csvfile
 
 
 def _csv_reader_url(url, delimiter=",", encoding="utf-8"):
@@ -76,7 +78,8 @@ def rearrange_to_test(array, row_ids, col_ids, row_map, col_map):
     return array
 
 
-def _load_affinity(file):
+@pytest.fixture
+def load_affinity(file):
     """Loads user affinities from test dataset"""
     reader = _csv_reader_url(file)
     items = next(reader)[1:]
@@ -84,7 +87,8 @@ def _load_affinity(file):
     return affinities, items
 
 
-def _load_userped(file, k=10):
+@pytest.fixture
+def load_userped(file, k=10):
     """Loads test predicted items and their SAR scores"""
     reader = _csv_reader_url(file)
     next(reader)
@@ -92,30 +96,6 @@ def _load_userped(file, k=10):
     items = values[1 : (k + 1)]
     scores = np.array([float(x) for x in values[(k + 1) :]])
     return items, scores
-
-
-@pytest.fixture
-def load_demo_usage_data(header):
-    # load the data
-    data = pd.read_csv(FILE_DIR + "demoUsage.csv")
-    data["rating"] = pd.Series([1] * data.shape[0])
-    data = data.rename(
-        columns={
-            "userId": header["col_user"],
-            "productId": header["col_item"],
-            "rating": header["col_rating"],
-            "timestamp": header["col_timestamp"],
-        }
-    )
-
-    # convert timestamp
-    data[header["col_timestamp"]] = data[header["col_timestamp"]].apply(
-        lambda s: time.mktime(
-            datetime.datetime.strptime(s, "%Y/%m/%dT%H:%M:%S").timetuple()
-        )
-    )
-
-    return data
 
 
 def _apply_sar_hash_index(model, train, test, header, pandas_new=False):
@@ -220,8 +200,9 @@ Main SAR tests are below - load test files which are used for both Scala SAR and
     ],
 )
 def test_sar_item_similarity(
-    threshold, similarity_type, file, load_demo_usage_data, header
+    threshold, similarity_type, file, load_demo_usage_data, sparktest_settings, header
 ):
+    data = load_demo_usage_data
 
     model = SARSingleNodeReference(
         remove_seen=True,
@@ -233,12 +214,12 @@ def test_sar_item_similarity(
         **header
     )
 
-    _apply_sar_hash_index(model, load_demo_usage_data, None, header)
+    _apply_sar_hash_index(model, data, None, header)
 
-    model.fit(load_demo_usage_data)
+    model.fit(data)
 
     true_item_similarity, row_ids, col_ids = read_matrix(
-        FILE_DIR + "sim_" + file + str(threshold) + ".csv"
+        spark_test_settings["FILE_DIR"] + "sim_" + file + str(threshold) + ".csv"
     )
 
     if similarity_type is "cooccurrence":
@@ -264,66 +245,63 @@ def test_sar_item_similarity(
         assert np.allclose(
             true_item_similarity.astype(test_item_similarity.dtype),
             test_item_similarity,
-            atol=ATOL,
+            atol=spark_test_settings["ATOL"],
         )
 
 
 # Test 7
-def test_user_affinity(load_demo_usage_data, header):
-    time_now = load_demo_usage_data[header["col_timestamp"]].max()
-    model = SARSingleNodeReference(
-        remove_seen=True,
-        similarity_type="cooccurrence",
-        timedecay_formula=True,
-        time_decay_coefficient=30,
-        time_now=time_now,
-        **header
-    )
-    _apply_sar_hash_index(model, load_demo_usage_data, None, header)
-    model.fit(load_demo_usage_data)
-
-    true_user_affinity, items = _load_affinity(FILE_DIR + "user_aff.csv")
-    user_index = model.user_map_dict[TEST_USER_ID]
-    test_user_affinity = np.reshape(
-        np.array(
-            rearrange_to_test(
-                model.user_affinity, None, items, None, model.item_map_dict
-            )[user_index,].todense()
-        ),
-        -1,
-    )
-    assert np.allclose(
-        true_user_affinity.astype(test_user_affinity.dtype),
-        test_user_affinity,
-        atol=ATOL,
-    )
-
+# def test_user_affinity():
+#     data = load_demo_usage_data()
+#     time_now = data[header()["col_timestamp"]].max()
+#     tester = setup_SAR(
+#         data,
+#         similarity_type="cooccurrence",
+#         timedecay_formula=True,
+#         time_now=time_now,
+#         time_decay_coefficient=30,
+#     )
+#     true_user_affinity, items = load_affinity(FILE_DIR + "user_aff.csv")
+#     user_index = tester.user_map_dict[TEST_USER_ID]
+#     test_user_affinity = np.reshape(
+#         np.array(
+#             rearrange_to_test(
+#                 tester.model.user_affinity, None, items, None, tester.item_map_dict
+#             )[user_index,].todense()
+#         ),
+#         -1,
+#     )
+#     assert np.allclose(
+#         true_user_affinity.astype(test_user_affinity.dtype),
+#         test_user_affinity,
+#         atol=ATOL,
+#     )
 
 # Tests 8-10
-@pytest.mark.parametrize(
-    "threshold,similarity_type,file", [(3, "cooccurrence", "count"), (3, "jaccard", "jac"), (3, "lift", "lift")]
-)
-def test_userpred(threshold, similarity_type, file, header, load_demo_usage_data):
-    time_now = load_demo_usage_data[header["col_timestamp"]].max()
-    model = SARSingleNodeReference(
-        remove_seen=True,
-        similarity_type=similarity_type,
-        timedecay_formula=True,
-        time_decay_coefficient=30,
-        time_now=time_now,
-        threshold=threshold,
-        **header
-    )
-    _apply_sar_hash_index(model, load_demo_usage_data, None, header)
-    model.fit(load_demo_usage_data)
+params = "threshold,similarity_type,file"
 
-    true_items, true_scores = _load_userped(
-        FILE_DIR + "userpred_" + file + str(threshold) + "_userid_only.csv"
-    )
-    test_results = model.recommend_k_items(
-        load_demo_usage_data[load_demo_usage_data[header["col_user"]] == TEST_USER_ID], top_k=10
-    )
-    test_items = list(test_results[header["col_item"]])
-    test_scores = np.array(test_results["prediction"])
-    assert true_items == test_items
-    assert np.allclose(true_scores, test_scores, atol=ATOL)
+
+# @pytest.mark.parametrize(
+#     params, [(3, "cooccurrence", "count"), (3, "jaccard", "jac"), (3, "lift", "lift")]
+# )
+# def test_userpred(threshold, similarity_type, file):
+#     data = load_demo_usage_data()
+#     time_now = data[header()["col_timestamp"]].max()
+#     tester = setup_SAR(
+#         data,
+#         remove_seen=True,
+#         similarity_type=similarity_type,
+#         timedecay_formula=True,
+#         time_now=time_now,
+#         time_decay_coefficient=30,
+#         threshold=threshold,
+#     )
+#     true_items, true_scores = load_userped(
+#         FILE_DIR + "userpred_" + file + str(threshold) + "_userid_only.csv"
+#     )
+#     test_results = tester.model.recommend_k_items(
+#         data[data[header()["col_user"]] == TEST_USER_ID], top_k=10
+#     )
+#     test_items = list(test_results[header()["col_item"]])
+#     test_scores = np.array(test_results["prediction"])
+#     assert true_items == test_items
+#     assert np.allclose(true_scores, test_scores, atol=ATOL)
