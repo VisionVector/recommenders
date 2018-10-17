@@ -1,8 +1,7 @@
-import csv
-import urllib.request
-import codecs
 import pytest
 import pandas as pd
+import time
+import datetime
 
 try:
     from pyspark.sql import SparkSession
@@ -11,7 +10,7 @@ except:
 
 
 @pytest.fixture(scope="session")
-def start_spark_test(app_name="Sample", url="local[*]", memory="1G"):
+def spark(app_name="Sample", url="local[*]", memory="1G"):
     """Start Spark if not started
     Args:
         app_name (str): sets name of the application
@@ -84,13 +83,37 @@ def load_pandas_dummy_timestamp_dataset():
 
 
 @pytest.fixture(scope="module")
-def csv_reader_url(url, delimiter=",", encoding="utf-8"):
-    """
-    Read a csv file over http
+def spark_test_settings():
+    return {
+        # absolute tolerance parameter for matrix equivalnce in SAR tests
+        "ATOL": 1e-1,
+        # directory of the current file - used to link unit test data
+        "FILE_DIR": "http://recodatasets.blob.core.windows.net/sarunittest/",
+        # user ID used in the test files (they are designed for this user ID, this is part of the test)
+        "TEST_USER_ID": "0003000098E85347",
+    }
 
-    Returns:
-         csv reader iterable
-    """
-    ftpstream = urllib.request.urlopen(url)
-    csvfile = csv.reader(codecs.iterdecode(ftpstream, encoding), delimiter=delimiter)
-    return csvfile
+
+@pytest.fixture
+def demo_usage_data(header, spark_test_settings):
+    # load the data
+    data = pd.read_csv(spark_test_settings["FILE_DIR"] + "demoUsage.csv")
+    data["rating"] = pd.Series([1] * data.shape[0])
+    data = data.rename(
+        columns={
+            "userId": header["col_user"],
+            "productId": header["col_item"],
+            "rating": header["col_rating"],
+            "timestamp": header["col_timestamp"],
+        }
+    )
+
+    # convert timestamp
+    data[header["col_timestamp"]] = data[header["col_timestamp"]].apply(
+        lambda s: time.mktime(
+            datetime.datetime.strptime(s, "%Y/%m/%dT%H:%M:%S").timetuple()
+        )
+    )
+
+    return data
+
