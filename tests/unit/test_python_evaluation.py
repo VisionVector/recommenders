@@ -6,19 +6,22 @@ import pandas as pd
 import pytest
 
 from utilities.evaluation.python_evaluation import PythonRatingEvaluation, PythonRankingEvaluation
+from utilities.evaluation.spark_evaluation import SparkRankingEvaluation, SparkRatingEvaluation
+from utilities.common.spark_utils import start_or_get_spark
 
+TOL = 0.0001
 
 @pytest.fixture
 def target_metrics():
     return {
-        'rmse': pytest.approx(7.254309, 0.0001),
-        'mae': pytest.approx(6.375, 0.0001),
-        'rsquared': pytest.approx(-31.699029, 0.0001),
+        'rmse': pytest.approx(7.254309, TOL),
+        'mae': pytest.approx(6.375, TOL),
+        'rsquared': pytest.approx(-31.699029, TOL),
         'exp_var': pytest.approx(-6.4466, 0.01),
-        'ndcg': pytest.approx(0.38172, 0.0001),
-        'precision': pytest.approx(0.26666, 0.0001),
-        'map': pytest.approx(0.23613, 0.0001),
-        'recall': pytest.approx(0.37777, 0.0001)
+        'ndcg': pytest.approx(0.38172, TOL),
+        'precision': pytest.approx(0.26666, TOL),
+        'map': pytest.approx(0.23613, TOL),
+        'recall': pytest.approx(0.37777, TOL)
     }
 
 
@@ -92,7 +95,7 @@ def test_python_rsquared(python_data, target_metrics):
 
     evaluator1 = PythonRatingEvaluation(rating_true=rating_true, rating_pred=rating_true,
                                         col_prediction="rating")
-    assert evaluator1.rsquared() == pytest.approx(1.0, 0.0001)
+    assert evaluator1.rsquared() == pytest.approx(1.0, TOL)
 
     evaluator2 = PythonRatingEvaluation(rating_true, rating_pred)
     assert evaluator2.rsquared() == target_metrics['rsquared']
@@ -105,7 +108,7 @@ def test_python_exp_var(python_data, target_metrics):
 
     evaluator1 = PythonRatingEvaluation(rating_true=rating_true, rating_pred=rating_true,
                                         col_prediction="rating")
-    assert evaluator1.exp_var() == pytest.approx(1.0, 0.0001)
+    assert evaluator1.exp_var() == pytest.approx(1.0, TOL)
 
     evaluator2 = PythonRatingEvaluation(rating_true, rating_pred)
     assert evaluator2.exp_var() == target_metrics['exp_var']
@@ -199,3 +202,5 @@ def test_python_errors(python_data):
 
     with pytest.raises(ValueError):
         PythonRankingEvaluation(rating_true, rating_pred, col_prediction="not_prediction")
+
+
