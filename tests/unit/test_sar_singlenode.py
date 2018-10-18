@@ -13,18 +13,6 @@ from utilities.recommender.sar.sar_singlenode import SARSingleNodeReference
 from utilities.recommender.sar import TIME_NOW
 
 
-def csv_reader_url(file, delimiter=",", encoding="utf-8"):
-    """
-    Read a csv file over http
-
-    Returns:
-         csv reader iterable
-    """
-    ftpstream = urllib.request.urlopen(file)
-    csvfile = csv.reader(codecs.iterdecode(ftpstream, encoding), delimiter=delimiter)
-    return csvfile
-
-
 def _csv_reader_url(url, delimiter=",", encoding="utf-8"):
     """
     Read a csv file over http
@@ -197,7 +185,7 @@ Main SAR tests are below - load test files which are used for both Scala SAR and
     ],
 )
 def test_sar_item_similarity(
-    threshold, similarity_type, file, demo_usage_data, sar_test_settings, header
+    threshold, similarity_type, file, demo_usage_data, spark_test_settings, header
 ):
 
     model = SARSingleNodeReference(
@@ -215,7 +203,7 @@ def test_sar_item_similarity(
     model.fit(demo_usage_data)
 
     true_item_similarity, row_ids, col_ids = _read_matrix(
-        sar_test_settings["FILE_DIR"] + "sim_" + file + str(threshold) + ".csv"
+        spark_test_settings["FILE_DIR"] + "sim_" + file + str(threshold) + ".csv"
     )
 
     if similarity_type is "cooccurrence":
@@ -241,12 +229,12 @@ def test_sar_item_similarity(
         assert np.allclose(
             true_item_similarity.astype(test_item_similarity.dtype),
             test_item_similarity,
-            atol=sar_test_settings["ATOL"],
+            atol=spark_test_settings["ATOL"],
         )
 
 
 # Test 7
-def test_user_affinity(demo_usage_data, sar_test_settings, header):
+def test_user_affinity(demo_usage_data, spark_test_settings, header):
     time_now = demo_usage_data[header["col_timestamp"]].max()
     model = SARSingleNodeReference(
         remove_seen=True,
@@ -260,9 +248,9 @@ def test_user_affinity(demo_usage_data, sar_test_settings, header):
     model.fit(demo_usage_data)
 
     true_user_affinity, items = _load_affinity(
-        sar_test_settings["FILE_DIR"] + "user_aff.csv"
+        spark_test_settings["FILE_DIR"] + "user_aff.csv"
     )
-    user_index = model.user_map_dict[sar_test_settings["TEST_USER_ID"]]
+    user_index = model.user_map_dict[spark_test_settings["TEST_USER_ID"]]
     test_user_affinity = np.reshape(
         np.array(
             rearrange_to_test(
@@ -274,7 +262,7 @@ def test_user_affinity(demo_usage_data, sar_test_settings, header):
     assert np.allclose(
         true_user_affinity.astype(test_user_affinity.dtype),
         test_user_affinity,
-        atol=sar_test_settings["ATOL"],
+        atol=spark_test_settings["ATOL"],
     )
 
 
@@ -284,7 +272,7 @@ def test_user_affinity(demo_usage_data, sar_test_settings, header):
     [(3, "cooccurrence", "count"), (3, "jaccard", "jac"), (3, "lift", "lift")],
 )
 def test_userpred(
-    threshold, similarity_type, file, header, sar_test_settings, demo_usage_data
+    threshold, similarity_type, file, header, spark_test_settings, demo_usage_data
 ):
     time_now = demo_usage_data[header["col_timestamp"]].max()
     model = SARSingleNodeReference(
@@ -300,7 +288,7 @@ def test_userpred(
     model.fit(demo_usage_data)
 
     true_items, true_scores = _load_userped(
-        sar_test_settings["FILE_DIR"]
+        spark_test_settings["FILE_DIR"]
         + "userpred_"
         + file
         + str(threshold)
@@ -308,12 +296,12 @@ def test_userpred(
     )
     test_results = model.recommend_k_items(
         demo_usage_data[
-            demo_usage_data[header["col_user"]] == sar_test_settings["TEST_USER_ID"]
+            demo_usage_data[header["col_user"]] == spark_test_settings["TEST_USER_ID"]
         ],
         top_k=10,
     )
     test_items = list(test_results[header["col_item"]])
     test_scores = np.array(test_results["prediction"])
     assert true_items == test_items
-    assert np.allclose(true_scores, test_scores, atol=sar_test_settings["ATOL"])
+    assert np.allclose(true_scores, test_scores, atol=spark_test_settings["ATOL"])
 
