@@ -9,9 +9,6 @@
 Work in progress.
 
 
-## Setup
-
-Please see the [setup guide](SETUP.md).
 
 ## Contributing
 
