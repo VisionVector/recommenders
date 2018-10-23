@@ -1,15 +1,16 @@
+"""
+Test Spark evaluation
+"""
 import pandas as pd
 import pytest
-from reco_utils.evaluation.python_evaluation import PythonRankingEvaluation
 
-try:
-    from reco_utils.evaluation.spark_evaluation import (
-        SparkRankingEvaluation,
-        SparkRatingEvaluation,
-    )
-    from reco_utils.common.spark_utils import start_or_get_spark
-except ModuleNotFoundError:
-    pass  # skip this import if we are in pure python environment
+from reco_utils.evaluation.spark_evaluation import (
+    SparkRankingEvaluation,
+    SparkRatingEvaluation,
+)
+from reco_utils.evaluation.python_evaluation import PythonRankingEvaluation
+from reco_utils.common.spark_utils import start_or_get_spark
+
 
 TOL = 0.0001
 

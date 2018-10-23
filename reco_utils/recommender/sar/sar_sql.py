@@ -45,7 +45,7 @@ disabling because logging output contaminates stdout output on Databricsk Spark 
 log = logging.getLogger(__name__)
 
 
-class SARpySparkReference:
+class SARSQLReference:
     """SAR reference implementation"""
 
     def __init__(
@@ -89,7 +89,7 @@ class SARpySparkReference:
 
         # array of indexes for rows and columns of users and items in training set
         self.index = None
-        self.model_str = "sar_pyspark"
+        self.model_str = "sar_sql"
         self.model = self
         # spark context
         self.spark = spark
@@ -212,11 +212,14 @@ class SARpySparkReference:
 
         # record the training dataframe
         self.df = df
-        df.createOrReplaceTempView("df_train")
 
+        # register temp view
+        df.createOrReplaceTempView("df_train")
         # record all user IDs in the training set
-        # self.user_row_ids = [df_trainx[0] for x in self.spark.sql("select distinct row_id from df_train").collect()]
-        self.user_row_ids = [x[0] for x in df.select("row_id").distinct().collect()]
+        self.user_row_ids = [
+            x[0]
+            for x in self.spark.sql("select distinct row_id from df_train").collect()
+        ]
 
         log.info("Collecting user affinity matrix...")
 
@@ -234,7 +237,9 @@ class SARpySparkReference:
             # so we do dt/60/(T*24*60)=dt/(T*24*3600)
             # the folling is the query which we want to run
             if self.time_now is None:
-                self.time_now = df.select(F.max(self.col_timestamp)).first()[0]
+                query = "select max(" + self.col_timestamp + ") from df_train"
+                log.info("Running query -- " + query)
+                self.time_now = self.spark.sql(query).collect()[0][0]
 
             """
             select
@@ -268,17 +273,10 @@ class SARpySparkReference:
             log.info("Running query -- " + query)
             df = self.spark.sql(query)
 
-        # record affinity scores
+        df.createOrReplaceTempView("affinity")
+
+        # store reference for tests later
         self.affinity = df
-        if self.debug:
-            # trigger execution
-            self.time()
-            cnt = self.affinity.cache().count()
-            elapsed_time = self.time()
-            self.timer_log += [
-                "Affinity calculation:\t%d\trows in\t%s\tseconds -\t%f\trows per second."
-                % (cnt, elapsed_time, float(cnt) / elapsed_time)
-            ]
 
         # create affinity transpose
         log.info("Calculating item cooccurrence...")
@@ -286,41 +284,28 @@ class SARpySparkReference:
         # Calculate item cooccurrence by computing:
         #  C = U'.transpose() * U'
         # where U' is the user_affinity matrix with 1's as values (instead of ratings)
+        query = "select col_id as row_id, row_id as col_id, Affinity from affinity"
+        log.info("Running query -- " + query)
+        self.spark.sql(query).createOrReplaceTempView("affinity_transpose")
 
-        # add dummy indicator column for DF iterables
-        df = df.withColumn("ind", lit(1))
-        df_transpose = df.select(
-            col("col_id").alias("row_id"),
-            col("row_id").alias("col_id"),
-            lit(1).alias("ind"),
+        # replace sum(1) with sum(A.affinity*B.affinity) if you want to multiply up the ratings
+        query = (
+            "select A.row_id as row_item_id, B.col_id as col_item_id, sum(1) as value "
+            + "from affinity_transpose A inner join affinity B on A.col_id = B.row_id "
+            + "group by A.row_id, B.col_id"
         )
-
-        # WARNING: we need to rename columns for matrix multiplication to work on pySpark
-        # we can keep same name columns here because it's the same matrix being multiplied
-        # however when doing Affinity*item_cooccurence we need to rename
-        item_cooccurrence = (
-            df_transpose.join(df, df_transpose["col_id"] == df["row_id"])
-            .groupBy(df_transpose["row_id"], df["col_id"])
-            .agg(sum(df_transpose["ind"] * df["ind"]).alias("value"))
-            .select(
-                col("row_id").alias("row_item_id"),
-                col("col_id").alias("col_item_id"),
-                col("value"),
-            )
-        )
+        log.info("Running query -- " + query)
+        item_cooccurrence_raw = self.spark.sql(query)
+        item_cooccurrence_raw.createOrReplaceTempView("item_cooccurrence_raw")
 
         # filter out cooccurence counts which are below threshold
-        item_cooccurrence = item_cooccurrence.filter("value>=" + str(self.threshold))
-
-        if self.debug:
-            # trigger execution
-            self.time()
-            cnt = item_cooccurrence.cache().count()
-            elapsed_time = self.time()
-            self.timer_log += [
-                "Item cooccurrence calculation:\t%d\trows in\t%s\tseconds -\t%f\trows per second."
-                % (cnt, elapsed_time, float(cnt) / elapsed_time)
-            ]
+        query = (
+            "select row_item_id, col_item_id, value from item_cooccurrence_raw where value >= "
+            + str(self.threshold)
+        )
+        log.info("Running query -- " + query)
+        item_cooccurrence = self.spark.sql(query)
+        item_cooccurrence.createOrReplaceTempView("item_cooccurrence")
 
         log.info("Calculating item similarity...")
         similarity_type = (
@@ -329,11 +314,13 @@ class SARpySparkReference:
 
         # compute the diagonal used later for Jaccard and Lift
         if similarity_type == SIM_LIFT or similarity_type == SIM_JACCARD:
-            diagonal = item_cooccurrence.filter("row_item_id == col_item_id").select(
-                col("row_item_id").alias("i"), col("value").alias("d")
+            query = (
+                "select A.row_item_id as i, A.value as d from item_cooccurrence A "
+                + "where A.row_item_id = A.col_item_id"
             )
+            log.info("Running query -- " + query)
+            diagonal = self.spark.sql(query)
             diagonal.createOrReplaceTempView("diagonal")
-            item_cooccurrence.createOrReplaceTempView("item_cooccurrence")
 
         if similarity_type == SIM_COOCCUR:
             self.item_similarity = item_cooccurrence
@@ -356,52 +343,21 @@ class SARpySparkReference:
         else:
             raise ValueError("Unknown similarity type: {0}".format(similarity_type))
 
-        if self.debug and (
-            similarity_type == SIM_JACCARD or similarity_type == SIM_LIFT
-        ):
-            # trigger execution
-            self.time()
-            cnt = self.item_similarity.cache().count()
-            elapsed_time = self.time()
-            self.timer_log += [
-                "Item similarity calculation:\t%d\trows in\t%s\tseconds -\t%f\trows per second."
-                % (cnt, elapsed_time, float(cnt) / elapsed_time)
-            ]
+        self.item_similarity.createOrReplaceTempView("item_similarity")
 
         # Calculate raw scores with a matrix multiplication.
         log.info("Calculating recommendation scores...")
         # user_affinity * item_similarity
-
-        # naming here matters - we need distinct row and column names across the tables
-        self.scores = (
-            self.affinity.join(
-                self.item_similarity,
-                self.affinity["col_id"] == self.item_similarity["row_item_id"],
-            )
-            .groupBy(self.affinity["row_id"], self.item_similarity["col_item_id"])
-            .agg(
-                sum(self.affinity["Affinity"] * self.item_similarity["value"]).alias(
-                    "score"
-                )
-            )
-            .select(
-                col("row_id").alias("row_user_id"), col("col_item_id"), col("score")
-            )
+        self.scores = self.spark.sql(
+            ""
+            + "select A.row_id as row_user_id, B.col_item_id, sum(A.Affinity*B.value) as score "
+            + "from affinity A inner join item_similarity B on A.col_id = B.row_item_id "
+            + "group by A.row_id, B.col_item_id"
         )
-
-        if self.debug:
-            # trigger execution
-            self.time()
-            cnt = self.scores.cache().count()
-            elapsed_time = self.time()
-            self.timer_log += [
-                "Score calculation:\t%d\trows in\t%s\tseconds -\t%f\trows per second."
-                % (cnt, elapsed_time, float(cnt) / elapsed_time)
-            ]
 
         log.info("done training")
 
-    def recommend_k_items(self, test, top_k=10, output_pandas=False, **kwargs):
+    def recommend_k_items(self, test, top_k=10, **kwargs):
         """Recommend top K items for all users which are in the test set.
 
         Args:
@@ -414,7 +370,10 @@ class SARpySparkReference:
         # first check that test set users are in the training set
         # test_users = test.select('row_id').distinct().rdd.map(lambda r: r[0]).collect()
         test.createOrReplaceTempView("df_test")
-        test_users = [x[0] for x in test.select("row_id").distinct().collect()]
+        test_users = [
+            x[0]
+            for x in self.spark.sql("select distinct row_id from df_test").collect()
+        ]
         # check that test users are a subset of train users based on row coordinates
         if not set(test_users) <= set(self.user_row_ids):
             msg = "SAR cannot score test set users which are not in the training set"
@@ -423,6 +382,7 @@ class SARpySparkReference:
 
         # shorthand
         scores = self.scores
+        scores.createOrReplaceTempView("scores")
 
         # Mask out items in the train set.  This only makes sense for some
         # problems (where a user wouldn't interact with an item more than once).
@@ -435,31 +395,18 @@ class SARpySparkReference:
                 & (scores.col_item_id == self.df.col_id),
                 "left_outer",
             )
-
             # now since training set is smaller, we have nulls under its value column, i.e. item is not in the
             # training set
-            masked_scores = masked_scores.where(self.col_rating + " is null").select(
-                col("row_user_id"), col("col_item_id"), col("score").alias("rating")
+            masked_scores = masked_scores.withColumn(
+                "rating", F.when(F.col("rating").isNull(), F.col("score")).otherwise(0)
             )
-
         else:
             # just rename the scores column for future reference
-            masked_scores = scores.select(
-                col("row_user_id"), col("col_item_id"), col("score").alias("rating")
-            ).distinct()
-
-        if self.debug:
-            # trigger execution
-            self.time()
-            cnt = masked_scores.cache().count()
-            elapsed_time = self.time()
-            self.timer_log += [
-                "Masked score calculation:\t%d\trows in\t%s\tseconds -\t%f\trows per second."
-                % (cnt, elapsed_time, float(cnt) / elapsed_time)
-            ]
+            masked_scores = self.spark.sql(
+                "select row_user_id, col_item_id, score as rating from scores"
+            )
 
         # select scores based on the list of row IDs
-        # TODO: this is experimental - supposed to be faster than doing another join unless string list blows up
         masked_scores.createOrReplaceTempView("masked_scores")
         query = (
             "select * from masked_scores where row_user_id in ("
@@ -482,16 +429,6 @@ class SARpySparkReference:
             F.row_number().over(window).alias("top")
         ).filter(F.col("top") <= top_k)
 
-        if self.debug:
-            # trigger execution
-            self.time()
-            cnt = top_scores.cache().count()
-            elapsed_time = self.time()
-            self.timer_log += [
-                "Top-k calculation:\t%d\trows in\t%s\tseconds -\t%f\trows per second."
-                % (cnt, elapsed_time, float(cnt) / elapsed_time)
-            ]
-
         # output a Spark dataframe
         # format somethig like [Row(UserId=463, MovieId=368226, prediction=30.296138763427734)]
 
@@ -511,16 +448,6 @@ class SARpySparkReference:
         top_scores = top_scores.select(
             col(self.col_user), col(self.col_item), col("rating").alias(PREDICTION_COL)
         ).orderBy(PREDICTION_COL, ascending=False)
-
-        if self.debug:
-            # trigger execution
-            self.time()
-            cnt = top_scores.cache().count()
-            elapsed_time = self.time()
-            self.timer_log += [
-                "Mapping user IDs and formatting:\t%d\trows in\t%s\tseconds -\t%f\trows per second."
-                % (cnt, elapsed_time, float(cnt) / elapsed_time)
-            ]
 
         return top_scores
 
