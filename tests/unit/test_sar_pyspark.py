@@ -1,16 +1,100 @@
+import sys
+import os
 import pytest
+from sklearn.model_selection import train_test_split
 import numpy as np
 import pandas as pd
 from reco_utils.recommender.sar.sar_pyspark import SARpySparkReference
+from reco_utils.recommender.sar import TIME_NOW
 from reco_utils.common.constants import PREDICTION_COL
-from tests.unit.sar_common import (
-    read_matrix,
-    load_userpred,
-    load_affinity,
-    _rearrange_to_test_sql,
-    _index_and_fit,
-)
-from tests.unit.sar_common import demo_usage_data_spark
+from tests.unit.sar_common import read_matrix, load_userpred, load_affinity
+
+# TODO: DRY with _rearrange_to_test
+def _rearrange_to_test_sql(array, row_ids, col_ids, row_map, col_map):
+    """Rearranges SAR array into test array order
+    Same as rearrange_to_test but offsets the count by -1 to account for SQL counts starting at 1"""
+    if row_ids is not None:
+        row_index = [row_map[x] - 1 for x in row_ids]
+        array = array[row_index, :]
+    if col_ids is not None:
+        col_index = [col_map[x] - 1 for x in col_ids]
+        array = array[:, col_index]
+    return array
+
+
+def _index_and_fit(spark, model, df_all, header):
+
+    df_all.createOrReplaceTempView("df_all")
+
+    # create new index for the items
+    query = (
+        "select "
+        + header["col_user"]
+        + ", "
+        + "dense_rank() over(partition by 1 order by "
+        + header["col_user"]
+        + ") as row_id, "
+        + header["col_item"]
+        + ", "
+        + "dense_rank() over(partition by 1 order by "
+        + header["col_item"]
+        + ") as col_id, "
+        + header["col_rating"]
+        + ", "
+        + header["col_timestamp"]
+        + " from df_all"
+    )
+    df_all = spark.sql(query)
+    df_all.createOrReplaceTempView("df_all")
+
+    # Obtain all the users and items from both training and test data
+    unique_users = np.array(
+        [
+            x[header["col_user"]]
+            for x in df_all.select(header["col_user"]).distinct().toLocalIterator()
+        ]
+    )
+    unique_items = np.array(
+        [
+            x[header["col_item"]]
+            for x in df_all.select(header["col_item"]).distinct().toLocalIterator()
+        ]
+    )
+
+    # index all rows and columns, then split again intro train and test
+    # We perform the reduction on Spark across keys before calling .collect so this is scalable
+    index2user = dict(
+        df_all.select(["row_id", header["col_user"]])
+        .rdd.reduceByKey(lambda _, v: v)
+        .collect()
+    )
+    index2item = dict(
+        df_all.select(["col_id", header["col_item"]])
+        .rdd.reduceByKey(lambda _, v: v)
+        .collect()
+    )
+
+    # reverse the dictionaries: actual IDs to inner index
+    user_map_dict = {v: k for k, v in index2user.items()}
+    item_map_dict = {v: k for k, v in index2item.items()}
+
+    # we need to index the train and test sets for SAR matrix operations to work
+    model.set_index(
+        unique_users, unique_items, user_map_dict, item_map_dict, index2user, index2item
+    )
+
+    model.fit(df_all)
+
+    return df_all
+
+
+@pytest.fixture
+def demo_usage_data_spark(spark, demo_usage_data, header):
+    data_local = demo_usage_data[[x[1] for x in header.items()]]
+    # TODO: install pyArrow in DS VM
+    # spark.conf.set("spark.sql.execution.arrow.enabled", "true")
+    data = spark.createDataFrame(data_local)
+    return data
 
 
 @pytest.mark.spark
@@ -19,7 +103,6 @@ def test_initializaton_and_fit(header, spark, demo_usage_data_spark):
 
     # recommender will execute a fit method here
     model = SARpySparkReference(spark, **header)
-    # test running indexer
     _index_and_fit(spark, model, demo_usage_data_spark, header)
 
     assert model is not None
@@ -35,6 +118,7 @@ def test_recommend_top_k(header, spark, demo_usage_data_spark):
     # recommender will execute a fit method here
     model = SARpySparkReference(spark, **header)
     data_indexed = _index_and_fit(spark, model, demo_usage_data_spark, header)
+
     top_k_spark = model.recommend_k_items(data_indexed, top_k=10)
     top_k = top_k_spark.toPandas()
 
