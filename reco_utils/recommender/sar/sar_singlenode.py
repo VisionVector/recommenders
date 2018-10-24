@@ -1,9 +1,13 @@
 """
-Reference implementation of SAR in python/numpy/pandas.
+Reference implementation of SAR in pySpark using Spark-SQL and some dataframe operations.
+This is supposed to be a super-performant implementation of SAR on Spark using pySpark.
 
-This is not meant to be particularly performant or scalable, just
-as a simple and readable implementation.
+PS: there is plenty of room for improvement, especially around the very last step of making a partial sort:
+1) Can be done using UDAFs
+2) UDAFs can be transformed into: pivot, series of UDF operations, pivot
+3) other DF operations.
 """
+
 import numpy as np
 import pandas as pd
 import logging
