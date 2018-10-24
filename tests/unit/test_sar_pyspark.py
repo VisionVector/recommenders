@@ -1,18 +1,13 @@
 import sys
 import os
 import pytest
+from sklearn.model_selection import train_test_split
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from tests.unit.sar_common import read_matrix, load_userpred, load_affinity
+from reco_utils.recommender.sar.sar_pyspark import SARpySparkReference
 from reco_utils.recommender.sar import TIME_NOW
 from reco_utils.common.constants import PREDICTION_COL
-
-try:
-    from reco_utils.recommender.sar.sar_pyspark import SARpySparkReference
-except ModuleNotFoundError:
-    pass  # skip this import if we are in pure python environment
-
+from tests.unit.sar_common import read_matrix, load_userpred, load_affinity
 
 # TODO: DRY with _rearrange_to_test
 def _rearrange_to_test_sql(array, row_ids, col_ids, row_map, col_map):
