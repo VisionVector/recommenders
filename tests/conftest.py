@@ -4,10 +4,6 @@ import time
 import calendar
 import datetime
 from sklearn.model_selection import train_test_split
-import logging
-
-# logging.basicConfig(level=logging.INFO)
-log = logging.getLogger(__name__)
 
 try:
     from pyspark.sql import SparkSession
@@ -112,13 +108,4 @@ def demo_usage_data(header, sar_settings):
         )
     )
 
-    return data
-
-
-@pytest.fixture
-def demo_usage_data_spark(spark, demo_usage_data, header):
-    data_local = demo_usage_data[[x[1] for x in header.items()]]
-    # TODO: install pyArrow in DS VM
-    # spark.conf.set("spark.sql.execution.arrow.enabled", "true")
-    data = spark.createDataFrame(data_local)
     return data
