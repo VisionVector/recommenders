@@ -1,3 +1,6 @@
+"""
+Collection of Splitter Methods
+"""
 import pandas as pd
 from sklearn.model_selection import train_test_split as sk_split
 
@@ -17,21 +20,24 @@ def python_random_split(data, ratio=0.75, seed=123):
     """Pandas random splitter
 
     Args:
-        data (pd.DataFrame): Pandas DataFrame to be split.
+        data (pandas.DataFrame): Pandas DataFrame to be split.
         ratio (float or list): Ratio for splitting data. If it is a single float number
-            it splits data into two halfs and the ratio argument indicates the ratio 
-            of training data set; if it is a list of float numbers, the splitter splits 
-            data into several portions corresponding to the split ratios. If a list is 
-            provided and the ratios are not summed to 1, they will be normalized.
+        it splits data into
+        two halfs and the ratio argument indicates the ratio of training data set;
+        if it is a list of float numbers, the splitter splits data into several portions
+        corresponding to the
+        split ratios. If a list is provided and the ratios are not summed to 1, they will be
+        normalized.
         seed (int): Seed.
-        
+
     Returns:
-        pd.DataFrame: Splits of the input data.
+        Splits of the input data.
     """
     multi_split, ratio = process_split_ratio(ratio)
 
     if multi_split:
-        return split_pandas_data_with_ratios(data, ratio, resample=True, seed=seed)
+        splits = split_pandas_data_with_ratios(data, ratio, resample=True, seed=seed)
+        return splits
     else:
         return sk_split(data, test_size=None, train_size=ratio, random_state=seed)
 
