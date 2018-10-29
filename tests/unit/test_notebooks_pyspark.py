@@ -14,9 +14,6 @@ def notebooks():
         "sar_pyspark": os.path.join(
             folder_notebooks, "00_quick_start", "sar_pyspark_movielens.ipynb"
         ),
-        "sarplus_movielens": os.path.join(
-            folder_notebooks, "00_quick_start", "sarplus_movielens.ipynb"
-        ),
         "data_split": os.path.join(folder_notebooks, "01_data", "data_split.ipynb"),
         "sar_deep_dive": os.path.join(
             folder_notebooks, "02_modeling", "sar_deep_dive.ipynb"
@@ -33,13 +30,6 @@ def notebooks():
 @pytest.mark.spark
 def test_sar_single_node_runs(notebooks):
     notebook_path = notebooks["sar_pyspark"]
-    pm.execute_notebook(notebook_path, OUTPUT_NOTEBOOK, kernel_name=KERNEL_NAME)
-
-
-@pytest.mark.notebooks
-@pytest.mark.spark
-def test_sarplus(notebooks):
-    notebook_path = notebooks["sarplus_movielens"]
     pm.execute_notebook(notebook_path, OUTPUT_NOTEBOOK, kernel_name=KERNEL_NAME)
 
 
@@ -69,4 +59,3 @@ def test_als_deep_dive_runs(notebooks):
 def test_evaluation_runs(notebooks):
     notebook_path = notebooks["evaluation"]
     pm.execute_notebook(notebook_path, OUTPUT_NOTEBOOK, kernel_name=KERNEL_NAME)
-
