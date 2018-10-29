@@ -1,3 +1,6 @@
+"""
+Collection of Splitter Methods
+"""
 import pandas as pd
 from sklearn.model_selection import train_test_split as sk_split
 
@@ -17,21 +20,24 @@ def python_random_split(data, ratio=0.75, seed=123):
     """Pandas random splitter
 
     Args:
-        data (pd.DataFrame): Pandas DataFrame to be split.
+        data (pandas.DataFrame): Pandas DataFrame to be split.
         ratio (float or list): Ratio for splitting data. If it is a single float number
-            it splits data into two halfs and the ratio argument indicates the ratio 
-            of training data set; if it is a list of float numbers, the splitter splits 
-            data into several portions corresponding to the split ratios. If a list is 
-            provided and the ratios are not summed to 1, they will be normalized.
+        it splits data into
+        two halfs and the ratio argument indicates the ratio of training data set;
+        if it is a list of float numbers, the splitter splits data into several portions
+        corresponding to the
+        split ratios. If a list is provided and the ratios are not summed to 1, they will be
+        normalized.
         seed (int): Seed.
-        
+
     Returns:
-        list: Splits of the input data as pd.DataFrame.
+        Splits of the input data.
     """
     multi_split, ratio = process_split_ratio(ratio)
 
     if multi_split:
-        return split_pandas_data_with_ratios(data, ratio, resample=True, seed=seed)
+        splits = split_pandas_data_with_ratios(data, ratio, resample=True, seed=seed)
+        return splits
     else:
         return sk_split(data, test_size=None, train_size=ratio, random_state=seed)
 
@@ -48,22 +54,25 @@ def python_chrono_split(
     """Pandas chronological splitter
 
     Args:
-        data (pd.DataFrame): Pandas DataFrame to be split.
+        data (pandas.DataFrame): Pandas DataFrame to be split.
         ratio (float or list): Ratio for splitting data. If it is a single float number
-            it splits data into two halfs and the ratio argument indicates the ratio of 
-            training data set; if it is a list of float numbers, the splitter splits 
-            data into several portions corresponding to the split ratios. If a list is 
-            provided and the ratios are not summed to 1, they will be normalized.
+        it splits data into
+        two halfs and the ratio argument indicates the ratio of training data set;
+        if it is a list of float numbers, the splitter splits data into several portions
+        corresponding to the
+        split ratios. If a list is provided and the ratios are not summed to 1, they will be
+        normalized.
         seed (int): Seed.
         min_rating (int): minimum number of ratings for user or item.
-        filter_by (str): either "user" or "item", depending on which of the two is to 
-            filter with min_rating.
+        filter_by (str): either "user" or "item", depending on which of the two is to filter
+        with
+        min_rating.
         col_user (str): column name of user IDs.
         col_item (str): column name of item IDs.
         col_timestamp (str): column name of timestamps.
 
     Returns:
-        list: Splits of the input data as pd.DataFrame.
+        Splits of the input data.
     """
     if not (filter_by == "user" or filter_by == "item"):
         raise ValueError("filter_by should be either 'user' or 'item'.")
