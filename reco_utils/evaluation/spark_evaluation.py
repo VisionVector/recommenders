@@ -1,3 +1,7 @@
+"""
+SparkEvaluation
+"""
+
 from pyspark.mllib.evaluation import RegressionMetrics, RankingMetrics
 from pyspark.sql import Window, DataFrame
 from pyspark.sql.functions import col, row_number, expr
@@ -23,14 +27,9 @@ class SparkRatingEvaluation:
         col_prediction=PREDICTION_COL,
     ):
         """Initializer.
-
         Args:
             rating_true (spark.DataFrame): True labels.
             rating_pred (spark.DataFrame): Predicted labels.
-            col_user (str): column name for user.
-            col_item (str): column name for item.
-            col_rating (str): column name for rating.
-            col_prediction (str): column name for prediction.
         """
         self.rating_true = rating_true
         self.rating_pred = rating_pred
@@ -102,19 +101,10 @@ class SparkRatingEvaluation:
 
     def rmse(self):
         """Calculate Root Mean Squared Error
-        
         Returns:
-            float: Root mean squared error.
+            Root Mean Squared Error
         """
         return self.metrics.rootMeanSquaredError
-
-    def mae(self):
-        """Calculate Mean Absolute for data
-        
-        Returns:
-            float: Mean Absolute Error.
-        """
-        return self.metrics.meanAbsoluteError
 
     def rsquared(self):
         """Calculate R squared
@@ -123,20 +113,67 @@ class SparkRatingEvaluation:
         """
         return self.metrics.r2
 
+    def mae(self):
+        """Calculate Mean Absolute for data
+        Returns:
+            Mean Absolute Error
+        """
+        return self.metrics.meanAbsoluteError
+
     def exp_var(self):
         """Calculate explained variance.
-
-        NOTE: Spark MLLib's implementation is buggy (can lead to values > 1), hence we 
-        use var().
-
         Returns:
-            float: Explained variance (min=0, max=1).
+            Explained variance
+            = 1 - var(y-hat(y))/var(y)
+        NOTE: Spark MLLib's implementation is buggy (can lead to values > 1), hence we use var()
         """
         var1 = self.y_pred_true.selectExpr("variance(label - prediction)").collect()[0][
             0
         ]
         var2 = self.y_pred_true.selectExpr("variance(label)").collect()[0][0]
         return 1 - var1 / var2
+
+    @staticmethod
+    def get_available_metrics():
+        """Get all available metrics.
+
+        Return:
+            List of metric names.
+        """
+        return ["rmse", "rsquare", "mae", "exp_var"]
+
+    def get_metric(self, metrics="rmse", _all=False):
+        """Get metrics.
+
+        Args:
+            metrics (string or string list): metrics to obtain.
+            _all (bool): whether to return all metrics.
+
+        Return:
+            dictionary object that contains the specified metrics.
+        """
+        metrics_to_calculate = self.get_available_metrics() if _all else metrics
+
+        metrics_dict = {
+            "rmse": self.rmse,
+            "mae": self.mae,
+            "rsquare": self.rsquared,
+            "exp_var": self.exp_var,
+        }
+
+        metrics_output = {}
+        if isinstance(metrics_to_calculate, list):
+            for metric in metrics_to_calculate:
+                metrics_output[metric] = metrics_dict[metric]()
+        elif isinstance(metrics_to_calculate, str):
+            metrics_output[metrics_to_calculate] = metrics_dict[metrics_to_calculate]()
+        else:
+            raise TypeError(
+                "The input metric argument type is not valid. Only a string or a list of strings "
+                "are allowed."
+            )
+
+        return metrics_output
 
 
 class SparkRankingEvaluation:
@@ -156,17 +193,17 @@ class SparkRankingEvaluation:
         """Initialization.
 
         Args:
-            rating_true (spark.DataFrame): DataFrame of true rating data (in the
-                format of customerID-itemID-rating tuple).
-            rating_pred (spark.DataFrame): DataFrame of predicted rating data (in
-                the format of customerID-itemID-rating tuple).
+            rating_true (Spark DataFrame): DataFrame of true rating data (in the
+            format of customerID-itemID-rating tuple).
+            rating_pred (Spark DataFrame): DataFrame of predicted rating data (in
+            the format of customerID-itemID-rating tuple).
             col_user (str): column name for user.
             col_item (str): column name for item.
             col_rating (str): column name for rating.
             col_prediction (str): column name for prediction.
             k (int): number of items to recommend to each user.
-            relevancy_method (str): method for determining relevant items. Possible 
-                values are "top_k", "by_time_stamp", and "by_threshold".
+            relevancy_method (str): method for determining relevant items.
+            Possible values are "top_k", "by_time_stamp", and "by_threshold".
         """
         self.rating_true = rating_true
         self.rating_pred = rating_pred
@@ -246,7 +283,8 @@ class SparkRankingEvaluation:
         self._metrics = self._calculate_metrics()
 
     def _calculate_metrics(self):
-        """Calculate ranking metrics."""
+        """Calculate ranking metrics.
+        """
         self._items_for_user_pred = (
             self.rating_pred.groupBy(self.col_user)
             .agg(expr("collect_list(" + self.col_item + ") as prediction"))
@@ -266,26 +304,62 @@ class SparkRankingEvaluation:
         return RankingMetrics(self._items_for_user_all.rdd)
 
     def precision_at_k(self):
+        # pylint: disable=line-too-long
         """Get precision@k.
 
-        NOTE: More details can be found at http://spark.apache.org/docs/2.1.1/api/python/pyspark.mllib.html#pyspark.mllib.evaluation.RankingMetrics.precisionAt
+        More details can be found at
+        http://spark.apache.org/docs/2.1.1/api/python/pyspark.mllib.html#pyspark.mllib.evaluation
+        .RankingMetrics.precisionAt
 
         Return:
-            float: precision at k (min=0, max=1)
+            precision at k.
         """
         precision = self._metrics.precisionAt(self.k)
 
         return precision
+
+    def ndcg_at_k(self):
+        # pylint: disable=line-too-long
+        """Get Normalized Discounted Cumulative Gain (NDCG)@k.
+
+        More details can be found at
+        http://spark.apache.org/docs/2.1.1/api/python/pyspark.mllib.html#pyspark.mllib.evaluation
+        .RankingMetrics.ndcgAt
+
+        Return:
+            NDCG at k.
+        """
+        ndcg = self._metrics.ndcgAt(self.k)
+
+        return ndcg
+
+    def map_at_k(self):
+        # pylint: disable=line-too-long
+        """
+        Get mean average precision at k.
+
+        More details can be found at
+        http://spark.apache.org/docs/2.1.1/api/python/pyspark.mllib.html#pyspark.mllib.evaluation
+        .RankingMetrics.meanAveragePrecision
+
+        Return:
+            MAP at k.
+        """
+        maprecision = self._metrics.meanAveragePrecision
+
+        return maprecision
 
     def recall_at_k(self):
         # pylint: disable=line-too-long
         """
         Get mean average precision at k.
 
-        NOTE: More details can be found at http://spark.apache.org/docs/2.1.1/api/python/pyspark.mllib.html#pyspark.mllib.evaluation.RankingMetrics.meanAveragePrecision
+        More details can be found at
+        http://spark.apache.org/docs/2.1.1/api/python/pyspark.mllib.html#pyspark.mllib.evaluation
+        .RankingMetrics.meanAveragePrecision
 
         Return:
-            float: recall at k (min=0, max=1).
+            Recall at k.
         """
         recall = self._items_for_user_all.rdd.map(
             lambda x: float(len(set(x[0]).intersection(set(x[1])))) / float(len(x[1]))
@@ -293,29 +367,47 @@ class SparkRankingEvaluation:
 
         return recall
 
-    def ndcg_at_k(self):
-        """Get Normalized Discounted Cumulative Gain (NDCG)
-
-        NOTE: More details can be found at http://spark.apache.org/docs/2.1.1/api/python/pyspark.mllib.html#pyspark.mllib.evaluation.RankingMetrics.ndcgAt
-
-        Return:
-            float: nDCG at k (min=0, max=1).
-        """
-        ndcg = self._metrics.ndcgAt(self.k)
-
-        return ndcg
-
-    def map_at_k(self):
-        """Get mean average precision at k.
-
-        NOTE: More details can be found at http://spark.apache.org/docs/2.1.1/api/python/pyspark.mllib.html#pyspark.mllib.evaluation.RankingMetrics.meanAveragePrecision
+    @staticmethod
+    def get_available_metrics():
+        """Get all available metrics.
 
         Return:
-            float: MAP at k (min=0, max=1).
+            List of metric names.
         """
-        maprecision = self._metrics.meanAveragePrecision
+        return ["precision@k", "recall@k", "map@k", "ndcg@k"]
 
-        return maprecision
+    def get_metric(self, metrics="precision@k", _all=False):
+        """Get metrics.
+
+        Args:
+            metrics (string or string list): metrics to obtain.
+            _all (bool): whether to return all metrics.
+
+        Return:
+            dictionary object that contains the specified metrics.
+        """
+        metrics_to_calculate = self.get_available_metrics() if _all else metrics
+
+        metrics_dict = {
+            "precision@k": self.precision_at_k,
+            "recall@k": self.recall_at_k,
+            "map@k": self.map_at_k,
+            "ndcg@k": self.ndcg_at_k,
+        }
+
+        metrics_output = {}
+        if isinstance(metrics_to_calculate, list):
+            for metric in metrics_to_calculate:
+                metrics_output[metric] = metrics_dict[metric]()
+        elif isinstance(metrics_to_calculate, str):
+            metrics_output[metrics_to_calculate] = metrics_dict[metrics_to_calculate]()
+        else:
+            raise TypeError(
+                "The input metric argument type is not valid. Only a string or a list of strings "
+                "are allowed."
+            )
+
+        return metrics_output
 
 
 def get_top_k_items(
@@ -324,7 +416,9 @@ def get_top_k_items(
     """Get the input customer-item-rating tuple in the format of Spark
     DataFrame, output a Spark DataFrame in the dense format of top k items
     for each user.
-    NOTE: if it is implicit rating, just append a column of constants to be ratings.
+    Note:
+        if it is implicit rating, just append a column of constants to be
+        ratings.
 
     Args:
         dataframe (spark.DataFrame): DataFrame of rating data (in the format of
@@ -335,7 +429,7 @@ def get_top_k_items(
         k (int): number of items for each user.
 
     Return:
-        spark.DataFrame: DataFrame of top k items for each user.
+        Spark DataFrame of top k items for each user.
     """
     window_spec = Window.partitionBy(col_user).orderBy(col(col_rating).desc())
 
@@ -374,8 +468,8 @@ def get_relevant_items_by_threshold(
         distribution.
 
     Return:
-        spark.DataFrame: DataFrame of customerID-itemID-rating tuples with only relevant
-            items.
+        Spark DataFrame of customerID-itemID-rating tuples with only relevant
+        items.
     """
     items_for_user = dataframe.where(col_rating + " >= " + str(threshold)).select(
         col_user, col_item, col_rating
@@ -398,8 +492,8 @@ def get_relevant_items_by_timestamp(
     according to timestamps.
 
     Args:
-        dataframe (spark.DataFrame): A Spark DataFrame of customerID-itemID-rating-timeStamp
-            tuples.
+        dataframe: A Spark DataFrame of customerID-itemID-rating-timeStamp
+        tuples.
         col_user (str): column name for user.
         col_item (str): column name for item.
         col_rating (str): column name for rating.
@@ -407,7 +501,7 @@ def get_relevant_items_by_timestamp(
         k: number of relevent items to be filtered by the function.
 
     Return:
-        spark.DataFrame: DataFrame of customerID-itemID-rating tuples with only relevant items.
+        Spark DataFrame of customerID-itemID-rating tuples with only relevant items.
     """
     window_spec = Window.partitionBy(col_user).orderBy(col(col_timestamp).desc())
 

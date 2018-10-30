@@ -19,9 +19,9 @@ from reco_utils.common.constants import (
     DEFAULT_USER_COL,
     DEFAULT_ITEM_COL,
     DEFAULT_RATING_COL,
-    DEFAULT_TIMESTAMP_COL,
-    PREDICTION_COL,
+    TIMESTAMP_COL,
 )
+from reco_utils.common.constants import PREDICTION_COL
 
 from reco_utils.recommender.sar import (
     SIM_JACCARD,
@@ -55,7 +55,7 @@ class SARpySparkReference:
         col_user=DEFAULT_USER_COL,
         col_item=DEFAULT_ITEM_COL,
         col_rating=DEFAULT_RATING_COL,
-        col_timestamp=DEFAULT_TIMESTAMP_COL,
+        col_timestamp=TIMESTAMP_COL,
         similarity_type=SIM_JACCARD,
         time_decay_coefficient=TIME_DECAY_COEFFICIENT,
         time_now=TIME_NOW,
@@ -401,7 +401,7 @@ class SARpySparkReference:
 
         log.info("done training")
 
-    def recommend_k_items(self, test, top_k=10, for_predict=False, **kwargs):
+    def recommend_k_items(self, test, top_k=10, output_pandas=False, **kwargs):
         """Recommend top K items for all users which are in the test set.
 
         Args:
@@ -468,34 +468,29 @@ class SARpySparkReference:
         )
         masked_scores = self.spark.sql(query)
 
-        # we do not pick top n items for predict method - return full dataframe
-        # and have the predict method subselect users and items which it needs
-        if not for_predict:
-            # Get top K items and scores.
-            log.info("Getting top K...")
-            # TODO: try groupby row_user_id with UDF
-            # row_id is the user id
-            # use row_number() and now rank() to avoid situations where you get same scores for different items
-            window = Window.partitionBy(masked_scores["row_user_id"]).orderBy(
-                masked_scores["rating"].desc()
-            )
-            # WARNING: rating is an internal column name here - not passed in the user data's header
-            top_scores = masked_scores.select(
-                *["row_user_id", "col_item_id", "rating"],
-                F.row_number().over(window).alias("top")
-            ).filter(F.col("top") <= top_k)
+        # Get top K items and scores.
+        log.info("Getting top K...")
+        # TODO: try groupby row_user_id with UDF
+        # row_id is the user id
+        # use row_number() and now rank() to avoid situations where you get same scores for different items
+        window = Window.partitionBy(masked_scores["row_user_id"]).orderBy(
+            masked_scores["rating"].desc()
+        )
+        # WARNING: rating is an internal column name here - not passed in the user data's header
+        top_scores = masked_scores.select(
+            *["row_user_id", "col_item_id", "rating"],
+            F.row_number().over(window).alias("top")
+        ).filter(F.col("top") <= top_k)
 
-            if self.debug:
-                # trigger execution
-                self.time()
-                cnt = top_scores.cache().count()
-                elapsed_time = self.time()
-                self.timer_log += [
-                    "Top-k calculation:\t%d\trows in\t%s\tseconds -\t%f\trows per second."
-                    % (cnt, elapsed_time, float(cnt) / elapsed_time)
-                ]
-        else:
-            top_scores = masked_scores
+        if self.debug:
+            # trigger execution
+            self.time()
+            cnt = top_scores.cache().count()
+            elapsed_time = self.time()
+            self.timer_log += [
+                "Top-k calculation:\t%d\trows in\t%s\tseconds -\t%f\trows per second."
+                % (cnt, elapsed_time, float(cnt) / elapsed_time)
+            ]
 
         # output a Spark dataframe
         # format somethig like [Row(UserId=463, MovieId=368226, prediction=30.296138763427734)]
@@ -512,13 +507,10 @@ class SARpySparkReference:
             self.col_item, item_map.getItem(col("col_item_id"))
         )
 
+        # return top scores
         top_scores = top_scores.select(
             col(self.col_user), col(self.col_item), col("rating").alias(PREDICTION_COL)
-        )
-
-        # return top scores
-        if not for_predict:
-            top_scores = top_scores.orderBy(PREDICTION_COL, ascending=False)
+        ).orderBy(PREDICTION_COL, ascending=False)
 
         if self.debug:
             # trigger execution
@@ -534,10 +526,4 @@ class SARpySparkReference:
 
     def predict(self, test):
         """Output SAR scores for only the users-items pairs which are in the test set"""
-        df = self.recommend_k_items(test, for_predict=True)
-        return test.join(
-            df,
-            (test[self.header["col_user"]] == df[self.header["col_user"]])
-            & (test[self.header["col_item"]] == df[self.header["col_item"]]),
-            "inner",
-        )
+        raise NotImplementedError
