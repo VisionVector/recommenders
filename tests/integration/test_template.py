@@ -1,6 +1,3 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License.
-
 # More information: https://miguelgfierro.com/blog/2018/a-beginners-guide-to-python-testing/
 import pytest
 import pandas as pd
