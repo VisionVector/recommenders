@@ -1,6 +1,3 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License.
-
 import os
 
 # Unless manually modified, python3 should be the name of the current jupyter kernel
