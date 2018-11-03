@@ -1,6 +1,3 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License.
-
 """
 Reference implementation of SAR in pySpark using Spark-SQL and some dataframe operations.
 This is supposed to be a super-performant implementation of SAR on Spark using pySpark.
