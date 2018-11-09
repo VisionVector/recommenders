@@ -288,7 +288,8 @@ class SparkRankingEvaluation:
 
     def recall_at_k(self):
         # pylint: disable=line-too-long
-        """Get recall@K.
+        """
+        Get mean average precision at k.
 
         NOTE: More details can be found at http://spark.apache.org/docs/2.1.1/api/python/pyspark.mllib.html#pyspark.mllib.evaluation.RankingMetrics.meanAveragePrecision
 
