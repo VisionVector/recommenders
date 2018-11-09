@@ -1,10 +1,6 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License.
-
 from pyspark.mllib.evaluation import RegressionMetrics, RankingMetrics
 from pyspark.sql import Window, DataFrame
 from pyspark.sql.functions import col, row_number, expr
-import pyspark.sql.functions as F
 
 from reco_utils.common.constants import (
     PREDICTION_COL,
@@ -27,9 +23,6 @@ class SparkRatingEvaluation:
         col_prediction=PREDICTION_COL,
     ):
         """Initializer.
-        This is the Spark version of rating metrics evaluator.
-        The methods of this class, calculate rating metrics such as root mean squared error, mean absolute error,
-        R squared, and explained variance.
 
         Args:
             rating_true (spark.DataFrame): True labels.
@@ -126,7 +119,7 @@ class SparkRatingEvaluation:
     def rsquared(self):
         """Calculate R squared
         Returns:
-            float: R squared
+            R squared
         """
         return self.metrics.r2
 
@@ -161,11 +154,6 @@ class SparkRankingEvaluation:
         col_prediction=PREDICTION_COL,
     ):
         """Initialization.
-        This is the Spark version of ranking metrics evaluator.
-        The methods of this class, calculate ranking metrics such as precision@k, recall@k, ndcg@k, and mean average
-        precision.
-        The implementations of precision@k, ndcg@k, and mean average precision are referenced from Spark MLlib, which
-        can be found at https://spark.apache.org/docs/2.3.0/mllib-evaluation-metrics.html#ranking-systems.
 
         Args:
             rating_true (spark.DataFrame): DataFrame of true rating data (in the
@@ -259,11 +247,14 @@ class SparkRankingEvaluation:
 
     def _calculate_metrics(self):
         """Calculate ranking metrics."""
-        self._items_for_user_pred = self.rating_pred
+        self._items_for_user_pred = (
+            self.rating_pred.groupBy(self.col_user)
+            .agg(expr("collect_list(" + self.col_item + ") as prediction"))
+            .select(self.col_user, "prediction")
+        )
 
         self._items_for_user_true = (
-            self.rating_true
-            .groupBy(self.col_user)
+            self.rating_true.groupBy(self.col_user)
             .agg(expr("collect_list(" + self.col_item + ") as ground_truth"))
             .select(self.col_user, "ground_truth")
         )
@@ -351,15 +342,10 @@ def get_top_k_items(
     # this does not work for rating of the same value.
     items_for_user = (
         dataframe.select(
-            col_user,
-            col_item,
-            col_rating,
-            row_number().over(window_spec).alias("rank")
+            col_user, col_item, col_rating, row_number().over(window_spec).alias("rank")
         )
         .where(col("rank") <= k)
-        .withColumn("prediction", F.collect_list(col_item).over(Window.partitionBy(col_user)))
-        .select(col_user, "prediction")
-        .dropDuplicates([col_user, "prediction"])
+        .drop("rank")
     )
 
     return items_for_user
@@ -391,16 +377,8 @@ def get_relevant_items_by_threshold(
         spark.DataFrame: DataFrame of customerID-itemID-rating tuples with only relevant
             items.
     """
-    items_for_user = (
-        dataframe
-        .orderBy(col_rating, ascending=False)
-        .where(col_rating + " >= " + str(threshold))
-        .select(
-            col_user, col_item, col_rating
-        )
-        .withColumn("prediction", F.collect_list(col_item).over(Window.partitionBy(col_user)))
-        .select(col_user, "prediction")
-        .dropDuplicates()
+    items_for_user = dataframe.where(col_rating + " >= " + str(threshold)).select(
+        col_user, col_item, col_rating
     )
 
     return items_for_user
@@ -438,9 +416,7 @@ def get_relevant_items_by_timestamp(
             col_user, col_item, col_rating, row_number().over(window_spec).alias("rank")
         )
         .where(col("rank") <= k)
-        .withColumn("prediction", F.collect_list(col_item).over(Window.partitionBy(col_user)))
-        .select(col_user, "prediction")
-        .dropDuplicates([col_user, "prediction"])
+        .drop("rank")
     )
 
     return items_for_user
