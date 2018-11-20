@@ -24,7 +24,6 @@ CONDA_FILE="conda_bare.yaml"
 
 # default CPU-only no-pySpark versions of conda packages.
 tensorflow="tensorflow"
-gpu="#"
 pyspark="#"
 
 # flags to detect if both CPU and GPU are specified
@@ -40,7 +39,6 @@ do
 			exit
 			;;
 		--gpu)
-			gpu=""
 			tensorflow="tensorflow-gpu"
 			CONDA_FILE="conda_gpu.yaml"
 			gpu_flag=true
@@ -102,8 +100,6 @@ ${pyspark}- pybind11>=2.2
   - black>=18.6b4
 ${pyspark}  - pysarplus>=0.2.2
   - memory-profiler>=0.54.0
-${gpu}  - numba>=0.38.1 
-  - gitpython>=2.1.8
 EOM
 
 echo "Conda file generated: " $CONDA_FILE
