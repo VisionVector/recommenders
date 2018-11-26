@@ -387,7 +387,7 @@ class SARSingleNodeReference:
 
         log.info("done training")
 
-    def recommend_k_items(self, test, top_k=10, sort_top_k=False, **kwargs):
+    def recommend_k_items(self, test, top_k=10, **kwargs):
         """Recommend top K items for all users which are in the test set
 
         Args:
@@ -458,8 +458,7 @@ class SARSingleNodeReference:
         results[self.col_item] = results[self.col_item].map(self.index2item)
 
         # do final sort
-        if sort_top_k:
-            results = results.sort_values(by=self.col_rating, ascending=False)
+        results = results.sort_values(by=self.col_rating, ascending=False)
 
         # format the dataframe in the end to conform to Suprise return type
         log.info("Formatting output")
@@ -478,7 +477,7 @@ class SARSingleNodeReference:
             )
         )
 
-    def predict(self, test, sort_top_k=False):
+    def predict(self, test):
         """Output SAR scores for only the users-items pairs which are in the test set
 
         Args:
@@ -536,10 +535,6 @@ class SARSingleNodeReference:
         # remap user and item indices to IDs
         results[self.col_user] = results[self.col_user].map(self.index2user)
         results[self.col_item] = results[self.col_item].map(self.index2item)
-
-        # do final sort
-        if sort_top_k:
-            results = results.sort_values(by=self.col_rating, ascending=False)
 
         # format the dataframe in the end to conform to Suprise return type
         log.info("Formatting output")
