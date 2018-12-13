@@ -1,13 +1,6 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-import sys
-# Need to append a full path instead of relative path.
-# This seems to be an issue from Azure DevOps command line task.
-# NOTE this does not affect running directly in the shell.
-sys.path.append('cicdworkdir')
-sys.path.append('cicdworkdir/scripts')
-print(sys.path)
 import os
 import argparse
 import traceback
