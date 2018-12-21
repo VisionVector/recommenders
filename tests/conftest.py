@@ -40,9 +40,11 @@ def spark(app_name="Sample", url="local[*]", memory="1G"):
         .master(url)
         .config("spark.driver.memory", memory)
         .config("spark.sql.shuffle.partitions", "1")
-	.config("spark.local.dir", "/mnt")
-	.config("spark.worker.cleanup.enabled", "true")
-	.config("spark.worker.cleanup.appDataTtl", "3600")
+        .config("spark.local.dir", "/mnt")
+        .config("spark.worker.cleanup.enabled", "true")
+        .config("spark.worker.cleanup.appDataTtl", "3600")
+        .config("spark.worker.cleanup.interval", "300")
+        .config("spark.storage.cleanupFilesAfterExecutorExit", "true")
         .getOrCreate()
     )
 
@@ -149,6 +151,9 @@ def notebooks():
         ),
         "surprise_svd_deep_dive": os.path.join(
             folder_notebooks, "02_model", "surprise_svd_deep_dive.ipynb"
+        ),
+        "baseline_deep_dive": os.path.join(
+            folder_notebooks, "02_model", "baseline_deep_dive.ipynb"
         ),
         "evaluation": os.path.join(folder_notebooks, "03_evaluate", "evaluation.ipynb"),
     }
