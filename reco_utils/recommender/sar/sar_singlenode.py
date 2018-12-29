@@ -12,8 +12,6 @@ import pandas as pd
 import logging
 from scipy import sparse
 
-from reco_utils.common.python_utils import jaccard, lift
-
 from reco_utils.common.constants import (
     DEFAULT_USER_COL,
     DEFAULT_ITEM_COL,
@@ -143,6 +141,27 @@ class SARSingleNode:
         # TODO: we can make this into an array as well
         self.index2user = index2user
         self.index2item = index2item
+
+    # private methods
+    @staticmethod
+    def __jaccard(cooccurrence):
+        """Helper method to calculate teh Jaccard cooccurrence of the item-item similarity"""
+        log.info("Calculating jaccard...")
+        diag = cooccurrence.diagonal()
+        diag_rows = np.expand_dims(diag, axis=0)
+        diag_cols = np.expand_dims(diag, axis=1)
+        # this essentially does vstack(diag_rows).T + vstack(diag_rows) - cooccurrence
+        denom = diag_rows + diag_cols - cooccurrence
+        return cooccurrence / denom
+
+    @staticmethod
+    def __lift(cooccurrence):
+        """Helper method to calculate the Lift of the item-item similarity"""
+        diag = cooccurrence.diagonal()
+        diag_rows = np.expand_dims(diag, axis=0)
+        diag_cols = np.expand_dims(diag, axis=1)
+        denom = diag_rows * diag_cols
+        return cooccurrence / denom
 
     # stateful time function
     def time(self):
@@ -302,14 +321,18 @@ class SARSingleNode:
         user_item_hits = (
             sparse.coo_matrix(
                 (
-                    np.array([1.0] * len(newdf[self._col_hashed_users])).astype(float_type),
+                    [1] * len(newdf[self._col_hashed_users]),
                     (newdf[self._col_hashed_users], newdf[self._col_hashed_items]),
                 ),
-                shape=(n_users, n_items)
+                shape=(n_users, n_items),
             )
                 .todok()
                 .tocsr()
         )
+
+        fname = "user_item_hits.npz"
+        sparse.save_npz(fname, user_item_hits)
+        user_item_hits = sparse.load_npz(fname)
 
         item_cooccurrence = user_item_hits.transpose().dot(user_item_hits)
         if self.debug:
@@ -339,13 +362,13 @@ class SARSingleNode:
         if similarity_type == SIM_COOCCUR:
             self.item_similarity = item_cooccurrence
         elif similarity_type == SIM_JACCARD:
-            log.info("Calculating jaccard ...")
-            self.item_similarity = jaccard(item_cooccurrence)
+            self.item_similarity = self.__jaccard(item_cooccurrence)
         elif similarity_type == SIM_LIFT:
-            log.info("Calculating lift ...")
-            self.item_similarity = lift(item_cooccurrence)
+            self.item_similarity = self.__lift(item_cooccurrence)
         else:
             raise ValueError("Unknown similarity type: {0}".format(similarity_type))
+
+        self.item_similarity = self.item_similarity.astype(float_type, copy=False)
 
         if self.debug and (
                 similarity_type == SIM_JACCARD or similarity_type == SIM_LIFT
