@@ -77,7 +77,7 @@ def pandas_dummy(header):
     ratings_dict = {
         header["col_user"]: [1, 1, 1, 1, 2, 2, 2, 2, 2, 2],
         header["col_item"]: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        header["col_rating"]: [1.0, 2.0, 3.0, 4.0, 5.0, 1.0, 2.0, 3.0, 4.0, 5.0],
+        header["col_rating"]: [1, 2, 3, 4, 5, 1, 2, 3, 4, 5],
     }
     df = pd.DataFrame(ratings_dict)
     return df
@@ -101,7 +101,7 @@ def train_test_dummy_timestamp(pandas_dummy_timestamp):
 def demo_usage_data(header, sar_settings):
     # load the data
     data = pd.read_csv(sar_settings["FILE_DIR"] + "demoUsage.csv")
-    data["rating"] = pd.Series([1.0] * data.shape[0])
+    data["rating"] = pd.Series([1] * data.shape[0])
     data = data.rename(
         columns={
             "userId": header["col_user"],
@@ -151,9 +151,6 @@ def notebooks():
         ),
         "surprise_svd_deep_dive": os.path.join(
             folder_notebooks, "02_model", "surprise_svd_deep_dive.ipynb"
-        ),
-        "baseline_deep_dive": os.path.join(
-            folder_notebooks, "02_model", "baseline_deep_dive.ipynb"
         ),
         "evaluation": os.path.join(folder_notebooks, "03_evaluate", "evaluation.ipynb"),
     }
