@@ -10,14 +10,15 @@ from sklearn.metrics import (
     explained_variance_score,
 )
 
-from reco_utils.common.constants import (
-    DEFAULT_USER_COL,
-    DEFAULT_ITEM_COL,
-    DEFAULT_RATING_COL,
-    PREDICTION_COL,
-    DEFAULT_K,
-    DEFAULT_THRESHOLD,
-)
+# Default column names
+DEFAULT_USER_COL = "userID"
+DEFAULT_ITEM_COL = "itemID"
+DEFAULT_RATING_COL = "rating"
+PREDICTION_COL = "prediction"
+
+# Filtering variables
+DEFAULT_K = 10
+DEFAULT_THRESHOLD = 10
 
 
 def _merge_rating_true_pred(
@@ -55,10 +56,6 @@ def _merge_rating_true_pred(
             "Schema of y_true not valid. Missing Prediction Col: "
             + str(rating_pred.columns)
         )
-
-    # Select the columns needed for evaluations
-    rating_true = rating_true[[col_user, col_item, col_rating]]
-    rating_pred = rating_pred[[col_user, col_item, col_prediction]]
 
     if col_rating == col_prediction:
         rating_true_pred = pd.merge(
