@@ -28,24 +28,14 @@ except:
     pass  # so the environment without spark doesn't break
 
 
+# MovieLens data have a different format for each size
 class _DataFormat:
     def __init__(
             self,
             sep, path, has_header=False,
             item_sep=None, item_path=None, item_has_header=False,
+            # user_sep=None, user_path=None, user_has_header=False
     ):
-    """ MovieLens data format container as a different size of MovieLens data file
-    has a different format
-    
-    Args:
-        sep (str): Rating data delimiter
-        path (str): Rating data path within the original zip file
-        has_header (bool): Whether the rating data contains a header line or not
-        item_sep (str): Item data delimiter
-        item_path (str): Item data path within the original zip file
-        item_has_header (bool): Whether the item data contains a header line or not
-    """
-    
         # Rating file
         self._sep = sep
         self._path = path
@@ -55,6 +45,11 @@ class _DataFormat:
         self._item_sep = item_sep
         self._item_path = item_path
         self._item_has_header = item_has_header
+
+        # User file
+        # self._user_sep = user_sep
+        # self._user_path = user_path
+        # self._user_has_header = user_has_header
 
     """ Rating file """
 
@@ -84,16 +79,31 @@ class _DataFormat:
     def item_has_header(self):
         return self._item_has_header
 
+    # """ User file """
+    # @property
+    # def user_separator(self):
+    #     return self._user_sep
+    #
+    # @property
+    # def user_path(self):
+    #     return self._user_path
+    #
+    # @property
+    # def user_has_header(self):
+    #     return self._user_has_header
+
 
 # 10m and 20m data do not have user data
 _data_format = {
     "100k": _DataFormat(
         "\t", "ml-100k/u.data", False,
         "|", "ml-100k/u.item", False,
+        # "|", "ml-100k/u.user", False,
     ),
     "1m": _DataFormat(
         "::", "ml-1m/ratings.dat", False,
         "::", "ml-1m/movies.dat", False,
+        # "::", "ml-1m/users.dat", False,
     ),
     "10m": _DataFormat(
         "::", "ml-10M100K/ratings.dat", False,
