@@ -155,7 +155,7 @@ def test_spark_recall(spark_data, target_metrics):
 
 
 @pytest.mark.spark
-def test_spark_precision(spark_data, target_metrics, spark):
+def test_spark_precision(spark_data, target_metrics):
     df_true, df_pred = spark_data
 
     evaluator = SparkRankingEvaluation(df_true, df_pred, k=10)
@@ -165,27 +165,6 @@ def test_spark_precision(spark_data, target_metrics, spark):
         df_true, df_pred, relevancy_method="by_threshold"
     )
     assert evaluator1.precision_at_k() == target_metrics["precision"]
-
-    # check normalization
-    single_user = pd.DataFrame(
-        {"userID": [1, 1, 1], "itemID": [1, 2, 3], "rating": [5, 4, 3]}
-    )
-    df_single = spark.createDataFrame(single_user)
-    evaluator2 = SparkRankingEvaluation(
-        df_single, df_single, k=3, col_prediction="rating"
-    )
-    assert evaluator2.precision_at_k() == 1
-
-    same_items = pd.DataFrame(
-        {
-            "userID": [1, 1, 1, 2, 2, 2],
-            "itemID": [1, 2, 3, 1, 2, 3],
-            "rating": [5, 4, 3, 5, 5, 3],
-        }
-    )
-    df_same = spark.createDataFrame(same_items)
-    evaluator3 = SparkRankingEvaluation(df_same, df_same, k=3, col_prediction="rating")
-    assert evaluator3.precision_at_k() == 1
 
 
 @pytest.mark.spark
@@ -264,6 +243,7 @@ def test_spark_python_match(python_data, spark):
     assert all(match2)
 
     # Remove the first row from the original data.
+
     df_pred = df_pred[1:-1]
 
     dfs_true = spark.createDataFrame(df_true)
@@ -285,8 +265,8 @@ def test_spark_python_match(python_data, spark):
 
     # Test with one user
 
-    df_pred = df_pred.loc[df_pred["userID"] == 3]
-    df_true = df_true.loc[df_true["userID"] == 3]
+    df_pred = df_pred[df_pred["userID"] == 3]
+    df_true = df_true[df_true["userID"] == 3]
 
     dfs_true = spark.createDataFrame(df_true)
     dfs_pred = spark.createDataFrame(df_pred)
