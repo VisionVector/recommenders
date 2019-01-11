@@ -22,11 +22,14 @@ from scripts.repo_metrics.config import (
     DATABASE,
     COLLECTION_GITHUB_STATS,
     COLLECTION_EVENTS,
+    LOG_FILE,
 )
 
 format_str = "%(asctime)s %(levelname)s [%(filename)s:%(lineno)s]: %(message)s"
 format_time = "%Y-%m-%d %H:%M:%S"
-logging.basicConfig(level=logging.INFO, format=format_str, datefmt=format_time)
+logging.basicConfig(
+    filename=LOG_FILE, level=logging.DEBUG, format=format_str, datefmt=format_time
+)
 log = logging.getLogger()
 
 
@@ -132,9 +135,9 @@ def tracker(args):
         # if there is an env variable, overwrite it
         token = os.environ.get("GITHUB_TOKEN", GITHUB_TOKEN)
         g = Github(token, args.github_repo)
+        g.clean()  # clean folder if it exists
         git_doc = github_stats_as_dict(g)
         log.info("GitHub stats -- {}".format(git_doc))
-        g.clean()
 
     if args.event:
         event_doc = event_as_dict(args.event, args.event_date)
@@ -155,8 +158,9 @@ if __name__ == "__main__":
     log.info("Starting routine")
     args = parse_args()
     try:
-        log.info("Arguments: {}".format(args))
-        tracker(args)
+        log.info("Tracking data")
+        print(args)
+        # tracker(args)
     except Exception as e:
         trace = traceback.format_exc()
         log.error("Traceback: {}".format(trace))
