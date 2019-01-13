@@ -243,6 +243,7 @@ def test_spark_python_match(python_data, spark):
     assert all(match2)
 
     # Remove the first row from the original data.
+
     df_pred = df_pred[1:-1]
 
     dfs_true = spark.createDataFrame(df_true)
@@ -264,8 +265,8 @@ def test_spark_python_match(python_data, spark):
 
     # Test with one user
 
-    df_pred = df_pred.loc[df_pred["userID"] == 3]
-    df_true = df_true.loc[df_true["userID"] == 3]
+    df_pred = df_pred[df_pred["userID"] == 3]
+    df_true = df_true[df_true["userID"] == 3]
 
     dfs_true = spark.createDataFrame(df_true)
     dfs_pred = spark.createDataFrame(df_pred)
