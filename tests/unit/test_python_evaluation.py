@@ -70,39 +70,11 @@ def python_data():
             ],
         }
     )
-    rating_nohit = pd.DataFrame(
-        {
-            "userID": [1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
-            "itemID": [100] * rating_pred.shape[0],
-            "prediction": [
-                14,
-                13,
-                12,
-                14,
-                13,
-                12,
-                11,
-                10,
-                14,
-                13,
-                12,
-                11,
-                10,
-                9,
-                8,
-                7,
-                6,
-                5,
-            ],
-        }
-
-    )
-
-    return rating_true, rating_pred, rating_nohit
+    return rating_true, rating_pred
 
 
 def test_python_rmse(python_data, target_metrics):
-    rating_true, rating_pred, _ = python_data
+    rating_true, rating_pred = python_data
     assert (
         rmse(rating_true=rating_true, rating_pred=rating_true, col_prediction="rating")
         == 0
@@ -111,7 +83,7 @@ def test_python_rmse(python_data, target_metrics):
 
 
 def test_python_mae(python_data, target_metrics):
-    rating_true, rating_pred, _ = python_data
+    rating_true, rating_pred = python_data
     assert (
         mae(rating_true=rating_true, rating_pred=rating_true, col_prediction="rating")
         == 0
@@ -120,7 +92,7 @@ def test_python_mae(python_data, target_metrics):
 
 
 def test_python_rsquared(python_data, target_metrics):
-    rating_true, rating_pred, _ = python_data
+    rating_true, rating_pred = python_data
 
     assert rsquared(
         rating_true=rating_true, rating_pred=rating_true, col_prediction="rating"
@@ -130,7 +102,7 @@ def test_python_rsquared(python_data, target_metrics):
 
 
 def test_python_exp_var(python_data, target_metrics):
-    rating_true, rating_pred, _ = python_data
+    rating_true, rating_pred = python_data
 
     assert exp_var(
         rating_true=rating_true, rating_pred=rating_true, col_prediction="rating"
@@ -140,8 +112,7 @@ def test_python_exp_var(python_data, target_metrics):
 
 
 def test_python_ndcg_at_k(python_data, target_metrics):
-    rating_true, rating_pred, rating_nohit = python_data
-
+    rating_true, rating_pred = python_data
     assert (
         ndcg_at_k(
             k=10,
@@ -151,13 +122,11 @@ def test_python_ndcg_at_k(python_data, target_metrics):
         )
         == 1
     )
-    assert ndcg_at_k(rating_true, rating_nohit, k=10) == 0.0
     assert ndcg_at_k(rating_true, rating_pred, k=10) == target_metrics["ndcg"]
 
 
 def test_python_map_at_k(python_data, target_metrics):
-    rating_true, rating_pred, rating_nohit = python_data
-
+    rating_true, rating_pred = python_data
     assert (
         map_at_k(
             k=10,
@@ -167,13 +136,11 @@ def test_python_map_at_k(python_data, target_metrics):
         )
         == 1
     )
-    assert map_at_k(rating_true, rating_nohit, k=10) == 0.0
     assert map_at_k(rating_true, rating_pred, k=10) == target_metrics["map"]
 
 
 def test_python_precision(python_data, target_metrics):
-    rating_true, rating_pred, rating_nohit = python_data
-
+    rating_true, rating_pred = python_data
     assert (
         precision_at_k(
             k=10,
@@ -183,22 +150,19 @@ def test_python_precision(python_data, target_metrics):
         )
         == 0.6
     )
-    assert precision_at_k(rating_true, rating_nohit, k=10) == 0.0
     assert precision_at_k(rating_true, rating_pred, k=10) == target_metrics["precision"]
 
 
 def test_python_recall(python_data, target_metrics):
-    rating_true, rating_pred, rating_nohit = python_data
-
+    rating_true, rating_pred = python_data
     assert recall_at_k(
         k=10, rating_true=rating_true, rating_pred=rating_true, col_prediction="rating"
     ) == pytest.approx(1, 0.1)
-    assert recall_at_k(rating_true, rating_nohit, k=10) == 0.0
     assert recall_at_k(rating_true, rating_pred, k=10) == target_metrics["recall"]
 
 
 def test_python_errors(python_data):
-    rating_true, rating_pred, _ = python_data
+    rating_true, rating_pred = python_data
 
     with pytest.raises(ValueError):
         rmse(rating_true, rating_true, col_user="not_user")
