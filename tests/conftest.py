@@ -4,6 +4,7 @@
 import calendar
 import datetime
 import os
+import numpy as np
 import pandas as pd
 import pytest
 from sklearn.model_selection import train_test_split
@@ -159,7 +160,6 @@ def notebooks():
         ),
         "evaluation": os.path.join(folder_notebooks, "03_evaluate", "evaluation.ipynb"),
         "fastai": os.path.join(folder_notebooks, "00_quick_start", "fastai_recommendation.ipynb"),    
-        "adb_setup": os.path.join(folder_notebooks, "05_operationalize", "create_and_configure_cluster.ipynb")
     }
     return paths
 
