@@ -26,6 +26,8 @@ from reco_utils.recommender.sar import (
     SIM_COOCCUR,
     HASHED_USERS,
     HASHED_ITEMS,
+    _user_item_return_type,
+    _predict_column_type,
 )
 from reco_utils.recommender.sar import (
     TIME_DECAY_COEFFICIENT,
@@ -175,8 +177,6 @@ class SARSingleNode:
              time in seconds since the last time time function was called
         """
         if self.debug:
-            from time import time
-
             if self.start_time is None:
                 self.start_time = time()
                 return False
@@ -188,95 +188,11 @@ class SARSingleNode:
         else:
             return None
 
-    def compute_affinity_matrix(self, df, n_users, n_items):
-        """ Affinity matrix
-        The user-affinity matrix can be constructed by treating the users and items as
-        indices in a sparse matrix, and the events as the data. Here, we're treating
-        the ratings as the event weights.  We convert between different sparse-matrix
-        formats to de-duplicate user-item pairs, otherwise they will get added up.
-        Args:
-            df (pd.DataFrame): Hashed df of users and items.
-            n_users (int): Number of users.
-            n_items (int): Number of items.
-        Returns:
-            scipy.csr: Affinity matrix in Compressed Sparse Row (CSR) format.
-        """
-        user_affinity = (
-            sparse.coo_matrix(
-                (
-                    df[self.col_rating],
-                    (df[self._col_hashed_users], df[self._col_hashed_items]),
-                ),
-                shape=(n_users, n_items),
-            )
-            .todok()
-            .tocsr()
-        )
-        return user_affinity
-
-    def compute_coocurrence_matrix(self, df, n_users, n_items):
-        """ Coocurrence matrix
-        C = U'.transpose() * U'
-        where U' is the user_affinity matrix with 1's as values (instead of ratings).
-        Args:
-            df (pd.DataFrame): Hashed df of users and items.
-            n_users (int): Number of users.
-            n_items (int): Number of items.
-        Returns:
-            np.array: Coocurrence matrix        
-        """
-        self.time()
-        user_item_hits = (
-            sparse.coo_matrix(
-                (
-                    [1] * len(df[self._col_hashed_users]),
-                    (df[self._col_hashed_users], df[self._col_hashed_items]),
-                ),
-                shape=(n_users, n_items),
-            )
-            .todok()
-            .tocsr()
-        )
-
-        # FIXME: workaround to avoid odd memory problem
-        fname = "user_item_hits.npz"
-        sparse.save_npz(fname, user_item_hits)
-        user_item_hits = sparse.load_npz(fname)
-
-        item_cooccurrence = user_item_hits.transpose().dot(user_item_hits)
-        if self.debug:
-            cnt = df.shape[0]
-            elapsed_time = self.time()
-            self.timer_log += [
-                "Item cooccurrence calculation:\t%d\trows in\t%s\tseconds -\t%f\trows per second."
-                % (cnt, elapsed_time, float(cnt) / elapsed_time)
-            ]
-
-        self.time()
-        item_cooccurrence = item_cooccurrence.multiply(
-            item_cooccurrence >= self.threshold
-        )
-        if self.debug:
-            elapsed_time = self.time()
-            self.timer_log += [
-                "Applying threshold:\t%d\trows in\t%s\tseconds -\t%f\trows per second."
-                % (cnt, elapsed_time, float(cnt) / elapsed_time)
-            ]
-        return item_cooccurrence
-
     def fit(self, df):
         """Main fit method for SAR"""
 
         log.info("Collecting user affinity matrix...")
         self.time()
-        # use the same floating type for the computations as input
-        float_type = df[self.col_rating].dtype
-        if not np.issubdtype(float_type, np.floating):
-            raise ValueError(
-                "Only floating point data types are accepted for the rating column. Data type was {} "
-                "instead.".format(float_type)
-            )
-
         if self.timedecay_formula:
             # WARNING: previously we would take the last value in training dataframe and set it
             # as a matrix U element
@@ -300,20 +216,11 @@ class SARSingleNode:
                 * (self.time_now - x)
                 / (self.time_decay_coefficient * 24.0 * 3600)
             )
+            df["exponential"] = expo_fun(df[self.col_timestamp].values)
 
-            rating_exponential = df[self.col_rating].values * expo_fun(
-                df[self.col_timestamp].values
-            ).astype(float_type)
-            # update df with the affinities after the timestamp calculation
-            # copy part of the data frame to avoid modification of the input
-            temp_df = pd.DataFrame(
-                data={
-                    self.col_user: df[self.col_user],
-                    self.col_item: df[self.col_item],
-                    self.col_rating: rating_exponential,
-                }
-            )
-            newdf = temp_df.groupby([self.col_user, self.col_item]).sum().reset_index()
+            df["rating_exponential"] = df[self.col_rating] * df["exponential"]
+
+            grouped = df.groupby([self.col_user, self.col_item])["rating_exponential"]
 
             """
             # experimental implementation of multiprocessing - in practice for smaller datasets this is not needed
@@ -344,17 +251,22 @@ class SARSingleNode:
                     self.time_decay_coefficient * 24. * 3600))))
             """
 
+            rating_series = grouped.sum()
+
+            # update df with the affinities after the timestamp calculation
+            df = rating_series.rename(self.col_rating).to_frame()
+            df.reset_index(inplace=True)
         else:
             # without time decay we take the last user-provided rating supplied in the dataset as the
             # final rating for the user-item pair
             log.info("Deduplicating the user-item counts")
-            newdf = df.drop_duplicates([self.col_user, self.col_item])[
+            df = df.drop_duplicates([self.col_user, self.col_item])[
                 [self.col_user, self.col_item, self.col_rating]
             ]
 
         if self.debug:
             elapsed_time = self.time()
-            cnt = newdf.shape[0]
+            cnt = df.shape[0]
             self.timer_log += [
                 "Affinity calculation:\t%d\trows in\t%s\tseconds -\t%f\trows per second."
                 % (cnt, elapsed_time, float(cnt) / elapsed_time)
@@ -362,24 +274,33 @@ class SARSingleNode:
 
         self.time()
         log.info("Creating index columns...")
-        # Hash users and items according to the two dicts. Add the two new columns to newdf.
-        newdf.loc[:, self._col_hashed_items] = newdf[self.col_item].map(
-            self.item_map_dict
-        )
-        newdf.loc[:, self._col_hashed_users] = newdf[self.col_user].map(
-            self.user_map_dict
-        )
+        # Hash users and items according to the two dicts. Add the two new columns to df.
+        df.loc[:, self._col_hashed_items] = df[self.col_item].map(self.item_map_dict)
+        df.loc[:, self._col_hashed_users] = df[self.col_user].map(self.user_map_dict)
 
         # store training set index for future use during prediction
         # DO NOT USE .values as the warning message suggests
-        self.index = newdf[[self._col_hashed_users, self._col_hashed_items]].values
+        self.index = df.as_matrix([self._col_hashed_users, self._col_hashed_items])
 
         n_items = len(self.unique_items)
         n_users = len(self.unique_users)
 
-        # Affinity matrix
+        # The user-affinity matrix can be constructed by treating the users and items as
+        # indices in a sparse matrix, and the events as the data. Here, we're treating
+        # the ratings as the event weights.  We convert between different sparse-matrix
+        # formats to de-duplicate user-item pairs, otherwise they will get added up.
         log.info("Building user affinity sparse matrix...")
-        self.user_affinity = self.compute_affinity_matrix(newdf, n_users, n_items)
+        self.user_affinity = (
+            sparse.coo_matrix(
+                (
+                    df[self.col_rating],
+                    (df[self._col_hashed_users], df[self._col_hashed_items]),
+                ),
+                shape=(n_users, n_items),
+            )
+            .todok()
+            .tocsr()
+        )
 
         if self.debug:
             elapsed_time = self.time()
@@ -388,9 +309,45 @@ class SARSingleNode:
                 % (cnt, elapsed_time, float(cnt) / elapsed_time)
             ]
 
-        # Calculate item cooccurrence
+        # Calculate item cooccurrence by computing:
+        #  C = U'.transpose() * U'
+        # where U' is the user_affinity matrix with 1's as values (instead of ratings)
         log.info("Calculating item cooccurrence...")
-        item_cooccurrence = self.compute_coocurrence_matrix(newdf, n_users, n_items)
+        self.time()
+        user_item_hits = (
+            sparse.coo_matrix(
+                (
+                    [1] * len(df[self._col_hashed_users]),
+                    (df[self._col_hashed_users], df[self._col_hashed_items]),
+                ),
+                shape=(n_users, n_items),
+            )
+            .todok()
+            .tocsr()
+        )
+
+        fname = "user_item_hits.npz"
+        sparse.save_npz(fname, user_item_hits)
+        user_item_hits = sparse.load_npz(fname)
+
+        item_cooccurrence = user_item_hits.transpose().dot(user_item_hits)
+        if self.debug:
+            elapsed_time = self.time()
+            self.timer_log += [
+                "Item cooccurrence calculation:\t%d\trows in\t%s\tseconds -\t%f\trows per second."
+                % (cnt, elapsed_time, float(cnt) / elapsed_time)
+            ]
+
+        self.time()
+        item_cooccurrence = item_cooccurrence.multiply(
+            item_cooccurrence >= self.threshold
+        )
+        if self.debug:
+            elapsed_time = self.time()
+            self.timer_log += [
+                "Applying threshold:\t%d\trows in\t%s\tseconds -\t%f\trows per second."
+                % (cnt, elapsed_time, float(cnt) / elapsed_time)
+            ]
 
         log.info("Calculating item similarity...")
         similarity_type = (
@@ -406,8 +363,6 @@ class SARSingleNode:
             self.item_similarity = self.__lift(item_cooccurrence)
         else:
             raise ValueError("Unknown similarity type: {0}".format(similarity_type))
-
-        self.item_similarity = self.item_similarity.astype(float_type, copy=False)
 
         if self.debug and (
             similarity_type == SIM_JACCARD or similarity_type == SIM_LIFT
@@ -462,6 +417,9 @@ class SARSingleNode:
             scores_dense = np.array(scores)
         else:
             scores_dense = scores.todense()
+
+        # take the intersection between train test items and items we actually need
+        test[self._col_hashed_users] = test[self.col_user].map(self.user_map_dict)
 
         # Mask out items in the train set.  This only makes sense for some
         # problems (where a user wouldn't interact with an item more than once).
@@ -521,7 +479,7 @@ class SARSingleNode:
                 {
                     self.col_user: _user_item_return_type(),
                     self.col_item: _user_item_return_type(),
-                    PREDICTION_COL: self.scores.dtype,
+                    PREDICTION_COL: _predict_column_type(),
                 }
             )
         )
@@ -556,12 +514,10 @@ class SARSingleNode:
             scores_dense = scores.todense()
 
         # take the intersection between train test items and items we actually need
-        test_col_hashed_users = test[self.col_user].map(self.user_map_dict)
-        test_col_hashed_items = test[self.col_item].map(self.item_map_dict)
+        test[self._col_hashed_users] = test[self.col_user].map(self.user_map_dict)
+        test[self._col_hashed_items] = test[self.col_item].map(self.item_map_dict)
 
-        test_index = pd.concat(
-            [test_col_hashed_users, test_col_hashed_items], axis=1
-        ).values
+        test_index = test.as_matrix([self._col_hashed_users, self._col_hashed_items])
         aset = set([tuple(x) for x in self.index])
         bset = set([tuple(x) for x in test_index])
 
@@ -598,11 +554,8 @@ class SARSingleNode:
                 {
                     self.col_user: _user_item_return_type(),
                     self.col_item: _user_item_return_type(),
-                    PREDICTION_COL: self.scores.dtype,
+                    PREDICTION_COL: _predict_column_type(),
                 }
             )
         )
 
-
-def _user_item_return_type():
-    return str
