@@ -2,7 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+*.pretrain*
 # C extensions
 *.so
 
@@ -119,4 +119,3 @@ conda*.yaml
 scripts/repo_metrics/config.py
 Recommenders.zip
 Recommenders.egg
-*.jar
