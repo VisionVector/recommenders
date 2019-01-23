@@ -11,7 +11,6 @@ dependencies:
   - python-dotenv
   - requests
   - ipykernel
-  - pip: 
-    - papermill
-    # uncomment the following lines if you want the databricks CLI as well.
+# uncomment the following lines if you want the databricks CLI as well.
+#  - pip: 
 #    - databricks-cli
