@@ -108,8 +108,7 @@ ${pyspark}- pyarrow>=0.8.0
 ${gpu}  - numba>=0.38.1 
   - gitpython>=2.1.8
   - pydocumentdb>=2.3.3
-  - nvidia-ml-py3>=7.352.0
-  - dataclasses>=0.6
+  - azureml-core>=0.1.74
 EOM
 
 echo "Conda file generated: " $CONDA_FILE
