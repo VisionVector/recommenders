@@ -143,9 +143,6 @@ def notebooks():
         "sar_single_node": os.path.join(
             folder_notebooks, "00_quick_start", "sar_single_node_movielens.ipynb"
         ),
-        "ncf": os.path.join(
-            folder_notebooks, "00_quick_start", "ncf_movielens.ipynb"
-        ),
         "als_pyspark": os.path.join(
             folder_notebooks, "00_quick_start", "als_pyspark_movielens.ipynb"
         ),
@@ -163,6 +160,7 @@ def notebooks():
         ),
         "evaluation": os.path.join(folder_notebooks, "03_evaluate", "evaluation.ipynb"),
         "fastai": os.path.join(folder_notebooks, "00_quick_start", "fastai_recommendation.ipynb"),    
+        "adb_setup": os.path.join(folder_notebooks, "05_operationalize", "create_and_configure_cluster.ipynb")
     }
     return paths
 
