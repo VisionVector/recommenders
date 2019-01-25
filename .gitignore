@@ -114,7 +114,6 @@ conda*.yaml
 .idea/
 *.npz
 *.data
-*.dat
 *.csv
 *.zip
 .vscode/
