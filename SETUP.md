@@ -13,6 +13,7 @@ In this guide we show how to setup all the dependencies to run the notebooks of 
 * [Setup guide for Azure Databricks](#setup-guide-for-azure-databricks)
   * [Requirements of Azure Databricks](#requirements-of-azure-databricks)
   * [Repository upload](#repository-upload)
+  * [Dependencies setup for Azure Databricks](#dependencies-setup-for-azure-databricks)
   * [Troubleshooting for Azure Databricks](#troubleshooting-for-azure-databricks)
 </details>
 
@@ -22,9 +23,8 @@ We have different compute environments, depending on the kind of machine
 
 Environments supported to run the notebooks on the DSVM:
 * Python CPU
-* Python GPU
 * PySpark
-
+b
 Environments supported to run the notebooks on Azure Databricks:
 * PySpark
 
@@ -59,18 +59,6 @@ Assuming the repo is cloned as `Recommenders` in the local system, to install th
 
 </details>
 
-
-<details>
-<summary><strong><em>Python GPU environment</em></strong></summary>
-
-Assuming that you have a GPU machine, to install the Python GPU environment, which by default installs the CPU environment:
-
-    cd Recommenders
-    ./scripts/generate_conda_file.sh --gpu
-    conda env create -n reco_gpu -f conda_gpu.yaml 
-
-</details>
-
 <details>
 <summary><strong><em>PySpark environment</em></strong></summary>
 
@@ -97,17 +85,6 @@ This will export the variables every time we do `conda activate reco_pyspark`. T
 unset PYSPARK_PYTHON
 unset PYSPARK_DRIVER_PYTHON
 ```
-</details>
-
-<details>
-<summary><strong><em>All environments</em></strong></summary>
-
-To install all three environments:
-
-    cd Recommenders
-    ./scripts/generate_conda_file.sh  --gpu --pyspark
-    conda env create -n reco_full -f conda_full.yaml
-
 </details>
 
 
