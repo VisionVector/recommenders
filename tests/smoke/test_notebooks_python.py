@@ -47,23 +47,25 @@ def test_baseline_deep_dive_smoke(notebooks):
     assert results["precision"] == pytest.approx(0.223754, TOL)
     assert results["recall"] == pytest.approx(0.108826, TOL)
 
+
 @pytest.mark.smoke
-def test_fastai(notebooks):
-    notebook_path = notebooks["fastai"]
+def test_surprise_svd_smoke(notebooks):
+    notebook_path = notebooks["surprise_svd_deep_dive"]
     pm.execute_notebook(notebook_path, OUTPUT_NOTEBOOK, kernel_name=KERNEL_NAME)
     pm.execute_notebook(
         notebook_path,
         OUTPUT_NOTEBOOK,
         kernel_name=KERNEL_NAME,
-        parameters=dict(TOP_K=10, MOVIELENS_DATA_SIZE="100k"),
+        parameters=dict(MOVIELENS_DATA_SIZE="100k"),
     )
     results = pm.read_notebook(OUTPUT_NOTEBOOK).dataframe.set_index("name")["value"]
 
-    assert results["rmse"] == pytest.approx(0.912115, TOL)
-    assert results["mae"] == pytest.approx(0.723051, TOL)
-    assert results["rsquared"] == pytest.approx(0.356302, TOL)
-    assert results["exp_var"] == pytest.approx(0.357081, TOL)
-    assert results["map"] == pytest.approx(0.021485, TOL)
-    assert results["ndcg"] == pytest.approx(0.137494, TOL)
-    assert results["precision"] == pytest.approx(0.124284, TOL)
-    assert results["recall"] == pytest.approx(0.045587, TOL)
+    assert results["rmse"] == pytest.approx(0.96, TOL)
+    assert results["mae"] == pytest.approx(0.75, TOL)
+    assert results["rsquared"] == pytest.approx(0.29, TOL)
+    assert results["exp_var"] == pytest.approx(0.29, TOL)
+    assert results["map"] == pytest.approx(0.013, TOL)
+    assert results["ndcg"] == pytest.approx(0.1, TOL)
+    assert results["precision"] == pytest.approx(0.095, TOL)
+    assert results["recall"] == pytest.approx(0.032, TOL)
+    

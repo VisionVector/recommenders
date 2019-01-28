@@ -20,6 +20,7 @@ def test_gpu_vm():
 @pytest.mark.gpu
 def test_ncf_smoke(notebooks):
     notebook_path = notebooks["ncf"]
+    pm.execute_notebook(notebook_path, OUTPUT_NOTEBOOK, kernel_name=KERNEL_NAME)
     pm.execute_notebook(
         notebook_path,
         OUTPUT_NOTEBOOK,
@@ -27,15 +28,14 @@ def test_ncf_smoke(notebooks):
         parameters=dict(TOP_K=10, 
                         MOVIELENS_DATA_SIZE="100k",
                         EPOCHS=1,
-                        BATCH_SIZE=256),
+                        BATCH_SIZE=1024),
     )
     results = pm.read_notebook(OUTPUT_NOTEBOOK).dataframe.set_index("name")["value"]
-    
-    # There is too much variability to do an approx equal, just adding top values
-    assert results["map"] < 0.05
-    assert results["ndcg"] < 0.20
-    assert results["precision"] < 0.17
-    assert results["recall"] < 0.10
+
+    assert results["map"] == pytest.approx(0.040266, TOL)
+    assert results["ndcg"] == pytest.approx(0.180131, TOL)
+    assert results["precision"] == pytest.approx(0.161082, TOL)
+    assert results["recall"] == pytest.approx(0.084300, TOL)
 
 
 @pytest.mark.notebooks
@@ -51,7 +51,7 @@ def test_ncf_deep_dive(notebooks):
                                         EPOCHS=1,
                                         BATCH_SIZE=1024),
                        )
-
+  
 
 @pytest.mark.smoke
 @pytest.mark.gpu
