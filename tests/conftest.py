@@ -12,7 +12,7 @@ from tests.notebooks_common import path_notebooks
 
 try:
     from pyspark.sql import SparkSession
-except ImportError:
+except ModuleNotFoundError:
     pass  # so the environment without spark doesn't break
 
 
@@ -143,13 +143,9 @@ def notebooks():
         "sar_single_node": os.path.join(
             folder_notebooks, "00_quick_start", "sar_single_node_movielens.ipynb"
         ),
-        "ncf": os.path.join(
-            folder_notebooks, "00_quick_start", "ncf_movielens.ipynb"
-        ),
         "als_pyspark": os.path.join(
             folder_notebooks, "00_quick_start", "als_pyspark_movielens.ipynb"
         ),
-        "fastai": os.path.join(folder_notebooks, "00_quick_start", "fastai_recommendation.ipynb"),    
         "data_split": os.path.join(
             folder_notebooks, "01_prepare_data", "data_split.ipynb"
         ),
@@ -162,10 +158,8 @@ def notebooks():
         "baseline_deep_dive": os.path.join(
             folder_notebooks, "02_model", "baseline_deep_dive.ipynb"
         ),
-	"ncf_deep_dive": os.path.join(
-	    folder_notebooks, "02_model", "ncf_deep_dive.ipynb"
-	),
         "evaluation": os.path.join(folder_notebooks, "03_evaluate", "evaluation.ipynb"),
+        "fastai": os.path.join(folder_notebooks, "00_quick_start", "fastai_recommendation.ipynb"),    
     }
     return paths
 
