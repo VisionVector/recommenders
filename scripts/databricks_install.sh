@@ -21,7 +21,10 @@ CLUSTER_EXIST=false
 while IFS=' ' read -ra ARR; do
     if [ ${ARR[0]} = $CLUSTER_ID ]; then
         CLUSTER_EXIST=true
-        if [ ${ARR[2]} = RUNNING ]; then
+
+        STATUS=${ARR[2]}
+        STATUS=${STATUS//[^a-zA-Z]/}
+        if [ $STATUS = RUNNING ]; then
             echo
             echo "Preparing Recommenders library file (egg)..."
             zip -r -q Recommenders.egg . -i *.py -x tests/\* scripts/\*
@@ -49,7 +52,7 @@ while IFS=' ' read -ra ARR; do
             rm Recommenders.egg
             exit 0
         else
-            echo "Cluster $CLUSTER_ID found, but it is not running. Status=${ARR[2]}"
+            echo "Target cluster is not running."
             echo "You can start the cluster with 'databricks clusters start --cluster-id $CLUSTER_ID'."
             echo "Then, check the cluster status by using 'databricks clusters list' and"
             echo "re-try installation once the status turns into RUNNING."
