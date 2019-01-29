@@ -1,6 +1,6 @@
 # Setup guide 
 
-In this guide we show how to setup all the dependencies to run the notebooks of this repo on a local environment or [Azure DSVM](https://azure.microsoft.com/en-us/services/virtual-machines/data-science-virtual-machines/) and on [Azure Databricks](https://azure.microsoft.com/en-us/services/databricks/). 
+In this guide we show how to setup all the dependencies to run the notebooks of this repo on a local Linux system or Linux [Azure DSVM](https://azure.microsoft.com/en-us/services/virtual-machines/data-science-virtual-machines/) and on [Azure Databricks](https://azure.microsoft.com/en-us/services/databricks/). 
 
 ## Table of Contents
  
@@ -13,7 +13,6 @@ In this guide we show how to setup all the dependencies to run the notebooks of 
 * [Setup guide for Azure Databricks](#setup-guide-for-azure-databricks)
   * [Requirements of Azure Databricks](#requirements-of-azure-databricks)
   * [Repository upload](#repository-upload)
-  * [Dependencies setup for Azure Databricks](#dependencies-setup-for-azure-databricks)
   * [Troubleshooting for Azure Databricks](#troubleshooting-for-azure-databricks)
 </details>
 
@@ -21,10 +20,10 @@ In this guide we show how to setup all the dependencies to run the notebooks of 
 
 We have different compute environments, depending on the kind of machine
 
-Environments supported to run the notebooks on the DSVM:
+Environments supported to run the notebooks on the Linux DSVM:
 * Python CPU
+* Python GPU
 * PySpark
-b
 Environments supported to run the notebooks on Azure Databricks:
 * PySpark
 
@@ -59,6 +58,18 @@ Assuming the repo is cloned as `Recommenders` in the local system, to install th
 
 </details>
 
+
+<details>
+<summary><strong><em>Python GPU environment</em></strong></summary>
+
+Assuming that you have a GPU machine, to install the Python GPU environment, which by default installs the CPU environment:
+
+    cd Recommenders
+    ./scripts/generate_conda_file.sh --gpu
+    conda env create -n reco_gpu -f conda_gpu.yaml 
+
+</details>
+
 <details>
 <summary><strong><em>PySpark environment</em></strong></summary>
 
@@ -87,6 +98,17 @@ unset PYSPARK_DRIVER_PYTHON
 ```
 </details>
 
+<details>
+<summary><strong><em>All environments</em></strong></summary>
+
+To install all three environments:
+
+    cd Recommenders
+    ./scripts/generate_conda_file.sh  --gpu --pyspark
+    conda env create -n reco_full -f conda_full.yaml
+
+</details>
+
 
 ### Register the conda environment in Jupyter notebook
 
@@ -102,6 +124,7 @@ We can register our created conda environment to appear as a kernel in the Jupyt
 * When running Spark on a single local node it is possible to run out of disk space as temporary files are written to the user's home directory. To avoid this we attached an additional disk to the DSVM and made modifications to the Spark configuration. This is done by including the following lines in the file at `/dsvm/tools/spark/current/conf/spark-env.sh`.
 ```
 SPARK_LOCAL_DIRS="/mnt"
+SPARK_WORKER_DIR="/mnt"
 SPARK_WORKER_OPTS="-Dspark.worker.cleanup.enabled=true, -Dspark.worker.cleanup.appDataTtl=3600, -Dspark.worker.cleanup.interval=300, -Dspark.storage.cleanupFilesAfterExecutorExit=true"
 ```
 
