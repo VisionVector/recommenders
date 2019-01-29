@@ -12,7 +12,7 @@ fi
 
 CLUSTER_ID=$1
 if [ -z $CLUSTER_ID ]; then
-    echo "Please provide the target cluster id: 'prepare_databricks_for_016n.sh <CLUSTER_ID>'."
+    echo "Please provide the target cluster id: 'databricks_install.sh <CLUSTER_ID>'."
     echo "Cluster id can be found by running 'databricks clusters list'"
     echo "which returns a list of <CLUSTER_ID> <CLUSTER_NAME> <STATUS>."
     exit 1
@@ -27,10 +27,7 @@ PYPI_LIBRARIES=( "azure-cli" "azureml-sdk[databricks]" "pydocumentdb" )
 while IFS=' ' read -ra ARR; do
     if [ ${ARR[0]} = $CLUSTER_ID ]; then
         CLUSTER_EXIST=true
-
-        STATUS=${ARR[2]}
-        STATUS=${STATUS//[^a-zA-Z]/}
-        if [ $STATUS = RUNNING ]; then
+        if [ ${ARR[2]} = RUNNING ]; then
             ## install each of the pypi libraries
             for lib in "${PYPI_LIBRARIES[@]}"
             do
@@ -73,7 +70,7 @@ while IFS=' ' read -ra ARR; do
 
             exit 0
         else
-            echo "Cluster $CLUSTER_ID found, but it is not running. Status=${STATUS}"
+            echo "Cluster $CLUSTER_ID found, but it is not running. Status=${ARR[2]}"
             echo "You can start the cluster with 'databricks clusters start --cluster-id $CLUSTER_ID'."
             echo "Then, check the cluster status by using 'databricks clusters list' and"
             echo "re-try installation once the status turns into RUNNING."
