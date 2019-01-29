@@ -1,7 +1,8 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 # ---------------------------------------------------------
-# This script installs Recommenders into Databricks
+# This script installs appropriate external libraries onto
+# a databricks cluster for operationalization.
 
 DATABRICKS_CLI=$(which databricks)
 if ! [ -x "$DATABRICKS_CLI" ]; then
@@ -17,23 +18,44 @@ if [ -z $CLUSTER_ID ]; then
     exit 1
 fi
 
+## for spark version >=2.3.0
+COSMOSDB_CONNECTOR_URL="https://search.maven.org/remotecontent?filepath=com/microsoft/azure/azure-cosmosdb-spark_2.3.0_2.11/1.2.2/azure-cosmosdb-spark_2.3.0_2.11-1.2.2-uber.jar"
+COSMOSDB_CONNECTOR_BASENAME=$(basename $COSMOSDB_CONNECTOR_URL)
+
 CLUSTER_EXIST=false
+PYPI_LIBRARIES=( "azure-cli" "azureml-sdk[databricks]" "pydocumentdb" )
 while IFS=' ' read -ra ARR; do
     if [ ${ARR[0]} = $CLUSTER_ID ]; then
         CLUSTER_EXIST=true
         if [ ${ARR[2]} = RUNNING ]; then
-            echo
-            echo "Preparing Recommenders library file (egg)..."
-            zip -r -q Recommenders.egg . -i *.py -x tests/\* scripts/\*
+            ## install each of the pypi libraries
+            for lib in "${PYPI_LIBRARIES[@]}"
+            do
+                echo
+                echo "Adding $lib"
+                echo
+                databricks libraries install --cluster-id $CLUSTER_ID --pypi-package $lib
+            done
 
+            ## get spark-cosmosdb connector:
             echo
-            echo "Uploading to databricks..."
-            dbfs cp --overwrite Recommenders.egg dbfs:/FileStore/jars/Recommenders.egg
-
+            echo "downloading cosmosdb connector jar file"
             echo
-            echo "Installing the library onto databricks cluster $CLUSTER_ID..."
-            databricks libraries install --cluster-id $CLUSTER_ID --egg dbfs:/FileStore/jars/Recommenders.egg
+            curl -O $COSMOSDB_CONNECTOR_URL
+            
+            ## uplaod the jar to dbfs
+            echo
+            echo "Uploading to dbfs"
+            echo
+            dbfs cp --overwrite ${COSMOSDB_CONNECTOR_BASENAME} dbfs:/FileStore/jars/${COSMOSDB_CONNECTOR_BASENAME}
 
+            # isntall from dbfs
+            echo
+            echo "Adding ${COSMOSDB_CONNECTOR_BASENAME} as library"
+            echo
+            databricks libraries install --cluster-id $CLUSTER_ID --jar dbfs:/FileStore/jars/${COSMOSDB_CONNECTOR_BASENAME}
+
+            ## Check installation status
             echo
             echo "Done! Installation status checking..."
             databricks libraries cluster-status --cluster-id $CLUSTER_ID
@@ -46,7 +68,6 @@ while IFS=' ' read -ra ARR; do
             echo "Alternatively, run 'databricks clusters list' to check the restart status and"
             echo "run 'databricks libraries cluster-status --cluster-id $CLUSTER_ID' to check the installation status."
 
-            rm Recommenders.egg
             exit 0
         else
             echo "Cluster $CLUSTER_ID found, but it is not running. Status=${ARR[2]}"
