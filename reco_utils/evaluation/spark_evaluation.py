@@ -11,9 +11,6 @@ from reco_utils.common.constants import (
     DEFAULT_USER_COL,
     DEFAULT_ITEM_COL,
     DEFAULT_RATING_COL,
-    DEFAULT_TIMESTAMP_COL,
-    DEFAULT_K,
-    DEFAULT_THRESHOLD,
 )
 
 
@@ -156,7 +153,7 @@ class SparkRankingEvaluation:
         self,
         rating_true,
         rating_pred,
-        k=DEFAULT_K,
+        k=10,
         relevancy_method="top_k",
         col_user=DEFAULT_USER_COL,
         col_item=DEFAULT_ITEM_COL,
@@ -329,12 +326,7 @@ class SparkRankingEvaluation:
 
 
 def get_top_k_items(
-        dataframe,
-        col_user=DEFAULT_USER_COL,
-        col_item=DEFAULT_ITEM_COL,
-        col_rating=DEFAULT_RATING_COL,
-        col_prediction=PREDICTION_COL,
-        k=DEFAULT_K
+    dataframe, col_user="customerID", col_item="itemID", col_rating="rating", k=10
 ):
     """Get the input customer-item-rating tuple in the format of Spark
     DataFrame, output a Spark DataFrame in the dense format of top k items
@@ -347,7 +339,6 @@ def get_top_k_items(
         col_user (str): column name for user.
         col_item (str): column name for item.
         col_rating (str): column name for rating.
-        col_prediction (str): column name for prediction.
         k (int): number of items for each user.
 
     Return:
@@ -364,21 +355,20 @@ def get_top_k_items(
             row_number().over(window_spec).alias("rank")
         )
         .where(col("rank") <= k)
-        .withColumn(col_prediction, F.collect_list(col_item).over(Window.partitionBy(col_user)))
-        .select(col_user, col_prediction)
-        .dropDuplicates([col_user, col_prediction])
+        .withColumn("prediction", F.collect_list(col_item).over(Window.partitionBy(col_user)))
+        .select(col_user, "prediction")
+        .dropDuplicates([col_user, "prediction"])
     )
 
     return items_for_user
 
 
 def get_relevant_items_by_threshold(
-        dataframe,
-        col_user=DEFAULT_USER_COL,
-        col_item=DEFAULT_ITEM_COL,
-        col_rating=DEFAULT_RATING_COL,
-        col_prediction=PREDICTION_COL,
-        threshold=DEFAULT_THRESHOLD
+    dataframe,
+    col_user="customerID",
+    col_item="itemID",
+    col_rating="rating",
+    threshold=3.5,
 ):
     """Get relevant items for each customer in the input rating data.
 
@@ -391,7 +381,6 @@ def get_relevant_items_by_threshold(
         col_user (str): column name for user.
         col_item (str): column name for item.
         col_rating (str): column name for rating.
-        col_prediction (str): column name for prediction.
         threshold: threshold for determining the relevant recommended items.
         This is used for the case that predicted ratings follow a known
         distribution.
@@ -407,8 +396,8 @@ def get_relevant_items_by_threshold(
         .select(
             col_user, col_item, col_rating
         )
-        .withColumn(col_prediction, F.collect_list(col_item).over(Window.partitionBy(col_user)))
-        .select(col_user, col_prediction)
+        .withColumn("prediction", F.collect_list(col_item).over(Window.partitionBy(col_user)))
+        .select(col_user, "prediction")
         .dropDuplicates()
     )
 
@@ -416,13 +405,12 @@ def get_relevant_items_by_threshold(
 
 
 def get_relevant_items_by_timestamp(
-        dataframe,
-        col_user=DEFAULT_USER_COL,
-        col_item=DEFAULT_ITEM_COL,
-        col_rating=DEFAULT_RATING_COL,
-        col_timestamp=DEFAULT_TIMESTAMP_COL,
-        col_prediction=PREDICTION_COL,
-        k=DEFAULT_K
+    dataframe,
+    col_user="customerID",
+    col_item="itemID",
+    col_rating="rating",
+    col_timestamp="timeStamp",
+    k=10,
 ):
     """Get relevant items for each customer defined by timestamp.
 
@@ -436,7 +424,6 @@ def get_relevant_items_by_timestamp(
         col_item (str): column name for item.
         col_rating (str): column name for rating.
         col_timestamp (str): column name for timestamp.
-        col_prediction (str): column name for prediction.
         k: number of relevent items to be filtered by the function.
 
     Return:
@@ -449,9 +436,9 @@ def get_relevant_items_by_timestamp(
             col_user, col_item, col_rating, row_number().over(window_spec).alias("rank")
         )
         .where(col("rank") <= k)
-        .withColumn(col_prediction, F.collect_list(col_item).over(Window.partitionBy(col_user)))
-        .select(col_user, col_prediction)
-        .dropDuplicates([col_user, col_prediction])
+        .withColumn("prediction", F.collect_list(col_item).over(Window.partitionBy(col_user)))
+        .select(col_user, "prediction")
+        .dropDuplicates([col_user, "prediction"])
     )
 
     return items_for_user
