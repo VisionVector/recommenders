@@ -4,6 +4,7 @@
 import calendar
 import datetime
 import os
+import numpy as np
 import pandas as pd
 import pytest
 from sklearn.model_selection import train_test_split
@@ -142,6 +143,9 @@ def notebooks():
         "sar_single_node": os.path.join(
             folder_notebooks, "00_quick_start", "sar_single_node_movielens.ipynb"
         ),
+        "ncf": os.path.join(
+            folder_notebooks, "00_quick_start", "ncf_movielens.ipynb"
+        ),
         "als_pyspark": os.path.join(
             folder_notebooks, "00_quick_start", "als_pyspark_movielens.ipynb"
         ),
@@ -158,9 +162,7 @@ def notebooks():
             folder_notebooks, "02_model", "baseline_deep_dive.ipynb"
         ),
         "evaluation": os.path.join(folder_notebooks, "03_evaluate", "evaluation.ipynb"),
-        "fastai": os.path.join(folder_notebooks, "00_quick_start", "fastai_recommendation.ipynb"),
-        "xdeepfm_quickstart": os.path.join(folder_notebooks, "00_quick_start", "xdeepfm.ipynb"),
-        "dkn_quickstart": os.path.join(folder_notebooks, "00_quick_start", "dkn.ipynb"),
+        "fastai": os.path.join(folder_notebooks, "00_quick_start", "fastai_recommendation.ipynb")
     }
     return paths
 
