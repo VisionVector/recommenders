@@ -3,7 +3,7 @@
 
 try:
     from pyspark.sql import SparkSession
-except ImportError:
+except ModuleNotFoundError:
     pass  # skip this import if we are in pure python environment
 
 
