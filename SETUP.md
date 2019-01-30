@@ -1,6 +1,6 @@
 # Setup guide 
 
-In this guide we show how to setup all the dependencies to run the notebooks of this repo on a local Linux system or Linux [Azure DSVM](https://azure.microsoft.com/en-us/services/virtual-machines/data-science-virtual-machines/) and on [Azure Databricks](https://azure.microsoft.com/en-us/services/databricks/). 
+In this guide we show how to setup all the dependencies to run the notebooks of this repo on a local environment or [Azure DSVM](https://azure.microsoft.com/en-us/services/virtual-machines/data-science-virtual-machines/) and on [Azure Databricks](https://azure.microsoft.com/en-us/services/databricks/). 
 
 ## Table of Contents
  
@@ -13,6 +13,7 @@ In this guide we show how to setup all the dependencies to run the notebooks of 
 * [Setup guide for Azure Databricks](#setup-guide-for-azure-databricks)
   * [Requirements of Azure Databricks](#requirements-of-azure-databricks)
   * [Repository upload](#repository-upload)
+  * [Dependencies setup for Azure Databricks](#dependencies-setup-for-azure-databricks)
   * [Troubleshooting for Azure Databricks](#troubleshooting-for-azure-databricks)
 </details>
 
@@ -20,10 +21,10 @@ In this guide we show how to setup all the dependencies to run the notebooks of 
 
 We have different compute environments, depending on the kind of machine
 
-Environments supported to run the notebooks on the Linux DSVM:
+Environments supported to run the notebooks on the DSVM:
 * Python CPU
-* Python GPU
 * PySpark
+b
 Environments supported to run the notebooks on Azure Databricks:
 * PySpark
 
@@ -58,18 +59,6 @@ Assuming the repo is cloned as `Recommenders` in the local system, to install th
 
 </details>
 
-
-<details>
-<summary><strong><em>Python GPU environment</em></strong></summary>
-
-Assuming that you have a GPU machine, to install the Python GPU environment, which by default installs the CPU environment:
-
-    cd Recommenders
-    ./scripts/generate_conda_file.sh --gpu
-    conda env create -n reco_gpu -f conda_gpu.yaml 
-
-</details>
-
 <details>
 <summary><strong><em>PySpark environment</em></strong></summary>
 
@@ -98,17 +87,6 @@ unset PYSPARK_DRIVER_PYTHON
 ```
 </details>
 
-<details>
-<summary><strong><em>All environments</em></strong></summary>
-
-To install all three environments:
-
-    cd Recommenders
-    ./scripts/generate_conda_file.sh  --gpu --pyspark
-    conda env create -n reco_full -f conda_full.yaml
-
-</details>
-
 
 ### Register the conda environment in Jupyter notebook
 
@@ -130,50 +108,30 @@ SPARK_WORKER_OPTS="-Dspark.worker.cleanup.enabled=true, -Dspark.worker.cleanup.a
 
 ## Setup guide for Azure Databricks
 
-The setup for Azure Databricks can be completed by running the [create_and_configure_cluster.ipynb notebook](./notebooks/05_operationalize/create_and_configure_cluster.ipynb)
-on any jupyter instance that has the `requests` python module installed. It requires a few additional parameters to be configured; 
-please see the full details in that notebook.
-
-The following are the steps that notebook takes to prepare Azure Databricks.
-
-### Requirements for Azure Databricks
-
+### Requirements of Azure Databricks
 * Runtime version 4.1 (Apache Spark 2.3.0, Scala 2.11)
 * Python 3
 
-**Please note:** This configuration is no longer available via the *Clusters* tab of the databricks interface, and you 
-**must** either use the API to create this configuration or clone a pre-existing cluster of this configuration. Please see the [setup notebook](./notebooks/04_operationalize/create_and_configure_cluster.ipynb) for details.
-
 ### Repository upload
-
 We need to zip and upload the repository to be used in Databricks, the steps are the following:
-
-* Clone [Microsoft Recommenders](https://github.com/Microsoft/Recommenders) repository to your local computer.
-* Zip the contents inside the Recommenders folder (Azure Databricks requires compressed folders to have the `.egg` suffix, so we don't use the standard `.zip` suffix):
-
-```{shell}
+* Clone Microsoft Recommenders repo in your local computer.
+* Zip the contents inside the Recommenders folder (Azure Databricks requires compressed folders to have the .egg suffix, so we don't use the standard .zip):
+```
 cd Recommenders
 zip -r Recommenders.egg .
 ```
-
-Once your cluster has started:
-
-* Log into your Databricks Workspace.
-* Select the `Home` tab on the left.
-* Inside the panel that represents your home directory, right click, and select `Import`.
-* At the bottom of the pop-up window, it says: `To import a library, such as a jar or egg, click here`. Click `click here`.
-* At the first drop-down menu, select `Upload Python egg or PyPI`.
-* Click on the box that says `Drop library egg here to upload`.
-* Navigate to the location of the `Recommenders.egg` file you just created, and select it.
-* Click `Create library`.
+* Once your cluster has started, go to the Databricks home workspace, then go to your user and press import.
+* In the next menu there is an option to import a library, it says: `To import a library, such as a jar or egg, click here`. Press click here.
+* Then, at the first drop-down menu, mark the option `Upload Python egg or PyPI`.
+* Then press on `Drop library egg here to upload` and select the the file `Recommenders.egg` you just created.
+* Then press `Create library`. This will upload the zip and make it available in your workspace.
 * Finally, in the next menu, attach the library to your cluster.
 
 To make sure it works, you can now create a new notebook and import the utilities:
-
-```{python}
+```
 import reco_utils
 ```
 
 ### Troubleshooting for Azure Databricks
-
 * For the [reco_utils](reco_utils) import to work on Databricks, it is important to zip the content correctly. The zip has to be performed inside the Recommenders folder, if you zip directly above the Recommenders folder, it won't work.
+
