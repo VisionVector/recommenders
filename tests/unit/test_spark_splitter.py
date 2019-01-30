@@ -21,7 +21,7 @@ try:
         spark_stratified_split,
         spark_timestamp_split
     )
-except ImportError:
+except ModuleNotFoundError:
     pass  # skip this import if we are in pure python environment
 
 
