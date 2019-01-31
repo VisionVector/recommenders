@@ -1,10 +1,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-try:
-    from pyspark.sql import SparkSession
-except ImportError:
-    pass  # skip this import if we are in pure python environment
+from pyspark.sql import SparkSession
 
 
 def start_or_get_spark(app_name="Sample", url="local[*]", memory="10G"):
