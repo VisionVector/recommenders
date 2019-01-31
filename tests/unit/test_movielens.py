@@ -16,7 +16,7 @@ try:
     )
     from pyspark.sql.functions import col
     from reco_utils.common.spark_utils import start_or_get_spark
-except ModuleNotFoundError:
+except ImportError:
     pass  # skip this import if we are in pure python environment
 
 
@@ -25,8 +25,6 @@ except ModuleNotFoundError:
     [
         ("100k", 100000, 1682, "Toy Story (1995)", "Animation|Children's|Comedy"),
         ("1m", 1000209, 3883, "Toy Story (1995)", "Animation|Children's|Comedy"),
-        ("10m", 10000054, 10681, "Toy Story (1995)", "Adventure|Animation|Children|Comedy|Fantasy"),
-        ("20m", 20000263, 27278, "Toy Story (1995)", "Adventure|Animation|Children|Comedy|Fantasy"),
     ],
 )
 def test_load_pandas_df(size, num_samples, num_movies, title_example, genres_example):
@@ -74,8 +72,6 @@ def test_load_pandas_df(size, num_samples, num_movies, title_example, genres_exa
     [
         ("100k", 100000, 1682, "Toy Story (1995)", "Animation|Children's|Comedy"),
         ("1m", 1000209, 3883, "Toy Story (1995)", "Animation|Children's|Comedy"),
-        ("10m", 10000054, 10681, "Toy Story (1995)", "Adventure|Animation|Children|Comedy|Fantasy"),
-        ("20m", 20000263, 27278, "Toy Story (1995)", "Adventure|Animation|Children|Comedy|Fantasy"),
     ],
 )
 def test_load_spark_df(size, num_samples, num_movies, title_example, genres_example):
