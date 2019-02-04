@@ -24,7 +24,8 @@ except ImportError:
 @pytest.mark.parametrize(
     "size, num_samples, num_movies, title_example, genres_example",
     [
-        ("100k", 100000, 1682, "Toy Story (1995)", "Animation|Children's|Comedy"),
+        ("10m", 10000054, 10681, "Toy Story (1995)", "Adventure|Animation|Children|Comedy|Fantasy"),
+        ("20m", 20000263, 27278, "Toy Story (1995)", "Adventure|Animation|Children|Comedy|Fantasy"),
     ],
 )
 def test_load_pandas_df(size, num_samples, num_movies, title_example, genres_example):
@@ -71,7 +72,8 @@ def test_load_pandas_df(size, num_samples, num_movies, title_example, genres_exa
 @pytest.mark.parametrize(
     "size, num_samples, num_movies, title_example, genres_example",
     [
-        ("100k", 100000, 1682, "Toy Story (1995)", "Animation|Children's|Comedy"),
+        ("10m", 10000054, 10681, "Toy Story (1995)", "Adventure|Animation|Children|Comedy|Fantasy"),
+        ("20m", 20000263, 27278, "Toy Story (1995)", "Adventure|Animation|Children|Comedy|Fantasy"),
     ],
 )
 def test_load_spark_df(size, num_samples, num_movies, title_example, genres_example):
