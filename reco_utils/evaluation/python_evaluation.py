@@ -582,6 +582,10 @@ def get_top_k_items(dataframe, col_user=DEFAULT_USER_COL, col_rating=DEFAULT_RAT
     Return:
         pd.DataFrame: DataFrame of top k items for each user.
     """
-    return (dataframe.groupby(col_user, as_index=False)
-            .apply(lambda x: x.nlargest(k, col_rating))
-            .reset_index(drop=True))
+    tmp = dataframe.copy()
+    tmp[col_rating] = tmp[col_rating].astype(float)
+    return (
+        tmp.groupby(col_user, as_index=False)
+        .apply(lambda x: x.nlargest(k, col_rating))
+        .reset_index()
+    )
