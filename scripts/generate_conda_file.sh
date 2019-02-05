@@ -61,9 +61,7 @@ do
 			CONDA_FILE="conda_pyspark.yaml"
 			pyspark_flag=true
 			pyspark_version=$2
-			## update to use with sh
-			good_version=$(echo $pyspark_version | awk '$0 ~ "^[0-9]+([.][0-9]+){2}$"{print 1}')
-			if ! [ "$good_version" = "1" ]; then
+			if ! [[ $pyspark_version =~ ^[0-9]+([.][0-9]+){2}$ ]]; then
 				echo "Inappropriate version of pyspark passed:" $pyspark_version
 				echo "Version must be of format X.Y.Z"
 				exit 1
@@ -99,8 +97,9 @@ channels:
 - fastai
 - defaults
 dependencies:
-- python==3.6.8
+- python==3.6.7
 - numpy>=1.13.3
+- numexpr>=2.6.6
 - dask>=0.17.1
 ${pyspark}- pyspark==${pyspark_version}
 - pymongo>=3.6.1
