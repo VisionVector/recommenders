@@ -44,9 +44,7 @@ class BaseModel(object):
             self.init_op = tf.global_variables_initializer()
             self.merged = self._add_summaries()
 
-        # set GPU use with demand growth
-        gpu_options = tf.GPUOptions(allow_growth=True)
-        self.sess = tf.Session(graph=self.graph, config=tf.ConfigProto(gpu_options=gpu_options))
+        self.sess = tf.Session(graph=self.graph)
         self.sess.run(self.init_op)
 
     def _get_loss(self):
