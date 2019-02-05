@@ -16,6 +16,6 @@ SIM_COOCCUR = "cooccurrence"
 SIM_JACCARD = "jaccard"
 SIM_LIFT = "lift"
 
-INDEXED_ITEMS = "indexedItems"
-INDEXED_USERS = "indexedUsers"
+HASHED_ITEMS = "hashedItems"
+HASHED_USERS = "hashedUsers"
 
