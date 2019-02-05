@@ -27,7 +27,7 @@ while IFS=' ' read -ra ARR; do
         if [ $STATUS = RUNNING ]; then
             echo
             echo "Preparing Recommenders library file (egg)..."
-            zip -r -q Recommenders.egg ./reco_utils -i \*.py
+            zip -r -q Recommenders.egg . -i *.py -x tests/\* scripts/\*
 
             echo
             echo "Uploading to databricks..."
