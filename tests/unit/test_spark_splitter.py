@@ -57,13 +57,13 @@ def python_data(test_specs):
 
     rating = pd.DataFrame(
         {
-            DEFAULT_USER_COL: np.random.randint(
+            DEFAULT_USER_COL: np.random.random_integers(
                 1, 5, test_specs["number_of_rows"]
             ),
-            DEFAULT_ITEM_COL: np.random.randint(
+            DEFAULT_ITEM_COL: np.random.random_integers(
                 1, 15, test_specs["number_of_rows"]
             ),
-            DEFAULT_RATING_COL: np.random.randint(
+            DEFAULT_RATING_COL: np.random.random_integers(
                 1, 5, test_specs["number_of_rows"]
             ),
             DEFAULT_TIMESTAMP_COL: random_date_generator(
