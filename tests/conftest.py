@@ -133,7 +133,10 @@ def demo_usage_data(header, sar_settings):
 @pytest.fixture(scope="module")
 def demo_usage_data_spark(spark, demo_usage_data, header):
     data_local = demo_usage_data[[x[1] for x in header.items()]]
-    return spark.createDataFrame(data_local)
+    # TODO: install pyArrow in DS VM
+    # spark.conf.set("spark.sql.execution.arrow.enabled", "true")
+    data = spark.createDataFrame(data_local)
+    return data
 
 
 @pytest.fixture(scope="module")
@@ -153,10 +156,6 @@ def notebooks():
         "fastai": os.path.join(
             folder_notebooks, "00_quick_start", "fastai_recommendation.ipynb"
         ),
-        "xdeepfm_quickstart": os.path.join(
-            folder_notebooks, "00_quick_start", "xdeepfm.ipynb"
-        ),
-        "dkn_quickstart": os.path.join(folder_notebooks, "00_quick_start", "dkn.ipynb"),
         "data_split": os.path.join(
             folder_notebooks, "01_prepare_data", "data_split.ipynb"
         ),
@@ -173,6 +172,13 @@ def notebooks():
             folder_notebooks, "02_model", "ncf_deep_dive.ipynb"
         ),
         "evaluation": os.path.join(folder_notebooks, "03_evaluate", "evaluation.ipynb"),
+        "fastai": os.path.join(
+            folder_notebooks, "00_quick_start", "fastai_recommendation.ipynb"
+        ),
+        "xdeepfm_quickstart": os.path.join(
+            folder_notebooks, "00_quick_start", "xdeepfm.ipynb"
+        ),
+        "dkn_quickstart": os.path.join(folder_notebooks, "00_quick_start", "dkn.ipynb"),
     }
     return paths
 
