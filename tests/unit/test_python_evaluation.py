@@ -18,7 +18,7 @@ TOL = 0.0001
 
 
 @pytest.fixture
-def target_metrics(scope="module"):
+def target_metrics():
     return {
         "rmse": pytest.approx(7.254309, TOL),
         "mae": pytest.approx(6.375, TOL),
@@ -92,6 +92,7 @@ def python_data():
             ],
         }
     )
+
     return rating_true, rating_pred, rating_nohit
 
 
@@ -119,6 +120,7 @@ def test_python_rsquared(python_data, target_metrics):
     assert rsquared(
         rating_true=rating_true, rating_pred=rating_true, col_prediction="rating"
     ) == pytest.approx(1.0, TOL)
+
     assert rsquared(rating_true, rating_pred) == target_metrics["rsquared"]
 
 
@@ -128,6 +130,7 @@ def test_python_exp_var(python_data, target_metrics):
     assert exp_var(
         rating_true=rating_true, rating_pred=rating_true, col_prediction="rating"
     ) == pytest.approx(1.0, TOL)
+
     assert exp_var(rating_true, rating_pred) == target_metrics["exp_var"]
 
 
