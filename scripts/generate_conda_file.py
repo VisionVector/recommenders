@@ -89,16 +89,12 @@ if __name__ == '__main__':
 
     # set name for environment and output yaml file
     conda_env = 'reco_base'
-    conda_file = 'conda_base.yaml'
     if args.gpu and args.pyspark:
         conda_env = 'reco_full'
-        conda_file = 'conda_full.yaml'
     elif args.gpu:
         conda_env = 'reco_gpu'
-        conda_file = 'conda_gpu.yaml'
     elif args.pyspark:
         conda_env = 'reco_pyspark'
-        conda_file = 'conda_pyspark.yaml'
 
     # overwrite environment name with user input
     if args.name is not None:
@@ -116,6 +112,7 @@ if __name__ == '__main__':
         pip_packages.update(PIP_GPU)
 
     # write out yaml file
+    conda_file = '{}.yaml'.format(conda_env)
     with open(conda_file, 'w') as f:
         f.write('name: {}\n'.format(conda_env))
         f.write('channels:\n')
