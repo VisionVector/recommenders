@@ -35,19 +35,18 @@ Currently, this repository supports the following environments:
 ### Setup Requirements
 
 * Anaconda with Python version >= 3.6. [Miniconda](https://conda.io/miniconda.html) is the fastest way to get started.
-* The Python library dependencies can be found in this [script](scripts/generate_conda_file.py).
+* The Python library dependencies can be found in this [script](scripts/generate_conda_file.sh).
 * Machine with Spark (optional for Python environment but mandatory for PySpark environment).
 
 ### Dependencies setup
 
-We install the dependencies with Conda. As a pre-requisite, we want to make sure that Anaconda and the package manager conda are both up to date:
+We install the dependencies with Conda. As a pre-requisite, we may want to make sure that Conda is up-to-date:
 
 ```{shell}
-conda update conda
 conda update anaconda
 ```
 
-We provide a script ([generate_conda_file.py]((scripts/generate_conda_file.py))) to generate a conda file, depending of the environment we want to use. This will create the environment using the Python version 3.6 with all the correct dependencies.
+We provide a script to [generate a conda file](scripts/generate_conda_file.sh), depending of the environment we want to use. This will create the environment using the Python version 3.6 with all the correct dependencies.
 
 To install each environment, first we need to generate a conda yaml file and then install the environment. We can specify the environment name with the input `-n`.
 
@@ -59,8 +58,8 @@ Click on the following menus to see more details:
 Assuming the repo is cloned as `Recommenders` in the local system, to install the Python CPU environment:
 
     cd Recommenders
-    python scripts/generate_conda_file.py
-    conda env create -f reco_base.yaml 
+    ./scripts/generate_conda_file.sh
+    conda env create -n reco_bare -f conda_bare.yaml 
 
 </details>
 
@@ -70,8 +69,8 @@ Assuming the repo is cloned as `Recommenders` in the local system, to install th
 Assuming that you have a GPU machine, to install the Python GPU environment, which by default installs the CPU environment:
 
     cd Recommenders
-    python scripts/generate_conda_file.py --gpu
-    conda env create -f reco_gpu.yaml 
+    ./scripts/generate_conda_file.sh --gpu
+    conda env create -n reco_gpu -f conda_gpu.yaml 
 
 </details>
 
@@ -81,14 +80,14 @@ Assuming that you have a GPU machine, to install the Python GPU environment, whi
 To install the PySpark environment, which by default installs the CPU environment:
 
     cd Recommenders
-    python scripts/generate_conda_file.py --pyspark
-    conda env create -f reo_pyspark.yaml
+    ./scripts/generate_conda_file.sh --pyspark
+    conda env create -n reco_pyspark -f conda_pyspark.yaml
 
 Additionally, if you want to test a particular version of spark, you may pass the --pyspark-version argument:
 
-    python scripts/generate_conda_file.py --pyspark-version 2.4.0
+    ./scripts/generate_conda_file.sh --pyspark-version 2.4.0
 
-**NOTE** - for a PySpark environment, we need to set the environment variables `PYSPARK_PYTHON` and `PYSPARK_DRIVER_PYTHON` to point to the conda python executable.
+**NOTE** - for this environment, we need to set the environment variables `PYSPARK_PYTHON` and `PYSPARK_DRIVER_PYTHON` to point to the conda python executable.
 
 To set these variables every time the environment is activated, we can follow the steps of this [guide](https://conda.io/docs/user-guide/tasks/manage-environments.html#macos-and-linux). Assuming that we have installed the environment in `/anaconda/envs/reco_pyspark`, we create the file `/anaconda/envs/reco_pyspark/etc/conda/activate.d/env_vars.sh` and add:
 
@@ -113,8 +112,8 @@ unset PYSPARK_DRIVER_PYTHON
 To install all three environments:
 
     cd Recommenders
-    python scripts/generate_conda_file.py --gpu --pyspark
-    conda env create -f reco_full.yaml
+    ./scripts/generate_conda_file.sh  --gpu --pyspark
+    conda env create -n reco_full -f conda_full.yaml
 
 </details>
 
