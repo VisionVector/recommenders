@@ -18,24 +18,25 @@ To setup on your local machine:
     ```
     git clone https://github.com/Microsoft/Recommenders
     ```
-3. Run the generate conda file script to create a conda environment:
-   (This is for a basic python environment, see [SETUP.md](SETUP.md) for PySpark and GPU environment setup) 
+3. Run the generate conda file script and create a conda environment:   
     ```
     cd Recommenders
-    python scripts/generate_conda_file.py
-    conda env create -f reco_base.yaml  
+    ./scripts/generate_conda_file.sh
+    conda env create -n reco -f conda_bare.yaml  
     ```
 4. Activate the conda environment and register it with Jupyter:
     ```
-    conda activate reco_base
-    python -m ipykernel install --user --name reco_base --display-name "Python (reco)"
+    conda activate reco
+    python -m ipykernel install --user --name reco --display-name "Python (reco)"
     ```
 5. Start the Jupyter notebook server
     ```
     cd notebooks
     jupyter notebook
     ```
-5. Run the [SAR Python CPU Movielens](notebooks/00_quick_start/sar_movielens.ipynb) notebook under the 00_quick_start folder. Make sure to change the kernel to "Python (reco)".
+6. Run the [SAR Python CPU Movielens](notebooks/00_quick_start/sar_python_cpu_movielens.ipynb) notebook under the 00_quick_start folder. Make sure to change the kernel to "Python (reco)".
+
+**NOTE** - The [Alternating Least Squares (ALS)](notebooks/00_quick_start/als_movielens.ipynb) notebooks require PySpark to run. Please follow the PySpark set up environment steps in the [setup guide](https://github.com/Microsoft/Recommenders/blob/master/SETUP.md#dependencies-setup) to run these notebooks.
 
 ## Notebooks
 
@@ -43,7 +44,7 @@ We provide several notebooks to show how recommendation algorithms can be design
 
 - The [Quick-Start Notebooks](notebooks/00_quick_start) detail how you can quickly get up and run with state-of-the-art algorithms such as the Smart Adaptive Recommendation ([SAR](https://github.com/Microsoft/Product-Recommendations/blob/master/doc/sar.md)) algorithm and ALS algorithm. 
 
-- The [Data Preparation Notebooks](notebooks/01_prepare_data) show how to prepare and split data properly for recommendation systems.
+- The [Data Preparation Notebook](notebooks/01_prepare_data) shows how to prepare and split data properly for recommendation systems.
 
 - The [Modeling Notebooks](notebooks/02_model) provide a deep dive into implementations of different recommender algorithms.
 
@@ -63,7 +64,7 @@ The table below lists recommender algorithms available in the repository at the 
 | Algorithm | Environment | Type | Description | 
 | --- | --- | --- | --- |
 | **Classic Recommenders** |
-| [Surprise/Singular Value Decomposition (SVD)](notebooks/02_model/surprise_svd_deep_dive.ipynb) | Python | Collaborative Filtering | General purpose algorithm for smaller datasets | 
+| [Surprise/Singular Value Decomposition (SVD)](notebooks/00_quick_start/sar_movielens.ipynb) | Python | Collaborative Filtering | General purpose algorithm for smaller datasets | 
 | [Alternating Least Squares (ALS)](notebooks/00_quick_start/als_movielens.ipynb) | Spark | Collaborative Filtering | General purpose algorithm for larger datasets, optimized with Spark |
 | **Microsoft Recommenders** |
 | [Smart Adaptive Recommendations (SAR)](notebooks/00_quick_start/sar_movielens.ipynb) | Python / Spark | Collaborative Filtering | Generalized algorithm utilizing item similarities and can easily adapt to new users |
