@@ -2,7 +2,7 @@
 
 This repository provides examples and best practices for building recommendation systems, provided as Jupyter notebooks. The examples detail our learnings on five key tasks: 
 - [Prepare Data](notebooks/01_prepare_data/README.md): Preparing and loading data for each recommender algorithm
-- [Model](notebooks/02_model/README.md): Building models using various recommender algorithms such as Alternating Least Squares ([ALS](https://spark.apache.org/docs/latest/api/python/_modules/pyspark/ml/recommendation.html#ALS)), Singular Value Decomposition ([SVD](https://surprise.readthedocs.io/en/stable/matrix_factorization.html#surprise.prediction_algorithms.matrix_factorization.SVD)), deep learning algorithms etc.
+- [Model](notebooks/02_model/README.md): Building models using various classical and deep learning recommender algorithms such as Alternating Least Squares ([ALS](https://spark.apache.org/docs/latest/api/python/_modules/pyspark/ml/recommendation.html#ALS)) or eXtreme Deep Factorization Machines ([xDeepFM](https://arxiv.org/abs/1803.05170)).
 - [Evaluate](notebooks/03_evaluate/README.md): Evaluating algorithms with offline metrics
 - [Model Select and Optimize](notebooks/04_model_select_and_optimize): Tuning and optimizing hyperparameters for recommender models
 - [Operationalize](notebooks/05_operationalize/README.md): Operationalizing models in a production environment on Azure
@@ -47,14 +47,14 @@ The table below lists recommender algorithms available in the repository at the 
 | Algorithm | Environment | Type | Description | 
 | --- | --- | --- | --- |
 | [Smart Adaptive Recommendations (SAR)<sup>*</sup>](notebooks/00_quick_start/sar_movielens.ipynb) | Python CPU | Collaborative Filtering | Similarity-based algorithm for implicit feedback dataset |
+| [Surprise/Singular Value Decomposition (SVD)](notebooks/00_quick_start/sar_movielens.ipynb) | Python CPU | Collaborative Filtering | Matrix factorization algorithm for predicting explicit rating feedback in datasets that are not very large | 
 | [Vowpal Wabbit Family (VW)<sup>*</sup>](notebooks/02_model/vowpal_wabbit_deep_dive.ipynb) | Python CPU (train online) | Collaborative, Content-Based Filtering | Fast online learning algorithms, great for scenarios where user features / context are constantly changing |
 | [Extreme Deep Factorization Machine (xDeepFM)<sup>*</sup>](notebooks/00_quick_start/xdeepfm_synthetic.ipynb) | Python CPU / Python GPU | Hybrid | Deep learning based algorithm for implicit and explicit feedback with user/item features | 
 | [Deep Knowledge-Aware Network (DKN)<sup>*</sup>](notebooks/00_quick_start/dkn_synthetic.ipynb) |  Python CPU / Python GPU | Content-Based Filtering | Deep learning algorithm incorporating a knowledge graph and article embeddings to provide powerful news or article recommendations | 
-| [Surprise/Singular Value Decomposition (SVD)](notebooks/00_quick_start/sar_movielens.ipynb) | Python CPU | Collaborative Filtering | Matrix factorization algorithm for predicting explicit rating feedback in datasets that are not very large | 
-| [Alternating Least Squares (ALS)](notebooks/00_quick_start/als_movielens.ipynb) | PySpark | Collaborative Filtering | Matrix factorization algorithm for explicit or implicit feedback in large datasets, optimized by Spark MLLib for scalability and distributed computing capability | 
 | [Neural Collaborative Filtering (NCF)](notebooks/00_quick_start/ncf_movielens.ipynb) |  Python CPU / Python GPU | Collaborative Filtering | Deep learning algorithm with enhanced performance for implicit feedback | 
 | [Restricted Boltzmann Machines (RBM)](notebooks/00_quick_start/rbm_movielens.ipynb) |  Python CPU / Python GPU | Collaborative Filtering | Neural network based algorithm for learning the underlying probability distribution for explicit or implicit feedback | 
 | [FastAI Embedding Dot Bias (FAST)](notebooks/00_quick_start/fastai_movielens.ipynb)  |  Python CPU / Python GPU | Collaborative Filtering | General purpose algorithm with embeddings and biases for users and items |
+| [Alternating Least Squares (ALS)](notebooks/00_quick_start/als_movielens.ipynb) | PySpark | Collaborative Filtering | Matrix factorization algorithm for explicit or implicit feedback in large datasets, optimized by Spark MLLib for scalability and distributed computing capability | 
 
 **NOTE** - <sup>*</sup> indicates algorithms invented/contributed to by Microsoft.
 
