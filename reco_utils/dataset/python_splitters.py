@@ -35,7 +35,7 @@ def python_random_split(data, ratio=0.75, seed=123):
     multi_split, ratio = process_split_ratio(ratio)
 
     if multi_split:
-        return split_pandas_data_with_ratios(data, ratio, shuffle=True, seed=seed)
+        return split_pandas_data_with_ratios(data, ratio, resample=True, seed=seed)
     else:
         return sk_split(data, test_size=None, train_size=ratio, random_state=seed)
 
@@ -108,7 +108,7 @@ def python_chrono_split(
     df_grouped = data.sort_values(col_timestamp).groupby(split_by_column)
     for name, group in df_grouped:
         group_splits = split_pandas_data_with_ratios(
-            df_grouped.get_group(name), ratio, shuffle=False
+            df_grouped.get_group(name), ratio, resample=False
         )
 
         # Concatenate the list of split dataframes.
@@ -120,10 +120,7 @@ def python_chrono_split(
     splits_all = pd.concat(splits)
 
     # Take split by split_index
-    splits_list = [
-        splits_all[splits_all["split_index"] == x].drop("split_index", axis=1)
-        for x in range(len(ratio))
-    ]
+    splits_list = [splits_all[splits_all['split_index'] == x].drop('split_index', axis=1) for x in range(len(ratio))]
 
     return splits_list
 
@@ -191,7 +188,7 @@ def python_stratified_split(
     df_grouped = data.groupby(split_by_column)
     for name, group in df_grouped:
         group_splits = split_pandas_data_with_ratios(
-            df_grouped.get_group(name), ratio, shuffle=True, seed=seed
+            df_grouped.get_group(name), ratio, resample=True, seed=seed
         )
 
         # Concatenate the list of split dataframes.
@@ -203,10 +200,7 @@ def python_stratified_split(
     splits_all = pd.concat(splits)
 
     # Take split by split_index
-    splits_list = [
-        splits_all[splits_all["split_index"] == x].drop("split_index", axis=1)
-        for x in range(len(ratio))
-    ]
+    splits_list = [splits_all[splits_all['split_index'] == x].drop('split_index', axis=1) for x in range(len(ratio))]
 
     return splits_list
 
@@ -219,8 +213,8 @@ def numpy_stratified_split(X, ratio=0.75, seed=123):
 
     Args:
         X (np.array, int): a sparse matrix to be split
-        ratio (float): fraction of the entire dataset to constitute the train set
-        seed (int): random seed
+        ratio (scalar, float): fraction of the entire dataset to constitute the train set
+        seed (scalar, int): random seed
 
     Returns:
         Xtr (np.array, int): train set user/item affinity matrix
@@ -254,9 +248,12 @@ def numpy_stratified_split(X, ratio=0.75, seed=123):
            from the original datatset X. We first create two copies of X; for each user we select a random
            sample of local size ratio (point 1) and erase the remaining ratings, obtaining in this way the
            train set matrix Xtst. The train set matrix is obtained in the opposite way.
+
+
     """
 
     np.random.seed(seed)  # set the random seed
+
     test_cut = int((1 - ratio) * 100)  # percentage of ratings to go in the test set
 
     # initialize train and test set matrices
@@ -269,7 +266,9 @@ def numpy_stratified_split(X, ratio=0.75, seed=123):
     # for each user, cut down a test_size% for the test set
     tst = np.around((rated * test_cut) / 100).astype(int)
 
-    for u in range(X.shape[0]):
+    Nusers, Nitems = X.shape  # total number of users and items
+
+    for u in range(Nusers):
         # For each user obtain the index of rated movies
         idx = np.asarray(np.where(Xtr[u] != 0))[0].tolist()
 
@@ -277,10 +276,12 @@ def numpy_stratified_split(X, ratio=0.75, seed=123):
         idx_tst = np.random.choice(idx, tst[u], replace=False)
         idx_train = list(set(idx).difference(set(idx_tst)))
 
-        # change the selected rated movies to unrated in the train set
-        Xtr[u, idx_tst] = 0
-        # set the movies that appear already in the train set as 0
-        Xtst[u, idx_train] = 0
+        Xtr[
+            u, idx_tst
+        ] = 0  # change the selected rated movies to unrated in the train set
+        Xtst[
+            u, idx_train
+        ] = 0  # set the movies that appear already in the train set as 0
 
     del idx, idx_train, idx_tst
 
