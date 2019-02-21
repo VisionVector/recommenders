@@ -1,13 +1,9 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License.
-
+"""define base class model"""
 import abc
-import os
-import time
-import numpy as np
-import collections
 import tensorflow as tf
-from ..deeprec_utils import cal_metric
+from ..deeprec_utils import *
+import numpy as np
+import os, time, collections
 
 
 __all__ = ["BaseModel"]
@@ -15,15 +11,15 @@ __all__ = ["BaseModel"]
 
 class BaseModel(object):
     def __init__(self, hparams, iterator_creator, graph=None):
-        """Initializing the model. Create common logics which are needed by all deeprec models, such as loss function, 
-        parameter set.
-
-        Args:
-            hparams (obj): A tf.contrib.training.HParams object, hold the entire set of hyperparameters.
-            iterator_creator (obj): An iterator to load the data.
-            graph (obj): An optional graph.
         """
-        self.graph = graph if graph is not None else tf.Graph()
+        Initializing the model. Create common logics which are needed by all deeprec models, such as loss function, parameter set.
+        :param hparams:  a tf.contrib.training.HParams object, hold the entire set of hyperparameters.
+        """
+        if not graph:
+            self.graph = tf.Graph()
+        else:
+            self.graph = graph
+
         self.iterator = iterator_creator(hparams, self.graph)
 
         with self.graph.as_default():
@@ -50,21 +46,13 @@ class BaseModel(object):
 
         # set GPU use with demand growth
         gpu_options = tf.GPUOptions(allow_growth=True)
-        self.sess = tf.Session(
-            graph=self.graph, config=tf.ConfigProto(gpu_options=gpu_options)
-        )
+        self.sess = tf.Session(graph=self.graph, config=tf.ConfigProto(gpu_options=gpu_options))
         self.sess.run(self.init_op)
 
-    @abc.abstractmethod
-    def _build_graph(self):
-        """Subclass will implement this."""
-        pass
-
     def _get_loss(self):
-        """Make loss function, consists of data loss and regularization loss
-        
-        Returns:
-            obj: Loss value
+        """
+        Make loss function, consists of data loss and regularization loss
+        :return:  loss value
         """
         self.data_loss = self._compute_data_loss()
         self.regular_loss = self._compute_regular_loss()
@@ -72,14 +60,11 @@ class BaseModel(object):
         return self.loss
 
     def _get_pred(self, logit, task):
-        """Make final output as prediction score, according to different tasks.
-        
-        Args:
-            logit (obj): Base prediction value.
-            task (str): A task (values: regression/classification)
-        
-        Returns:
-            obj: Transformed score
+        """
+        Make final output as prediction score, according to different tasks.
+        :param logit: base prediction value
+        :param task:  regression or classification
+        :return: transformed score
         """
         if task == "regression":
             pred = tf.identity(logit)
@@ -100,7 +85,17 @@ class BaseModel(object):
         merged = tf.summary.merge_all()
         return merged
 
+    @abc.abstractmethod
+    def _build_graph(self):
+        """Subclass will implement this."""
+        pass
+
     def _l2_loss(self):
+        """
+        Construct L2-norm for loss function.
+        Returns:
+            l2 regular terms
+        """
         l2_loss = tf.zeros([1], dtype=tf.float32)
         # embedding_layer l2 loss
         for param in self.embed_params:
@@ -115,6 +110,11 @@ class BaseModel(object):
         return l2_loss
 
     def _l1_loss(self):
+        """
+        Construct L1-norm for loss function.
+        Returns:
+            l1 regular terms
+        """
         l1_loss = tf.zeros([1], dtype=tf.float32)
         # embedding_layer l2 loss
         for param in self.embed_params:
@@ -129,9 +129,10 @@ class BaseModel(object):
         return l1_loss
 
     def _cross_l_loss(self):
-        """Construct L1-norm and L2-norm on cross network parameters for loss function.
+        """
+        Construct L1-norm and L2-norm on cross network parameters for loss function.
         Returns:
-            obj: Regular loss value on cross network parameters.
+            Regular loss value on cross network parameters.
         """
         cross_l_loss = tf.zeros([1], dtype=tf.float32)
         for param in self.cross_params:
@@ -144,6 +145,11 @@ class BaseModel(object):
         return cross_l_loss
 
     def _get_initializer(self):
+        """
+        Get an initializer method for parameters.
+        Returns:
+            An initializer according to config.
+        """
         if self.hparams.init_method == "tnormal":
             return tf.truncated_normal_initializer(stddev=self.hparams.init_value)
         elif self.hparams.init_method == "uniform":
@@ -168,6 +174,10 @@ class BaseModel(object):
             return tf.truncated_normal_initializer(stddev=self.hparams.init_value)
 
     def _compute_data_loss(self):
+        """
+        Compute data loss, currently supporting cross_entropy_loss, square_loss and log_loss.
+        :return:
+        """
         if self.hparams.loss == "cross_entropy_loss":
             data_loss = tf.reduce_mean(
                 tf.nn.sigmoid_cross_entropy_with_logits(
@@ -196,18 +206,21 @@ class BaseModel(object):
         return data_loss
 
     def _compute_regular_loss(self):
-        """Construct regular loss. Usually it's comprised of l1 and l2 norm.
+        """
+        Construct regular loss. Usually it's comprised of l1 and l2 norm.
         Users can designate which norm to be included via config file.
         Returns:
-            obj: Regular loss.
+            Regular loss.
         """
         regular_loss = self._l2_loss() + self._l1_loss() + self._cross_l_loss()
-        return tf.reduce_sum(regular_loss)
+        regular_loss = tf.reduce_sum(regular_loss)
+        return regular_loss
 
     def _train_opt(self):
-        """Get the optimizer according to configuration. Usually we will use Adam.
+        """
+        Get the optimizer according to configuration. Usually we will use Adam.
         Returns:
-            obj: An optimizer.
+            An optimizer.
         """
         lr = self.hparams.learning_rate
         optimizer = self.hparams.optimizer
@@ -235,11 +248,12 @@ class BaseModel(object):
         return train_step
 
     def _build_train_opt(self):
-        """Construct gradient descent based optimization step
+        """
+        Construct gradient descent based optimization step
         In this step, we provide gradient clipping option. Sometimes we what to clip the gradients
         when their absolute values are too large to avoid gradient explosion.
         Returns:
-            obj: An operation that applies the specified optimization step.
+            An operation that applies the specified optimization step.
         """
         train_step = self._train_opt()
         gradients, variables = zip(*train_step.compute_gradients(self.loss))
@@ -250,24 +264,31 @@ class BaseModel(object):
                 else tf.clip_by_norm(gradient, self.hparams.max_grad_norm)
                 for gradient in gradients
             ]
-        return train_step.apply_gradients(zip(gradients, variables))
+        train_op = train_step.apply_gradients(zip(gradients, variables))
+        return train_op
 
     def _active_layer(self, logit, activation, layer_idx=-1):
-        """Transform the input value with an activation. May use dropout.
-        
-        Args:
-            logit (obj): Input value.
-            activation (str): A string indicating the type of activation function.
-            layer_idx (int): Index of current layer. Used to retrieve corresponding parameters
-        
-        Returns:
-            obj: A tensor after applying activation function on logit.
+        """
+        transform the input value with an activation. May use dropout.
+        :param logit: input value
+        :param activation:  a string indicating the type of activation function.
+        :param layer_idx:  index of current layer. Used to retrieve corresponding parameters
+        :return:
         """
         if layer_idx >= 0 and self.hparams.user_dropout:
             logit = self._dropout(logit, self.layer_keeps[layer_idx])
-        return self._activate(logit, activation)
+        logit = self._activate(logit, activation)
+        return logit
 
     def _activate(self, logit, activation):
+        """
+        Apply an activation function upon the input value.
+        Args:
+            logit: the input value.
+            activation: a string indicating the activation function type.
+        Returns:
+            A tensor after applying activation function on logit.
+        """
         if activation == "sigmoid":
             return tf.nn.sigmoid(logit)
         elif activation == "softmax":
@@ -284,25 +305,28 @@ class BaseModel(object):
             raise ValueError("this activations not defined {0}".format(activation))
 
     def _dropout(self, logit, keep_prob):
-        """Apply drops upon the input value.
+        """
+        Apply drops upon the input value.
         Args:
-            logit (obj): The input value.
-            keep_prob (float): The probability of keeping each element.
+            logit: the input value.
+            keep_prob: a scalar probability that each element is kept.
 
         Returns:
-            obj: A tensor of the same shape of logit.
+            A tensor of the same shape of logit.
+
         """
-        return tf.nn.dropout(x=logit, keep_prob=keep_prob)
+        logit = tf.nn.dropout(x=logit, keep_prob=keep_prob)
+        return logit
 
     def train(self, sess, feed_dict):
-        """Go through the optimization step once with training data in feed_dict.
-
+        """
+        Go through the optimization step once with training data in feed_dict.
         Args:
-            sess (obj): The model session object.
-            feed_dict (dict): Feed values to train the model. This is a dictionary that maps graph elements to values.
+            sess: the model session object.
+            feed_dict: feed values to train the model. This is a dictionary that maps graph elements to values.
 
         Returns:
-            list: A list of values, including update operation, total loss, data loss, and merged summary.
+            A list of values, including update operation, total loss, data loss, and merged summary.
         """
         feed_dict[self.layer_keeps] = self.keep_prob_train
         feed_dict[self.is_train_stage] = True
@@ -311,15 +335,16 @@ class BaseModel(object):
         )
 
     def eval(self, sess, feed_dict):
-        """Evaluate the data in feed_dict with current model.
-
+        """
+        Evaluate the data in feed_dict with current model.
         Args:
-            sess (obj): The model session object.
-            feed_dict (dict): Feed values for evaluation. This is a dictionary that maps graph elements to values.
+            sess: the model session object.
+            feed_dict: feed values for evaluation. This is a dictionary that maps graph elements to values.
 
         Returns:
-            list: A list of evaluated results, including total loss value, data loss value,
-                predicted scores, and ground-truth labels.
+            A list of evaluated results, including total loss value, data loss value,
+            predicted scores, and ground-truth labels.
+
         """
         feed_dict[self.layer_keeps] = self.keep_prob_test
         feed_dict[self.is_train_stage] = False
@@ -329,26 +354,26 @@ class BaseModel(object):
         )
 
     def infer(self, sess, feed_dict):
-        """Given feature data (in feed_dict), get predicted scores with current model.
+        """
+        Given feature data (in feed_dict), get predicted scores with current model.
         Args:
-            sess (obj): The model session object.
-            feed_dict (dict): Instances to predict. This is a dictionary that maps graph elements to values.
+            sess: the model session object.
+            feed_dict: Instances to predict. This is a dictionary that maps graph elements to values.
 
         Returns:
-            list: Predicted scores for the given instances.
+            Predicted scores for the given instances.
         """
         feed_dict[self.layer_keeps] = self.keep_prob_test
         feed_dict[self.is_train_stage] = False
         return sess.run([self.pred], feed_dict=feed_dict)
 
     def load_model(self, model_path=None):
-        """Load an existing model.
-
+        """
+        Load an existing model.
         Args:
             model_path: model path.
-
         Raises:
-            IOError: if the restore operation failed.
+            IOError if the restore operation is failed.
         """
         act_path = self.hparams.load_saved_model
         if model_path is not None:
@@ -360,16 +385,16 @@ class BaseModel(object):
             raise IOError("Failed to find any matching files for {0}".format(act_path))
 
     def fit(self, train_file, valid_file, test_file=None):
-        """Fit the model with train_file. Evaluate the model on valid_file per epoch to observe the training status.
+        """
+        Fit the model with train_file. Evaluate the model on valid_file per epoch to observe the training status.
         If test_file is not None, evaluate it too.
-        
         Args:
-            train_file (str): training data set.
-            valid_file (str): validation set.
-            test_file (str): test set.
+            train_file: training data set.
+            valid_file: validation set.
+            test_file: test set.
 
         Returns:
-            obj: An instance of self.
+            An instance of self.
         """
         if self.hparams.write_tfevents:
             self.writer = tf.summary.FileWriter(
@@ -463,13 +488,13 @@ class BaseModel(object):
         return self
 
     def run_eval(self, filename):
-        """Evaluate the given file and returns some evaluation metrics.
-        
+        """
+        Evaluate the given file and returns some evaluation metrics.
         Args:
-            filename (str): A file name that will be evaluated.
+            filename: A file name that will be evaluated.
 
         Returns:
-            dict: A dictionary contains evaluation metrics.
+            A dictionary contains evaluation metrics.
         """
         load_sess = self.sess
         preds = []
@@ -482,14 +507,14 @@ class BaseModel(object):
         return res
 
     def predict(self, infile_name, outfile_name):
-        """Make predictions on the given data, and output predicted scores to a file.
-        
+        """
+        Make predictions on the given data, and output predicted scores to a file.
         Args:
-            infile_name (str): Input file name.
-            outfile_name (str): Output file name.
+            infile_name: Input file name.
+            outfile_name: Output file name.
 
         Returns:
-            obj: An instance of self.
+            An instance of self.
         """
         load_sess = self.sess
         with tf.gfile.GFile(outfile_name, "w") as wt:
