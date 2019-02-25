@@ -20,7 +20,7 @@ from reco_utils.common.constants import (
 )
 
 
-def _merge_rating_true_pred(
+def merge_rating_true_pred(
     rating_true, rating_pred, col_user, col_item, col_rating, col_prediction
 ):
     """Join truth and prediction data frames on userID and itemID
@@ -54,6 +54,19 @@ def _merge_rating_true_pred(
         raise ValueError(
             "Schema of y_true not valid. Missing Prediction Col: "
             + str(rating_pred.columns)
+        )
+
+    # Check matching of input column types. The evaluator requires two dataframes have the same
+    # data types of the input columns.
+    if rating_true[col_user].dtypes != rating_pred[col_user].dtypes:
+        raise TypeError("Data types of column {} are different in true and prediction".format(col_user))
+
+    if rating_true[col_item].dtypes != rating_pred[col_item].dtypes:
+        raise TypeError("Data types of column {} are different in true and prediction".format(col_item))
+
+    if rating_true[col_rating].dtypes != rating_pred[col_prediction].dtypes:
+        raise TypeError(
+            "Data types of column {} and {} are different in true and prediction".format(col_rating, col_prediction)
         )
 
     # Select the columns needed for evaluations
@@ -102,7 +115,7 @@ def rmse(
     Returns:
         float: Root mean squared error.
     """
-    rating_true_pred = _merge_rating_true_pred(
+    rating_true_pred = merge_rating_true_pred(
         rating_true, rating_pred, col_user, col_item, col_rating, col_prediction
     )
     return np.sqrt(
@@ -133,7 +146,7 @@ def mae(
     Returns:
         float: Mean Absolute Error.
     """
-    rating_true_pred = _merge_rating_true_pred(
+    rating_true_pred = merge_rating_true_pred(
         rating_true, rating_pred, col_user, col_item, col_rating, col_prediction
     )
     return mean_absolute_error(
@@ -162,7 +175,7 @@ def rsquared(
     Returns:
         float: R squared (min=0, max=1).
     """
-    rating_true_pred = _merge_rating_true_pred(
+    rating_true_pred = merge_rating_true_pred(
         rating_true, rating_pred, col_user, col_item, col_rating, col_prediction
     )
     return r2_score(
@@ -191,7 +204,7 @@ def exp_var(
     Returns:
         float: Explained variance (min=0, max=1).
     """
-    rating_true_pred = _merge_rating_true_pred(
+    rating_true_pred = merge_rating_true_pred(
         rating_true, rating_pred, col_user, col_item, col_rating, col_prediction
     )
     return explained_variance_score(
@@ -199,7 +212,7 @@ def exp_var(
     )
 
 
-def _merge_ranking_true_pred(
+def merge_ranking_true_pred(
     rating_true,
     rating_pred,
     col_user,
@@ -224,7 +237,7 @@ def _merge_ranking_true_pred(
         pd.DataFrame: new data frame of true data DataFrame of recommendation hits
             number of common users
     """
-
+    # Check existence of input columns.
     if col_user not in rating_true.columns:
         raise ValueError("Schema of y_true not valid. Missing User Col")
     if col_item not in rating_true.columns:
@@ -243,6 +256,14 @@ def _merge_ranking_true_pred(
             "Schema of y_pred not valid. Missing Prediction Col: "
             + str(rating_pred.columns)
         )
+
+    # Check matching of input column types. The evaluator requires two dataframes have the same
+    # data types of the input columns.
+    if rating_true[col_user].dtypes != rating_pred[col_user].dtypes:
+        raise TypeError("Data types of column {} are different in true and prediction".format(col_user))
+
+    if rating_true[col_item].dtypes != rating_pred[col_item].dtypes:
+        raise TypeError("Data types of column {} are different in true and prediction".format(col_item))
 
     relevant_func = {"top_k": get_top_k_items}
 
@@ -323,7 +344,7 @@ def precision_at_k(
     Returns:
         float: precision at k (min=0, max=1)
     """
-    _, df_hit, n_users = _merge_ranking_true_pred(
+    _, df_hit, n_users = merge_ranking_true_pred(
         rating_true,
         rating_pred,
         col_user,
@@ -378,7 +399,7 @@ def recall_at_k(
         float: recall at k (min=0, max=1). The maximum value is 1 even when fewer than 
             k items exist for a user in rating_true.
     """
-    rating_true_new, df_hit, n_users = _merge_ranking_true_pred(
+    rating_true_new, df_hit, n_users = merge_ranking_true_pred(
         rating_true,
         rating_pred,
         col_user,
@@ -443,7 +464,7 @@ def ndcg_at_k(
     Returns:
         float: nDCG at k (min=0, max=1).
     """
-    rating_true_new, df_hit, n_users = _merge_ranking_true_pred(
+    rating_true_new, df_hit, n_users = merge_ranking_true_pred(
         rating_true,
         rating_pred,
         col_user,
@@ -524,7 +545,7 @@ def map_at_k(
     Return:
         float: MAP at k (min=0, max=1).
     """
-    rating_true_new, df_hit, n_users = _merge_ranking_true_pred(
+    rating_true_new, df_hit, n_users = merge_ranking_true_pred(
         rating_true,
         rating_pred,
         col_user,
