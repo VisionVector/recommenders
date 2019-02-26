@@ -71,7 +71,6 @@ class RBM:
         sampling_protocol=[50, 70, 80, 90, 100],
         debug=False,
         with_metrics=False,
-        seed=42
     ):
 
         # RBM parameters
@@ -105,9 +104,6 @@ class RBM:
 
         # Initialize the start time
         self.start_time = None
-
-        # Seed
-        self.seed = seed
 
         log.info("TensorFlow version: {}".format(tf.__version__))
 
@@ -158,7 +154,7 @@ class RBM:
             h_sampled (tensor, float32): sampled units. The value is 1 if pr>g and 0 otherwise.
         """
 
-        np.random.seed(self.seed)
+        np.random.seed(1)
 
         # sample from a Bernoulli distribution with same dimensions as input distribution
         g = tf.convert_to_tensor(np.random.uniform(size=pr.shape[1]), dtype=tf.float32)
@@ -194,7 +190,7 @@ class RBM:
             v_samp (tensor, float32): an (m,n) tensor of sampled rankings from 1 to r .
         """
 
-        np.random.seed(self.seed)
+        np.random.seed(1)
 
         g = np.random.uniform(size=pr.shape[2])  # sample from a uniform distribution
         f = tf.convert_to_tensor(
@@ -283,14 +279,14 @@ class RBM:
            bh (tensor, float32): (1, Nhidden) hidden units' bias, initiliazed to zero.
         """
 
-        tf.set_random_seed(self.seed)  # set the seed for the random number generator
+        tf.set_random_seed(1)  # set the seed for the random number generator
 
         with tf.variable_scope("Network_parameters"):
 
             self.w = tf.get_variable(
                 "weight",
                 [self.Nvisible, self.Nhidden],
-                initializer=tf.random_normal_initializer(stddev=self.stdv, seed=self.seed),
+                initializer=tf.random_normal_initializer(stddev=self.stdv, seed=1),
                 dtype="float32",
             )
 
@@ -585,7 +581,7 @@ class RBM:
         self.dataset = tf.data.Dataset.from_tensor_slices(self.vu)
 
         self.dataset = self.dataset.shuffle(
-            buffer_size=50, reshuffle_each_iteration=True, seed=self.seed
+            buffer_size=50, reshuffle_each_iteration=True, seed=123
         )  # randomize the batch
 
         self.dataset = self.dataset.batch(batch_size=self.batch_size).repeat()
