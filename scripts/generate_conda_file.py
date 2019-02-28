@@ -34,7 +34,6 @@ $ python -m ipykernel install --user --name {conda_env} --display-name "Python (
 CHANNELS = [ "defaults", "conda-forge", "pytorch", "fastai"]
 
 CONDA_BASE = {
-    "mock": "mock==2.0.0",
     "dask": "dask>=0.17.1",
     "fastai": "fastai>=1.0.40",
     "fastparquet": "fastparquet>=0.1.6",
@@ -70,7 +69,6 @@ PIP_BASE = {
     "nvidia-ml-py3": "nvidia-ml-py3>=7.352.0",
     "papermill": "papermill>=0.15.0",
     "pydocumentdb": "pydocumentdb>=2.3.3",
-    "databricks-cli": "databricks-cli>=0.8.4"
 }
 
 PIP_PYSPARK = {}
