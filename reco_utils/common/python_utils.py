@@ -1,5 +1,5 @@
 import numpy as np
-import os
+
 
 def exponential_decay(value, max_val, half_life):
     """Compute decay factor for a given value based on an exponential decay
@@ -49,11 +49,3 @@ def lift(cooccurrence):
         result = cooccurrence / (diag_rows * diag_cols)
 
     return np.array(result)
-
-
-def _clean_up(filepath):
-    """ Remove cached file. Be careful not to erase anything else. """
-    try:
-        os.remove(filepath)
-    except OSError:
-        pass
