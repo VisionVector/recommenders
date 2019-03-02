@@ -5,8 +5,7 @@ import pandas as pd
 
 from reco_utils.common.constants import (
     DEFAULT_USER_COL,
-    DEFAULT_ITEM_COL,
-    DEFAULT_RATING_COL,
+    DEFAULT_ITEM_COL
 )
 
 
@@ -16,7 +15,7 @@ def user_item_pairs(
     user_col=DEFAULT_USER_COL,
     item_col=DEFAULT_ITEM_COL,
     user_item_filter_df=None,
-    shuffle=True,
+    shuffle=True
 ):
     """Get all pairs of users and items data.
 
@@ -33,21 +32,19 @@ def user_item_pairs(
     """
 
     # Get all user-item pairs
-    user_df["key"] = 1
-    item_df["key"] = 1
-    users_items = user_df.merge(item_df, on="key")
+    user_df['key'] = 1
+    item_df['key'] = 1
+    users_items = user_df.merge(item_df, on='key')
 
-    user_df.drop("key", axis=1, inplace=True)
-    item_df.drop("key", axis=1, inplace=True)
-    users_items.drop("key", axis=1, inplace=True)
+    user_df.drop('key', axis=1, inplace=True)
+    item_df.drop('key', axis=1, inplace=True)
+    users_items.drop('key', axis=1, inplace=True)
 
     # Filter
     if user_item_filter_df is not None:
         user_item_col = [user_col, item_col]
         users_items = users_items.loc[
-            ~users_items.set_index(user_item_col).index.isin(
-                user_item_filter_df.set_index(user_item_col).index
-            )
+            ~users_items.set_index(user_item_col).index.isin(user_item_filter_df.set_index(user_item_col).index)
         ]
 
     if shuffle:
@@ -70,7 +67,5 @@ def filter_by(df, filter_by_df, filter_by_cols):
     """
 
     return df.loc[
-        ~df.set_index(filter_by_cols).index.isin(
-            filter_by_df.set_index(filter_by_cols).index
-        )
+        ~df.set_index(filter_by_cols).index.isin(filter_by_df.set_index(filter_by_cols).index)
     ]
