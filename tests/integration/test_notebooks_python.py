@@ -7,7 +7,6 @@ from tests.notebooks_common import OUTPUT_NOTEBOOK, KERNEL_NAME
 
 
 TOL = 0.05
-ABS_TOL = 0.05
 
 
 @pytest.mark.integration
@@ -24,14 +23,14 @@ ABS_TOL = 0.05
             },
         ),
         (
-            "10m",
+            "10m", 
             {
-                "map": 0.101402,
-                "ndcg": 0.321073,
-                "precision": 0.275766,
-                "recall": 0.156483,
-            },
-        ),
+                "map": 0.101402, 
+                "ndcg": 0.321073, 
+                "precision": 0.275766, 
+                "recall": 0.156483
+            }
+        ) 
     ],
 )
 def test_sar_single_node_integration(notebooks, size, expected_values):
@@ -45,7 +44,7 @@ def test_sar_single_node_integration(notebooks, size, expected_values):
     results = pm.read_notebook(OUTPUT_NOTEBOOK).dataframe.set_index("name")["value"]
 
     for key, value in expected_values.items():
-        assert results[key] == pytest.approx(value, rel=TOL, abs=ABS_TOL)
+        assert results[key] == pytest.approx(value, rel=TOL)
 
 
 @pytest.mark.integration
@@ -76,7 +75,7 @@ def test_baseline_deep_dive_integration(notebooks, size, expected_values):
     results = pm.read_notebook(OUTPUT_NOTEBOOK).dataframe.set_index("name")["value"]
 
     for key, value in expected_values.items():
-        assert results[key] == pytest.approx(value, rel=TOL, abs=ABS_TOL)
+        assert results[key] == pytest.approx(value, rel=TOL)
 
 
 @pytest.mark.integration
@@ -110,7 +109,7 @@ def test_surprise_svd_integration(notebooks, size, expected_values):
     results = pm.read_notebook(OUTPUT_NOTEBOOK).dataframe.set_index("name")["value"]
 
     for key, value in expected_values.items():
-        assert results[key] == pytest.approx(value, rel=TOL, abs=ABS_TOL)
+        assert results[key] == pytest.approx(value, rel=TOL)
 
 
 @pytest.mark.integration
@@ -143,4 +142,4 @@ def test_vw_deep_dive_integration(notebooks, size, expected_values):
     results = pm.read_notebook(OUTPUT_NOTEBOOK).dataframe.set_index("name")["value"]
 
     for key, value in expected_values.items():
-        assert results[key] == pytest.approx(value, rel=TOL, abs=ABS_TOL)
+        assert results[key] == pytest.approx(value, rel=TOL)
