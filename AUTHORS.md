@@ -50,6 +50,8 @@ They have write access to the repo and provide support reviewing issues and pull
     * Reco utils
     * Continuous integration build / test setup
     * Quickstart, deep dive, algorithm comparison, notebooks
+* **[Yassine Khelifi](https://github.com/datashinob)**
+    * SAR notebook quickstart
 
 Contributors
 ------------
@@ -61,4 +63,6 @@ Contributors
     * Reco utils of NCF.
     * Deep dive notebook demonstrating the use of NCF.
 * **[Nicolas Hug](https://github.com/NicolasHug)**
-    * Jupyter notebook demonstrating use of [Surprise](https://github.com/NicolasHug/Surprise) library for recommendations
+    * Jupyter notebook demonstrating the use of [Surprise](https://github.com/NicolasHug/Surprise) library for recommendations.
+* **[Daniel Schneider](https://github.com/danielsc)**
+   * FastAI notebook.

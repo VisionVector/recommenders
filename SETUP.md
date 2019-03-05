@@ -11,12 +11,12 @@ This document describes how to setup all the dependencies to run the notebooks i
 * [Setup guide for Local or DSVM](#setup-guide-for-local-or-dsvm)
   * [Setup Requirements](#setup-requirements)
   * [Dependencies setup](#dependencies-setup)
-  * [Register the conda environment in Jupyter notebook](#register-the-conda-environment-in-jupyter-notebook)
+  * [Register the conda environment as a kernel in Jupyter](#Register-the-conda-environment-as-a-kernel-in-Jupyter)
   * [Troubleshooting for the DSVM](#troubleshooting-for-the-dsvm)
 * [Setup guide for Azure Databricks](#setup-guide-for-azure-databricks)
   * [Requirements of Azure Databricks](#requirements-of-azure-databricks)
   * [Repository installation](#repository-installation)
-  * [Troubleshooting for Azure Databricks](#troubleshooting-for-azure-databricks)
+  * [Troubleshooting Installation on Azure Databricks](#Troubleshooting-Installation-on-Azure-Databricks)
 * [Prepare Azure Databricks for Operationalization](#prepare-azure-databricks-for-operationalization)
 
 ## Compute environments
@@ -44,7 +44,7 @@ Currently, this repository supports the following environments:
 We install the dependencies with Conda. As a pre-requisite, we want to make sure that Anaconda and the package manager Conda are both up to date:
 
 ```{shell}
-conda update conda
+conda update conda -n root
 conda update anaconda
 ```
 
@@ -220,7 +220,7 @@ import reco_utils
 
 ## Prepare Azure Databricks for Operationalization
 
-This repository includes an end-to-end example notebook that uses Azure Datbaricks to estimate a recommendation model using Alternating Least Squares, writes pre-computed recommendations to Azure Cosmos DB, and then creates a real-time scoring service that retrieves the recommendations from Cosmos DB. In order to execute that [notebook](notebooks//05_operationalize/als_movie_o16n.ipynb), you must install the Recommenders repository as a library (as described above), **AND* you must also install some additional dependencies. Similar to above, you can do so either manually or via an installation [script](scripts/prepare_databricks_for_o16n.sh).
+This repository includes an end-to-end example notebook that uses Azure Datbaricks to estimate a recommendation model using Alternating Least Squares, writes pre-computed recommendations to Azure Cosmos DB, and then creates a real-time scoring service that retrieves the recommendations from Cosmos DB. In order to execute that [notebook](notebooks//05_operationalize/als_movie_o16n.ipynb), you must install the Recommenders repository as a library (as described above), **AND** you must also install some additional dependencies. Similar to above, you can do so either manually or via an installation [script](scripts/prepare_databricks_for_o16n.sh).
 
 <details>
 <summary><strong><em>Quick install</em></strong></summary>
