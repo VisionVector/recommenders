@@ -533,17 +533,11 @@ def map_at_k(
     threshold=DEFAULT_THRESHOLD,
 ):
     """
-    The implementation of the MAP is referenced from Spark MLlib evaluation metrics.
-    https://spark.apache.org/docs/2.3.0/mllib-evaluation-metrics.html#ranking-systems
-
     Get mean average precision at k. A good reference can be found at
-    http://web.stanford.edu/class/cs276/handouts/EvaluationNew-handout-6-per.pdf
+    https://people.cs.umass.edu/~jpjiang/cs646/03_eval_basics.pdf
 
-    Note:
-        1. The evaluation function is named as 'MAP is at k' because the evaluation class takes top k items for
-        the prediction items. The naming is different from Spark.
-        2. The MAP is meant to calculate Avg. Precision for the relevant items, so it is normalized by the number of
-        relevant items in the ground truth data, instead of k.
+    NOTE: The MAP is at k because the evaluation class takes top k items for
+    the prediction items.
 
     Args:
         rating_true (pd.DataFrame): True data.
