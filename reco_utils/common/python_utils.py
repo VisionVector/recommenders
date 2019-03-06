@@ -1,5 +1,5 @@
 import numpy as np
-import os
+
 
 def exponential_decay(value, max_val, half_life):
     """Compute decay factor for a given value based on an exponential decay
@@ -12,7 +12,7 @@ def exponential_decay(value, max_val, half_life):
         float: decay factor
     """
 
-    return np.minimum(1., np.exp(-np.log(2) * (max_val - value) / half_life))
+    return np.minimum(1.0, np.power(0.5, (max_val - value) / half_life))
 
 
 def jaccard(cooccurrence):
@@ -27,7 +27,7 @@ def jaccard(cooccurrence):
     diag_rows = np.expand_dims(diag, axis=0)
     diag_cols = np.expand_dims(diag, axis=1)
 
-    with np.errstate(invalid='ignore', divide='ignore'):
+    with np.errstate(invalid="ignore", divide="ignore"):
         result = cooccurrence / (diag_rows + diag_cols - cooccurrence)
 
     return np.array(result)
@@ -45,15 +45,7 @@ def lift(cooccurrence):
     diag_rows = np.expand_dims(diag, axis=0)
     diag_cols = np.expand_dims(diag, axis=1)
 
-    with np.errstate(invalid='ignore', divide='ignore'):
+    with np.errstate(invalid="ignore", divide="ignore"):
         result = cooccurrence / (diag_rows * diag_cols)
 
     return np.array(result)
-
-
-def _clean_up(filepath):
-    """ Remove cached file. Be careful not to erase anything else. """
-    try:
-        os.remove(filepath)
-    except OSError:
-        pass
