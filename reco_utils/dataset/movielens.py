@@ -9,6 +9,7 @@ import pandas as pd
 from zipfile import ZipFile
 from reco_utils.dataset.url_utils import maybe_download
 from reco_utils.common.notebook_utils import is_databricks
+from reco_utils.common.python_utils import _clean_up
 from reco_utils.common.constants import (
     DEFAULT_USER_COL,
     DEFAULT_ITEM_COL,
@@ -294,7 +295,7 @@ def load_spark_df(
 
     file_datapath, file_item_datapath = _load_datafile(size, local_cache_path)
     # Driver node's file path
-    datapath = "file:///" + file_datapath
+    datapath = "file:" + file_datapath
     item_datapath = "file:" + file_item_datapath
     if is_databricks():
         # Move rating file to DBFS (we load items as pandas, so no need to move to DBFS)
@@ -414,11 +415,3 @@ def _load_datafile(size, local_cache_path):
     atexit.register(_clean_up, item_datapath)
 
     return datapath, item_datapath
-
-
-def _clean_up(filepath):
-    """ Remove cached file. Be careful not to erase anything else. """
-    try:
-        os.remove(filepath)
-    except OSError:
-        pass
