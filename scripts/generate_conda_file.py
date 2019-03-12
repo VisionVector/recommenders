@@ -60,7 +60,7 @@ CONDA_PYSPARK = {"pyarrow": "pyarrow>=0.8.0", "pyspark": "pyspark==2.3.1"}
 CONDA_GPU = {"numba": "numba>=0.38.1", "pytorch": "pytorch>=1.0.0", "tensorflow": "tensorflow-gpu==1.12.0"}
 
 PIP_BASE = {
-    "azureml-sdk[notebooks,tensorboard,contrib]": "azureml-sdk[notebooks,tensorboard,contrib]==1.0.18",
+    "azureml-sdk[notebooks,contrib]": "azureml-sdk[notebooks,contrib]==1.0.10",
     "azure-storage": "azure-storage>=0.36.0",
     "black": "black>=18.6b4",
     "dataclasses": "dataclasses>=0.6",
@@ -70,6 +70,7 @@ PIP_BASE = {
     "nvidia-ml-py3": "nvidia-ml-py3>=7.352.0",
     "papermill": "papermill>=0.15.0",
     "pydocumentdb": "pydocumentdb>=2.3.3",
+    "tqdm": "tqdm==4.31.1"
     "category_encoders": "category_encoders>=1.3.0",
     "fastai": "fastai==1.0.46",
 }
