@@ -1,9 +1,9 @@
 # Setup guide
 
-This document describes how to setup all the dependencies to run the notebooks in this repository in two different platforms:
+This document describes how to setup all the dependencies to run the notebooks in this repository in two different environments:
 
-* Linux Machine: Local or [Azure Data Science Virtual Machine (DSVM)](https://azure.microsoft.com/en-us/services/virtual-machines/data-science-virtual-machines/)
-* [Azure Databricks](https://azure.microsoft.com/en-us/services/databricks/)
+* a Linux system (local or an [Azure Data Science Virtual Machine (DSVM)](https://azure.microsoft.com/en-us/services/virtual-machines/data-science-virtual-machines/)) 
+* [Azure Databricks](https://azure.microsoft.com/en-us/services/databricks/).
 
 ## Table of Contents
 
@@ -21,15 +21,18 @@ This document describes how to setup all the dependencies to run the notebooks i
 
 ## Compute environments
 
-Depending on the type of recommender system and the notebook that needs to be run, there are different computational requirements. Currently, this repository supports the following environments:
+Depending on the type of recommender system and the notebook that needs to be run, there are different computational requirements.
+
+Currently, this repository supports the following environments:
 
 * Python CPU
 * Python GPU
 * PySpark
 
+
 ## Setup guide for Local or DSVM
 
-### Requirements
+### Setup Requirements
 
 * Machine running Linux, Windows Subsystem for Linux ([WSL](https://docs.microsoft.com/en-us/windows/wsl/about)) or macOS
 * Anaconda with Python version >= 3.6.
@@ -136,12 +139,10 @@ SPARK_WORKER_OPTS="-Dspark.worker.cleanup.enabled=true, -Dspark.worker.cleanup.a
 
 ## Setup guide for Azure Databricks
 
-### Requirements
+### Requirements of Azure Databricks
 
-* Databricks Runtime version 4.3 (Apache Spark 2.3.1, Scala 2.11) or greater
+* Runtime version 4.3 (Apache Spark 2.3.1, Scala 2.11)
 * Python 3
-
-An example of how to create an Azure Databricks workspace and an Apache Spark cluster within the workspace can be found from [here](https://docs.microsoft.com/en-us/azure/azure-databricks/quickstart-create-databricks-workspace-portal). To utilize deep learning models and GPUs, you may setup GPU-enabled cluster. For more details about this topic, please see [Azure Databricks deep learning guide](https://docs.azuredatabricks.net/applications/deep-learning/index.html).   
 
 ### Repository installation
 You can setup the repository as a library on Databricks either manually or by running an [installation script](scripts/databricks_install.sh). Both options assume you have access to a provisioned Databricks workspace and cluster and that you have appropriate permissions to install libraries.
