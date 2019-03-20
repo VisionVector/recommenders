@@ -49,5 +49,3 @@ def lift(cooccurrence):
         result = cooccurrence / (diag_rows * diag_cols)
 
     return np.array(result)
-
-
