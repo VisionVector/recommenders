@@ -31,7 +31,7 @@ $ conda activate {conda_env}
 $ python -m ipykernel install --user --name {conda_env} --display-name "Python ({conda_env})"
 """
 
-CHANNELS = [ "defaults", "conda-forge", "pytorch", "fastai"]
+CHANNELS = ["defaults", "conda-forge", "pytorch", "fastai"]
 
 CONDA_BASE = {
     "mock": "mock==2.0.0",
@@ -57,7 +57,11 @@ CONDA_BASE = {
 
 CONDA_PYSPARK = {"pyarrow": "pyarrow>=0.8.0", "pyspark": "pyspark==2.3.1"}
 
-CONDA_GPU = {"numba": "numba>=0.38.1", "pytorch": "pytorch>=1.0.0", "tensorflow": "tensorflow-gpu==1.12.0"}
+CONDA_GPU = {
+    "numba": "numba>=0.38.1",
+    "pytorch": "pytorch>=1.0.0",
+    "tensorflow": "tensorflow-gpu==1.12.0",
+}
 
 PIP_BASE = {
     "azureml-sdk[notebooks,tensorboard,contrib]": "azureml-sdk[notebooks,tensorboard,contrib]==1.0.18",
@@ -74,8 +78,6 @@ PIP_BASE = {
     "papermill": "papermill>=0.15.0",
     "pydocumentdb": "pydocumentdb>=2.3.3",
     "tqdm": "tqdm==4.31.1",
-    "category_encoders": "category_encoders>=1.3.0",
-    "fastai": "fastai==1.0.46",
 }
 
 PIP_PYSPARK = {}
