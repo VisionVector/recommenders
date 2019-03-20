@@ -44,7 +44,7 @@ def get_cuda_version(unix_path=DEFAULT_CUDA_PATH_LINUX):
     """
     if sys.platform == "win32":
         raise NotImplementedError("Implement this!")
-    elif sys.platform in ["linux", "darwin"]:
+    elif sys.platform == "linux" or sys.platform == "darwin":
         if os.path.isfile(unix_path):
             with open(unix_path, "r") as f:
                 data = f.read().replace("\n", "")
@@ -60,10 +60,9 @@ def get_cudnn_version():
     
     Returns:
         str: Version of the library.
-
     """
 
-    def find_cudnn_in_headers(candidates):
+    def find_cudnn_in_headers(candiates):
         for c in candidates:
             file = glob.glob(c)
             if file:
@@ -87,10 +86,10 @@ def get_cudnn_version():
 
     if sys.platform == "win32":
         candidates = ["C:\\NVIDIA\\cuda\\include\\cudnn.h",
-                     "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v*\\include\\cudnn.h"]
+                     "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v[0-99]\\include\\cudnn.h"]
     elif sys.platform == "linux":
         candidates = [
-            "/usr/include/x86_64-linux-gnu/cudnn_v*.h",
+            "/usr/include/x86_64-linux-gnu/cudnn_v[0-99].h",
             "/usr/local/cuda/include/cudnn.h",
             "/usr/include/cudnn.h",
         ]
@@ -99,4 +98,3 @@ def get_cudnn_version():
     else:
         raise ValueError("Not in Windows, Linux or Mac")
     return find_cudnn_in_headers(candidates)
-
