@@ -1,9 +1,9 @@
 # Setup guide
 
-This document describes how to setup all the dependencies to run the notebooks in this repository in two different platforms:
+This document describes how to setup all the dependencies to run the notebooks in this repository in two different environments:
 
-* Linux Machine: Local or [Azure Data Science Virtual Machine (DSVM)](https://azure.microsoft.com/en-us/services/virtual-machines/data-science-virtual-machines/)
-* [Azure Databricks](https://azure.microsoft.com/en-us/services/databricks/)
+* a Linux system (local or an [Azure Data Science Virtual Machine (DSVM)](https://azure.microsoft.com/en-us/services/virtual-machines/data-science-virtual-machines/)) 
+* [Azure Databricks](https://azure.microsoft.com/en-us/services/databricks/).
 
 ## Table of Contents
 
@@ -11,41 +11,42 @@ This document describes how to setup all the dependencies to run the notebooks i
 * [Setup guide for Local or DSVM](#setup-guide-for-local-or-dsvm)
   * [Setup Requirements](#setup-requirements)
   * [Dependencies setup](#dependencies-setup)
-  * [Register the conda environment as a kernel in Jupyter](#Register-the-conda-environment-as-a-kernel-in-Jupyter)
+  * [Register the conda environment in Jupyter notebook](#register-the-conda-environment-in-jupyter-notebook)
   * [Troubleshooting for the DSVM](#troubleshooting-for-the-dsvm)
 * [Setup guide for Azure Databricks](#setup-guide-for-azure-databricks)
   * [Requirements of Azure Databricks](#requirements-of-azure-databricks)
   * [Repository installation](#repository-installation)
-  * [Troubleshooting Installation on Azure Databricks](#Troubleshooting-Installation-on-Azure-Databricks)
+  * [Troubleshooting for Azure Databricks](#troubleshooting-for-azure-databricks)
 * [Prepare Azure Databricks for Operationalization](#prepare-azure-databricks-for-operationalization)
 
 ## Compute environments
 
-Depending on the type of recommender system and the notebook that needs to be run, there are different computational requirements. Currently, this repository supports the following environments:
+Depending on the type of recommender system and the notebook that needs to be run, there are different computational requirements.
+
+Currently, this repository supports the following environments:
 
 * Python CPU
 * Python GPU
 * PySpark
 
+
 ## Setup guide for Local or DSVM
 
-### Requirements
+### Setup Requirements
 
-* Machine running Linux, Windows Subsystem for Linux ([WSL](https://docs.microsoft.com/en-us/windows/wsl/about)) or macOS
-* Anaconda with Python version >= 3.6.
-  * This is pre-installed on Azure DSVM, for local setup [Miniconda](https://docs.conda.io/en/latest/miniconda.html) is a quick way to get started.
-* [Apache Spark](https://spark.apache.org/downloads.html) (this is only needed for the PySpark environment).
+* Anaconda with Python version >= 3.6. [Miniconda](https://conda.io/miniconda.html) is the fastest way to get started.
+* The Python library dependencies can be found in this [script](scripts/generate_conda_file.sh).
+* Machine with Spark (optional for Python environment but mandatory for PySpark environment).
 
 ### Dependencies setup
 
-We install the dependencies with Conda. As a pre-requisite, we want to make sure that Anaconda and the package manager Conda are both up to date:
+We install the dependencies with Conda. As a pre-requisite, we may want to make sure that Conda is up-to-date:
 
 ```{shell}
-conda update conda -n root
 conda update anaconda
 ```
 
-We provide a script, [generate_conda_file.py](scripts/generate_conda_file.py), to generate a conda file, depending of the environment we want to use. This will create the environment using the Python version 3.6 with all the correct dependencies.
+We provide a script to [generate a conda file](scripts/generate_conda_file.sh), depending of the environment we want to use. This will create the environment using the Python version 3.6 with all the correct dependencies.
 
 To install each environment, first we need to generate a conda yaml file and then install the environment. We can specify the environment name with the input `-n`.
 
@@ -57,8 +58,8 @@ Click on the following menus to see more details:
 Assuming the repo is cloned as `Recommenders` in the local system, to install the Python CPU environment:
 
     cd Recommenders
-    python scripts/generate_conda_file.py
-    conda env create -f reco_base.yaml 
+    ./scripts/generate_conda_file.sh
+    conda env create -n reco_bare -f conda_bare.yaml 
 
 </details>
 
@@ -68,8 +69,8 @@ Assuming the repo is cloned as `Recommenders` in the local system, to install th
 Assuming that you have a GPU machine, to install the Python GPU environment, which by default installs the CPU environment:
 
     cd Recommenders
-    python scripts/generate_conda_file.py --gpu
-    conda env create -f reco_gpu.yaml 
+    ./scripts/generate_conda_file.sh --gpu
+    conda env create -n reco_gpu -f conda_gpu.yaml 
 
 </details>
 
@@ -79,14 +80,14 @@ Assuming that you have a GPU machine, to install the Python GPU environment, whi
 To install the PySpark environment, which by default installs the CPU environment:
 
     cd Recommenders
-    python scripts/generate_conda_file.py --pyspark
-    conda env create -f reco_pyspark.yaml
+    ./scripts/generate_conda_file.sh --pyspark
+    conda env create -n reco_pyspark -f conda_pyspark.yaml
 
 Additionally, if you want to test a particular version of spark, you may pass the --pyspark-version argument:
 
-    python scripts/generate_conda_file.py --pyspark-version 2.4.0
+    ./scripts/generate_conda_file.sh --pyspark-version 2.4.0
 
-**NOTE** - for a PySpark environment, we need to set the environment variables `PYSPARK_PYTHON` and `PYSPARK_DRIVER_PYTHON` to point to the conda python executable.
+**NOTE** - for this environment, we need to set the environment variables `PYSPARK_PYTHON` and `PYSPARK_DRIVER_PYTHON` to point to the conda python executable.
 
 To set these variables every time the environment is activated, we can follow the steps of this [guide](https://conda.io/docs/user-guide/tasks/manage-environments.html#macos-and-linux). Assuming that we have installed the environment in `/anaconda/envs/reco_pyspark`, we create the file `/anaconda/envs/reco_pyspark/etc/conda/activate.d/env_vars.sh` and add:
 
@@ -111,8 +112,8 @@ unset PYSPARK_DRIVER_PYTHON
 To install all three environments:
 
     cd Recommenders
-    python scripts/generate_conda_file.py --gpu --pyspark
-    conda env create -f reco_full.yaml
+    ./scripts/generate_conda_file.sh  --gpu --pyspark
+    conda env create -n reco_full -f conda_full.yaml
 
 </details>
 
@@ -136,15 +137,13 @@ SPARK_WORKER_OPTS="-Dspark.worker.cleanup.enabled=true, -Dspark.worker.cleanup.a
 
 ## Setup guide for Azure Databricks
 
-### Requirements
+### Requirements of Azure Databricks
 
-* Databricks Runtime version 4.3 (Apache Spark 2.3.1, Scala 2.11) or greater
+* Runtime version 4.3 (Apache Spark 2.3.1, Scala 2.11)
 * Python 3
 
-An example of how to create an Azure Databricks workspace and an Apache Spark cluster within the workspace can be found from [here](https://docs.microsoft.com/en-us/azure/azure-databricks/quickstart-create-databricks-workspace-portal). To utilize deep learning models and GPUs, you may setup GPU-enabled cluster. For more details about this topic, please see [Azure Databricks deep learning guide](https://docs.azuredatabricks.net/applications/deep-learning/index.html).   
-
 ### Repository installation
-You can setup the repository as a library on Databricks either manually or by running an [installation script](scripts/databricks_install.py). Both options assume you have access to a provisioned Databricks workspace and cluster and that you have appropriate permissions to install libraries.
+You can setup the repository as a library on Databricks either manually or by running an [installation script](scripts/databricks_install.sh). Both options assume you have access to a provisioned Databricks workspace and cluster and that you have appropriate permissions to install libraries.
 
 <details>
 <summary><strong><em>Quick install</em></strong></summary>
@@ -152,10 +151,10 @@ You can setup the repository as a library on Databricks either manually or by ru
 This option utilizes an installation script to do the setup, and it requires additional dependencies in the environment used to execute the script.
 
 > To run the script, following **prerequisites** are required:
-> * Setup CLI authentication for [Azure Databricks CLI (command-line interface)](https://docs.azuredatabricks.net/user-guide/dev-tools/databricks-cli.html#install-the-cli). Please find details about how to create a token and set authentication [here](https://docs.azuredatabricks.net/user-guide/dev-tools/databricks-cli.html#set-up-authentication). Very briefly, you can install and configure your environment with the following commands.
+> * Install [Azure Databricks CLI (command-line interface)](https://docs.azuredatabricks.net/user-guide/dev-tools/databricks-cli.html#install-the-cli) and setup CLI authentication. Please find details about how to create a token and set authentication [here](https://docs.azuredatabricks.net/user-guide/dev-tools/databricks-cli.html#set-up-authentication). Very briefly, you can install and configure your environment with the following commands.
 >
 >     ```{shell}
->     conda activate reco-pyspark
+>     pip install databricks-cli
 >     databricks configure --token
 >     ```
 >
@@ -168,28 +167,18 @@ This option utilizes an installation script to do the setup, and it requires add
 >        ```{shell}
 >        databricks clusters start --cluster-id <CLUSTER_ID>`
 >        ```
+> * The script also requires the `zip` command line utility, which may not be installed. You can install it with:
+>     ```{shell}
+>     sudo apt-get update
+>     sudo apt-get install zip
+>     ```
 
-
-Once you have confirmed the databricks cluster is *RUNNING*, install the modules within this repository with the following commands. 
+Once you have confirmed the databricks cluster is *RUNNING*, install the modules within this repository with the following commands:
 
 ```{shell}
 cd Recommenders
-python scripts/databricks_install.py <CLUSTER_ID>
+./scripts/databricks_install.sh <CLUSTER_ID>
 ```
-
-The installation script has a number of options that can also deal with different databricks-cli profiles, install a version of the mmlspark library, or prepare the cluster for operationalization. For all options, please see:
-
-```{shell}
-python scripts/databricks_install.py -h
-```
-
-**Note** If you are planning on running through the sample code for operationalization [here](notebooks/05_operationalize/als_movie_o16n.ipynb), you need to prepare the cluster for operationalization. You can do so by adding an additional option to the script run. <CLUSTER_ID> is the same as that mentioned above, and can be identified by running `databricks clusters list` and selecting the appropriate cluster.
-
-```{shell}
-./scripts/databricks_install.py --prepare-o16n <CLUSTER_ID>
-```
-
-See below for details.
 
 </details>
 
@@ -229,16 +218,24 @@ import reco_utils
 
 ## Prepare Azure Databricks for Operationalization
 
-This repository includes an end-to-end example notebook that uses Azure Databricks to estimate a recommendation model using matrix factorization with Alternating Least Squares, writes pre-computed recommendations to Azure Cosmos DB, and then creates a real-time scoring service that retrieves the recommendations from Cosmos DB. In order to execute that [notebook](notebooks/05_operationalize/als_movie_o16n.ipynb), you must install the Recommenders repository as a library (as described above), **AND** you must also install some additional dependencies. With the *Quick install* method, you just need to pass an additional option to the [installation script](scripts/databricks_install.py).
+This repository includes an end-to-end example notebook that uses Azure Datbaricks to estimate a recommendation model using Alternating Least Squares, writes pre-computed recommendations to Azure Cosmos DB, and then creates a real-time scoring service that retrieves the recommendations from Cosmos DB. In order to execute that [notebook](notebooks//05_operationalize/als_movie_o16n.ipynb), you must install the Recommenders repository as a library (as described above), **AND* you must also install some additional dependencies. Similar to above, you can do so either manually or via an installation [script](scripts/prepare_databricks_for_o16n.sh).
 
 <details>
 <summary><strong><em>Quick install</em></strong></summary>
 
-This option utilizes the installation script to do the setup. Just run the installation script
-with an additional option. If you have already run the script once to upload and install the `Recommenders.egg` library, you can also add an `--overwrite` option:
+This option utilizes an installation script to do the setup, and it requires the same dependencies as the databricks installation script (see above).
+
+Once you have:
+
+* Installed and configured the databricks CLI
+* Confirmed that the appropriate cluster is *RUNNING*
+* Installed the Recommenders egg as described above
+* Confirmed you are in the root directory of the Recommenders repository
+
+you can install additional dependencies for operationalization with:
 
 ```{shell}
-scripts/databricks_install.py --overwrite --prepare-o16n <CLUSTER_ID>
+scripts/prepare_databricks_for_o16n.sh <CLUSTER_ID>
 ```
 
 This script does all of the steps described in the *Manual setup* section below.
@@ -250,9 +247,9 @@ This script does all of the steps described in the *Manual setup* section below.
 
 You must install three packages as libraries from PyPI:
 
-* `azure-cli==2.0.56`
-* `azureml-sdk[databricks]==1.0.8`
-* `pydocumentdb==2.3.3`
+* `azure-cli`
+* `azureml-sdk[databricks]`
+* `pydocumentdb`
 
 You can follow instructions [here](https://docs.azuredatabricks.net/user-guide/libraries.html#install-a-library-on-a-cluster) for details on how to install packages from PyPI.
 
