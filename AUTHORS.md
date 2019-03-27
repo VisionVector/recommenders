@@ -2,9 +2,9 @@ Contributors to Recommenders
 ============================
 Recommenders is developed and maintained by a community of people interested in exploring recommendation algorithms and how best to deploy them in industry settings. The goal is to accelerate the workflow of any individual or organization working on recommender systems. Everyone is encouraged to contribute at any level to add and improve the implemented algorithms, notebooks and utilities. 
 
-Core developers (sorted alphabetically)
+Committers (sorted alphabetically)
 ----------------------------------
-Core developers are actively supporting the project and have made substantial contributions to the repository.<br>
+Committers are actively supporting the project and have made substantial contributions to the repository.<br>
 They have write access to the repo and provide support reviewing issues and pull requests.
 
 * **[Andreas Argyriou](https://github.com/anargyri)**
@@ -51,7 +51,6 @@ They have write access to the repo and provide support reviewing issues and pull
     * Continuous integration build / test setup
     * Quickstart, deep dive, algorithm comparison, notebooks
 
-
 Contributors
 ------------
 [Full List of Contributors](https://github.com/Microsoft/Recommenders/graphs/contributors)
@@ -63,11 +62,5 @@ Contributors
     * Deep dive notebook demonstrating the use of NCF.
 * **[Nicolas Hug](https://github.com/NicolasHug)**
     * Jupyter notebook demonstrating the use of [Surprise](https://github.com/NicolasHug/Surprise) library for recommendations.
-* **[Daniel Schneider](https://github.com/danielsc)**
+* **[Daniel Scheneider](https://github.com/danielsc)**
    * FastAI notebook.
-* **[Yassine Khelifi](https://github.com/datashinobi)**
-    * SAR notebook quickstart
-* **[Zhenhui Xu](https://github.com/motefly)**
-    * Reco utils of LightGBM.
-    * LightGBM notebook quickstart.
-    
