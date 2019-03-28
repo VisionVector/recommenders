@@ -56,9 +56,7 @@ PYPI_O16N_LIBS = [
     "pydocumentdb==2.3.3",
 ]
 
-MMLSPARK_INFO = {"maven": {"coordinates": "com.microsoft.ml.spark:mmlspark_2.11:0.16.dev8+2.g6a5318b",
-                          "repositories": "https://mmlspark.azureedge.net/maven"}
-                }
+MMLSPARK_INFO = {"maven": {"coordinates": "Azure:mmlspark:0.16"}}
 
 DEFAULT_CLUSTER_CONFIG = {
     "cluster_name": "DB_CLUSTER",

@@ -9,7 +9,7 @@ This document describes how to setup all the dependencies to run the notebooks i
 
 * [Compute environments](#compute-environments)
 * [Setup guide for Local or DSVM](#setup-guide-for-local-or-dsvm)
-  * [Setup Requirements](#setup-requirements)
+  * [Requirements](#requirements)
   * [Dependencies setup](#dependencies-setup)
   * [Register the conda environment as a kernel in Jupyter](#Register-the-conda-environment-as-a-kernel-in-Jupyter)
   * [Troubleshooting for the DSVM](#troubleshooting-for-the-dsvm)
@@ -94,7 +94,6 @@ To set these variables every time the environment is activated, we can follow th
 #!/bin/sh
 export PYSPARK_PYTHON=/anaconda/envs/reco_pyspark/bin/python
 export PYSPARK_DRIVER_PYTHON=/anaconda/envs/reco_pyspark/bin/python
-unset SPARK_HOME
 ```
 
 This will export the variables every time we do `conda activate reco_pyspark`. To unset these variables when we deactivate the environment, we create the file `/anaconda/envs/reco_pyspark/etc/conda/deactivate.d/env_vars.sh` and add:
@@ -137,7 +136,7 @@ SPARK_WORKER_OPTS="-Dspark.worker.cleanup.enabled=true, -Dspark.worker.cleanup.a
 
 ## Setup guide for Azure Databricks
 
-### Requirements
+### Requirements of Azure Databricks
 
 * Databricks Runtime version 4.3 (Apache Spark 2.3.1, Scala 2.11) or greater
 * Python 3
