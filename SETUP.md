@@ -9,7 +9,7 @@ This document describes how to setup all the dependencies to run the notebooks i
 
 * [Compute environments](#compute-environments)
 * [Setup guide for Local or DSVM](#setup-guide-for-local-or-dsvm)
-  * [Requirements](#requirements)
+  * [Setup Requirements](#setup-requirements)
   * [Dependencies setup](#dependencies-setup)
   * [Register the conda environment as a kernel in Jupyter](#Register-the-conda-environment-as-a-kernel-in-Jupyter)
   * [Troubleshooting for the DSVM](#troubleshooting-for-the-dsvm)
@@ -136,7 +136,7 @@ SPARK_WORKER_OPTS="-Dspark.worker.cleanup.enabled=true, -Dspark.worker.cleanup.a
 
 ## Setup guide for Azure Databricks
 
-### Requirements of Azure Databricks
+### Requirements
 
 * Databricks Runtime version 4.3 (Apache Spark 2.3.1, Scala 2.11) or greater
 * Python 3
@@ -169,18 +169,17 @@ This option utilizes an installation script to do the setup, and it requires add
 >        databricks clusters start --cluster-id <CLUSTER_ID>`
 >        ```
 
+The installation script has a number of options that can also deal with different databricks-cli profiles, install a version of the mmlspark library, overwrite the libraries, or prepare the cluster for operationalization. For all options, please see:
+
+```{shell}
+python scripts/databricks_install.py -h
+```
 
 Once you have confirmed the databricks cluster is *RUNNING*, install the modules within this repository with the following commands. 
 
 ```{shell}
 cd Recommenders
 python scripts/databricks_install.py <CLUSTER_ID>
-```
-
-The installation script has a number of options that can also deal with different databricks-cli profiles, install a version of the mmlspark library, or prepare the cluster for operationalization. For all options, please see:
-
-```{shell}
-python scripts/databricks_install.py -h
 ```
 
 **Note** If you are planning on running through the sample code for operationalization [here](notebooks/05_operationalize/als_movie_o16n.ipynb), you need to prepare the cluster for operationalization. You can do so by adding an additional option to the script run. <CLUSTER_ID> is the same as that mentioned above, and can be identified by running `databricks clusters list` and selecting the appropriate cluster.
