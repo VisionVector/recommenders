@@ -9,7 +9,7 @@ This document describes how to setup all the dependencies to run the notebooks i
 
 * [Compute environments](#compute-environments)
 * [Setup guide for Local or DSVM](#setup-guide-for-local-or-dsvm)
-  * [Requirements](#requirements)
+  * [Setup Requirements](#setup-requirements)
   * [Dependencies setup](#dependencies-setup)
   * [Register the conda environment as a kernel in Jupyter](#Register-the-conda-environment-as-a-kernel-in-Jupyter)
   * [Troubleshooting for the DSVM](#troubleshooting-for-the-dsvm)
@@ -136,7 +136,7 @@ SPARK_WORKER_OPTS="-Dspark.worker.cleanup.enabled=true, -Dspark.worker.cleanup.a
 
 ## Setup guide for Azure Databricks
 
-### Requirements of Azure Databricks
+### Requirements
 
 * Databricks Runtime version 4.3 (Apache Spark 2.3.1, Scala 2.11) or greater
 * Python 3
@@ -186,7 +186,7 @@ python scripts/databricks_install.py -h
 **Note** If you are planning on running through the sample code for operationalization [here](notebooks/05_operationalize/als_movie_o16n.ipynb), you need to prepare the cluster for operationalization. You can do so by adding an additional option to the script run. <CLUSTER_ID> is the same as that mentioned above, and can be identified by running `databricks clusters list` and selecting the appropriate cluster.
 
 ```{shell}
-./scripts/databricks_install.py --prepare-o16n <CLUSTER_ID>
+python ./scripts/databricks_install.py --prepare-o16n <CLUSTER_ID>
 ```
 
 See below for details.
@@ -238,7 +238,7 @@ This option utilizes the installation script to do the setup. Just run the insta
 with an additional option. If you have already run the script once to upload and install the `Recommenders.egg` library, you can also add an `--overwrite` option:
 
 ```{shell}
-scripts/databricks_install.py --overwrite --prepare-o16n <CLUSTER_ID>
+python scripts/databricks_install.py --overwrite --prepare-o16n <CLUSTER_ID>
 ```
 
 This script does all of the steps described in the *Manual setup* section below.
