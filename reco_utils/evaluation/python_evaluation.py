@@ -10,7 +10,7 @@ from sklearn.metrics import (
     r2_score,
     explained_variance_score,
     roc_auc_score,
-    log_loss,
+    log_loss
 )
 
 from reco_utils.common.constants import (
@@ -31,7 +31,6 @@ def check_column_dtypes(f):
         1. whether the input columns exist in the input dataframes.
         2. whether the data types of col_user as well as col_item are matched in the two input dataframes.
     """
-
     @wraps(f)
     def check_column_dtypes_wrapper(
         rating_true,
@@ -78,20 +77,13 @@ def check_column_dtypes(f):
             *args,
             **kwargs
         )
-
     return check_column_dtypes_wrapper
 
 
 def merge_rating_true_pred(
-    rating_true,
-    rating_pred,
-    col_user=DEFAULT_USER_COL,
-    col_item=DEFAULT_ITEM_COL,
-    col_rating=DEFAULT_RATING_COL,
-    col_prediction=PREDICTION_COL,
+    rating_true, rating_pred, col_user, col_item, col_rating, col_prediction
 ):
-    """Join truth and prediction data frames on userID and itemID and return the true
-    and predicted rated with the correct index.
+    """Join truth and prediction data frames on userID and itemID
     
     Args:
         rating_true (pd.DataFrame): True data.
@@ -102,26 +94,31 @@ def merge_rating_true_pred(
         col_prediction (str): column name for prediction.
 
     Returns:
-        np.array: Array with the true ratings
-        np.array: Array with the predicted ratings
-
+        pd.DataFrame: Merged pd.DataFrame
     """
-    suffixes = ["_true", "_pred"]
-    # Apart from merging both dataframes, pd.merge will rename the columns with the suffixes only if the rating
-    # column name of rating_true is the same as the name rating column name in rating_pred
-    rating_true_pred = pd.merge(
+    # Select the columns needed for evaluations
+    rating_true = rating_true[[col_user, col_item, col_rating]]
+    rating_pred = rating_pred[[col_user, col_item, col_prediction]]
+
+    if col_rating == col_prediction:
+        rating_true_pred = pd.merge(
             rating_true,
             rating_pred,
             on=[col_user, col_item],
-            suffixes=suffixes,
+            suffixes=["_true", "_pred"],
         )
-    if col_rating == col_prediction:
-        column_select_true = col_rating + suffixes[0]
-        column_select_pred = col_prediction + suffixes[1]
+        rating_true_pred.rename(
+            columns={col_rating + "_true": DEFAULT_RATING_COL}, inplace=True
+        )
+        rating_true_pred.rename(
+            columns={col_prediction + "_pred": PREDICTION_COL}, inplace=True
+        )
     else:
-        column_select_true = col_rating
-        column_select_pred = col_prediction
-    return rating_true_pred[column_select_true], column_select_true[column_select_pred]
+        rating_true_pred = pd.merge(rating_true, rating_pred, on=[col_user, col_item])
+        rating_true_pred.rename(columns={col_rating: DEFAULT_RATING_COL}, inplace=True)
+        rating_true_pred.rename(columns={col_prediction: PREDICTION_COL}, inplace=True)
+
+    return rating_true_pred
 
 
 @check_column_dtypes
@@ -131,7 +128,7 @@ def rmse(
     col_user=DEFAULT_USER_COL,
     col_item=DEFAULT_ITEM_COL,
     col_rating=DEFAULT_RATING_COL,
-    col_prediction=PREDICTION_COL,
+    col_prediction=PREDICTION_COL
 ):
     """Calculate Root Mean Squared Error
 
@@ -146,11 +143,15 @@ def rmse(
     Returns:
         float: Root mean squared error.
     """
-    y_true, y_pred = merge_rating_true_pred(
+    rating_true_pred = merge_rating_true_pred(
         rating_true, rating_pred, col_user, col_item, col_rating, col_prediction
     )
 
-    return np.sqrt(mean_squared_error(y_true, y_pred))
+    return np.sqrt(
+        mean_squared_error(
+            rating_true_pred[DEFAULT_RATING_COL], rating_true_pred[PREDICTION_COL]
+        )
+    )
 
 
 @check_column_dtypes
@@ -175,10 +176,12 @@ def mae(
     Returns:
         float: Mean Absolute Error.
     """
-    y_true, y_pred = merge_rating_true_pred(
+    rating_true_pred = merge_rating_true_pred(
         rating_true, rating_pred, col_user, col_item, col_rating, col_prediction
     )
-    return mean_absolute_error(y_true, y_pred)
+    return mean_absolute_error(
+        rating_true_pred[DEFAULT_RATING_COL], rating_true_pred[PREDICTION_COL]
+    )
 
 
 @check_column_dtypes
@@ -203,10 +206,12 @@ def rsquared(
     Returns:
         float: R squared (min=0, max=1).
     """
-    y_true, y_pred = merge_rating_true_pred(
+    rating_true_pred = merge_rating_true_pred(
         rating_true, rating_pred, col_user, col_item, col_rating, col_prediction
     )
-    return r2_score(y_true, y_pred)
+    return r2_score(
+        rating_true_pred[DEFAULT_RATING_COL], rating_true_pred[PREDICTION_COL]
+    )
 
 
 @check_column_dtypes
@@ -231,82 +236,12 @@ def exp_var(
     Returns:
         float: Explained variance (min=0, max=1).
     """
-    y_true, y_pred = merge_rating_true_pred(
+    rating_true_pred = merge_rating_true_pred(
         rating_true, rating_pred, col_user, col_item, col_rating, col_prediction
     )
-    return explained_variance_score(y_true, y_pred)
-
-
-@check_column_dtypes
-def auc(
-    rating_true,
-    rating_pred,
-    col_user=DEFAULT_USER_COL,
-    col_item=DEFAULT_ITEM_COL,
-    col_rating=DEFAULT_RATING_COL,
-    col_prediction=PREDICTION_COL,
-):
-    """
-    Calculate the Area-Under-Curve metric for implicit feedback typed
-    recommender, where rating is binary and prediction is float number ranging
-    from 0 to 1.
-
-    https://en.wikipedia.org/wiki/Receiver_operating_characteristic#Area_under_the_curve
-
-    Note:
-        The evaluation does not require a leave-one-out scenario.
-        This metric does not calculate group-based AUC which considers the AUC scores
-        averaged across users. It is also not limited to k. Instead, it calculates the
-        scores on the entire prediction results regardless the users.
-
-    Args:
-        rating_true (pd.DataFrame): True data.
-        rating_pred (pd.DataFrame): Predicted data.
-        col_user (str): column name for user.
-        col_item (str): column name for item.
-        col_rating (str): column name for rating.
-        col_prediction (str): column name for prediction.
-
-    Return:
-        float: auc_score (min=0, max=1).
-    """
-    y_true, y_pred = merge_rating_true_pred(
-        rating_true, rating_pred, col_user, col_item, col_rating, col_prediction
+    return explained_variance_score(
+        rating_true_pred[DEFAULT_RATING_COL], rating_true_pred[PREDICTION_COL]
     )
-    return roc_auc_score(y_true, y_pred)
-
-
-@check_column_dtypes
-def logloss(
-    rating_true,
-    rating_pred,
-    col_user=DEFAULT_USER_COL,
-    col_item=DEFAULT_ITEM_COL,
-    col_rating=DEFAULT_RATING_COL,
-    col_prediction=PREDICTION_COL,
-):
-    """
-    Calculate the logloss metric for implicit feedback typed
-    recommender, where rating is binary and prediction is float number ranging
-    from 0 to 1.
-
-    https://en.wikipedia.org/wiki/Loss_functions_for_classification#Cross_entropy_loss_(Log_Loss)
-
-    Args:
-        rating_true (pd.DataFrame): True data.
-        rating_pred (pd.DataFrame): Predicted data.
-        col_user (str): column name for user.
-        col_item (str): column name for item.
-        col_rating (str): column name for rating.
-        col_prediction (str): column name for prediction.
-
-    Return:
-        float: log_loss_score (min=-\inf, max=\inf).
-    """
-    y_true, y_pred = merge_rating_true_pred(
-        rating_true, rating_pred, col_user, col_item, col_rating, col_prediction
-    )
-    return log_loss(y_true, y_pred)
 
 
 def merge_ranking_true_pred(
@@ -664,6 +599,89 @@ def map_at_k(
     return np.float64(df_sum_all.agg({"map": "sum"})) / n_users
 
 
+@check_column_dtypes
+def auc(
+    rating_true,
+    rating_pred,
+    col_user=DEFAULT_USER_COL,
+    col_item=DEFAULT_ITEM_COL,
+    col_rating=DEFAULT_RATING_COL,
+    col_prediction=PREDICTION_COL
+):
+    """
+    Calculate the Area-Under-Curve metric for implicit feedback typed
+    recommender, where rating is binary and prediction is float number ranging
+    from 0 to 1.
+
+    https://en.wikipedia.org/wiki/Receiver_operating_characteristic#Area_under_the_curve
+
+    Note:
+        The evaluation does not require a leave-one-out scenario.
+        This metric does not calculate group-based AUC which considers the AUC scores
+        averaged across users. It is also not limited to k. Instead, it calculates the
+        scores on the entire prediction results regardless the users.
+
+    Args:
+        rating_true (pd.DataFrame): True data.
+        rating_pred (pd.DataFrame): Predicted data.
+        col_user (str): column name for user.
+        col_item (str): column name for item.
+        col_rating (str): column name for rating.
+        col_prediction (str): column name for prediction.
+
+    Return:
+        float: auc_score (min=0, max=1).
+    """
+    rating_true_pred = merge_rating_true_pred(
+        rating_true, rating_pred, col_user, col_item, col_rating, col_prediction
+    )
+    auc_score = roc_auc_score(
+        rating_true_pred[DEFAULT_RATING_COL].values,
+        rating_true_pred[PREDICTION_COL].values
+    )
+
+    return auc_score
+
+
+@check_column_dtypes
+def logloss(
+    rating_true,
+    rating_pred,
+    col_user=DEFAULT_USER_COL,
+    col_item=DEFAULT_ITEM_COL,
+    col_rating=DEFAULT_RATING_COL,
+    col_prediction=PREDICTION_COL
+):
+    """
+    Calculate the logloss metric for implicit feedback typed
+    recommender, where rating is binary and prediction is float number ranging
+    from 0 to 1.
+
+    https://en.wikipedia.org/wiki/Loss_functions_for_classification#Cross_entropy_loss_(Log_Loss)
+
+    Args:
+        rating_true (pd.DataFrame): True data.
+        rating_pred (pd.DataFrame): Predicted data.
+        col_user (str): column name for user.
+        col_item (str): column name for item.
+        col_rating (str): column name for rating.
+        col_prediction (str): column name for prediction.
+
+    Return:
+        float: log_loss_score (min=-\inf, max=\inf).
+    """
+    rating_true_pred = merge_rating_true_pred(
+        rating_true, rating_pred, col_user, col_item, col_rating, col_prediction
+    )
+
+    log_loss_score = log_loss(
+        rating_true_pred[DEFAULT_RATING_COL].values,
+        rating_true_pred[PREDICTION_COL].values
+    )
+
+    return log_loss_score
+
+
 def get_top_k_items(
     dataframe, col_user=DEFAULT_USER_COL, col_rating=DEFAULT_RATING_COL, k=DEFAULT_K
 ):
@@ -689,4 +707,5 @@ def get_top_k_items(
         .apply(lambda x: x.nlargest(k, col_rating))
         .reset_index(drop=True)
     )
+
 
