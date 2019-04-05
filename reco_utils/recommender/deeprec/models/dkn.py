@@ -1,6 +1,3 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License.
-
 import numpy as np
 import tensorflow as tf
 from .base_model import BaseModel
@@ -10,14 +7,14 @@ __all__ = ["DKN"]
 
 class DKN(BaseModel):
     def __init__(self, hparams, iterator_creator):
-        """Initialization steps for DKN.
+        """
+        Initialization steps for DKN.
         Compared with the BaseModel, DKN requires two different pre-computed embeddings,
         i.e. word embedding and entity embedding.
         After creating these two embedding variables, BaseModel's __init__ method will be called.
-        
         Args:
-            hparams (obj): Global hyper-parameters.
-            iterator_creator (obj): DKN data loader class.
+            hparams: global hyper-parameters
+            iterator_creator:  DKN data loader class
         """
         self.graph = tf.Graph()
         with self.graph.as_default():
@@ -51,13 +48,13 @@ class DKN(BaseModel):
         super().__init__(hparams, iterator_creator, graph=self.graph)
 
     def _init_embedding(self, file_path):
-        """Load pre-trained embeddings as a constant tensor.
-        
+        """
+        Load pre-trained embeddings as a constant tensor.
         Args:
-            file_path (str): the pre-trained embeddings filename.
+            file_path: the pre-trained embeddings filename.
 
         Returns:
-            obj: A constant tensor.
+            a constant tensor.
         """
         return tf.constant(np.load(file_path).astype(np.float32))
 
@@ -105,10 +102,10 @@ class DKN(BaseModel):
             return logit
 
     def _build_dkn(self):
-        """The main function to create DKN's logic.
-        
+        """
+        The main function to create DKN's logic.
         Returns:
-            obj: Prediction score made by the DKN model.
+            Prediction score made by the DKN model.
         """
         hparams = self.hparams
         # build attention model for clicked news and candidate news
@@ -166,14 +163,15 @@ class DKN(BaseModel):
             return nn_output
 
     def _build_pair_attention(self, field_indices, field_values, field_shape, hparams):
-        """This function learns the candidate news article's embedding and user embedding.
+        """
+        This function learns the candidate news article's embedding and user embedding.
         User embedding is generated from click history and also depends on the candidate news article via attention mechanism.
         Article embedding is generated via KCNN module.
         Args:
-            field_indices (obj): sparse tensor indices for constructing user clicked history
-            field_values (obj): sparse tensor values for constructing user clicked history
-            field_shape (obj): sparse tensor shape for constructing user clicked history
-            hparams (obj): global hyper-parameters
+            field_indices: sparse tensor indices for constructing user clicked history
+            field_values: sparse tensor values for constructing user clicked history
+            field_shape: sparse tensor shape for constructing user clicked history
+            hparams: global hyper-parameters
 
         Returns:
             click_field_embed_final_batch: user embedding
@@ -303,15 +301,16 @@ class DKN(BaseModel):
         return click_field_embed_final_batch, news_field_embed_final_batch
 
     def _kims_cnn(self, word, entity, hparams):
-        """The KCNN module. KCNN is an extension of traditional CNN that incorporates symbolic knowledge from
+        """
+        the KCNN module. KCNN is an extension of traditional CNN that incorporates symbolic knowledge from
         a knowledge graph into sentence representation learning.
         Args:
-            word (obj): word indices for the sentence.
-            entity (obj): entity indices for the sentence. Entities are aligned with words in the sentence.
-            hparams (obj): global hyper-parameters.
+            word: word indices for the sentence.
+            entity: entity indices for the sentence. entities are aligned with words in the sentence.
+            hparams: global hyper-parameters.
 
         Returns:
-            obj: Sentence representation.
+            Sentence representation.
         """
         # kims cnn parameter
         filter_sizes = hparams.filter_sizes
