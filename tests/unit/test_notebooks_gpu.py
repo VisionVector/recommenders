@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
+import os
 import pytest
 from reco_utils.common.gpu_utils import get_number_gpus
 from tests.notebooks_common import OUTPUT_NOTEBOOK, KERNEL_NAME
@@ -52,3 +53,46 @@ def test_ncf_deep_dive(notebooks):
         ),
     )
 
+
+@pytest.mark.notebooks
+@pytest.mark.gpu
+def test_wide_deep(notebooks, tmp):
+    notebook_path = notebooks["wide_deep"]
+
+    model_dir = os.path.join(tmp, "wide_deep_0")
+    os.mkdir(model_dir)
+    params = {
+        'MOVIELENS_DATA_SIZE': '100k',
+        'EPOCHS': 0,
+        'EVALUATE_WHILE_TRAINING': False,
+        'MODEL_DIR': model_dir,
+        'EXPORT_DIR_BASE': model_dir,
+        'RATING_METRICS': ['rmse'],
+        'RANKING_METRICS': ['ndcg_at_k'],
+    }
+    pm.execute_notebook(
+        notebook_path,
+        OUTPUT_NOTEBOOK,
+        kernel_name=KERNEL_NAME,
+        parameters=params,
+    )
+
+    # Test w/o item features
+    model_dir = os.path.join(tmp, "wide_deep_1")
+    os.mkdir(model_dir)
+    params = {
+        'MOVIELENS_DATA_SIZE': '100k',
+        'EPOCHS': 0,
+        'ITEM_FEAT_COL': None,
+        'EVALUATE_WHILE_TRAINING': True,
+        'MODEL_DIR': model_dir,
+        'EXPORT_DIR_BASE': model_dir,
+        'RATING_METRICS': ['rsquared'],
+        'RANKING_METRICS': ['map_at_k'],
+    }
+    pm.execute_notebook(
+        notebook_path,
+        OUTPUT_NOTEBOOK,
+        kernel_name=KERNEL_NAME,
+        parameters=params,
+    )
