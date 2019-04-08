@@ -16,7 +16,6 @@ import shutil
 import sys
 import time
 from urllib.request import urlretrieve
-from requests.exceptions import HTTPError
 
 # requires databricks-cli to be installed and authentication to be configured
 from databricks_cli.configure.provider import ProfileConfigProvider
@@ -26,6 +25,7 @@ from databricks_cli.dbfs.api import DbfsApi
 from databricks_cli.libraries.api import LibrariesApi
 from databricks_cli.dbfs.dbfs_path import DbfsPath
 
+from requests.exceptions import HTTPError
 
 CLUSTER_NOT_FOUND_MSG = """
     Cannot find the target cluster {}. Please check if you entered the valid id. 
@@ -48,13 +48,15 @@ COSMOSDB_JAR_FILE_OPTIONS = {
     "5": "https://search.maven.org/remotecontent?filepath=com/microsoft/azure/azure-cosmosdb-spark_2.4.0_2.11/1.3.5/azure-cosmosdb-spark_2.4.0_2.11-1.3.5-uber.jar",
 }
 
+PYPI_RECO_LIB_DEPS = ["tqdm==4.31.1"]
 
-MMLSPARK_INFO = {
-    "maven": {
-        "coordinates": "com.microsoft.ml.spark:mmlspark_2.11:0.16.dev8+2.g6a5318b",
-        "repo": "https://mmlspark.azureedge.net/maven",
-    }
-}
+PYPI_O16N_LIBS = [
+    "azure-cli==2.0.56",
+    "azureml-sdk[databricks]==1.0.8",
+    "pydocumentdb==2.3.3",
+]
+
+MMLSPARK_INFO = {"maven": {"coordinates": "Azure:mmlspark:0.16"}}
 
 DEFAULT_CLUSTER_CONFIG = {
     "cluster_name": "DB_CLUSTER",
@@ -69,7 +71,6 @@ PENDING_SLEEP_ATTEMPTS = int(
     5 * 60 / PENDING_SLEEP_INTERVAL
 )  # wait a maximum of 5 minutes...
 
-## Additional dependencies met below.
 
 def create_egg(
     path_to_recommenders_repo_root=os.getcwd(),
@@ -80,8 +81,8 @@ def create_egg(
     Packages files in the reco_utils directory as a .egg file that can be uploaded to dbfs and installed as a library on a databricks cluster.
 
     Args:
-        path_to_recommenders_repo_root (str): the (relative or absolute) path to the root of the recommenders repository
-        local_eggname (str): the basename of the egg you want to create (NOTE: must have .egg extension)
+        path_to_recommenders_repo_root (String): the (relative or absolute) path to the root of the recommenders repository
+        local_eggname (String): the basename of the egg you want to create (NOTE: must have .egg extension)
         overwrite (bool): whether to overwrite local_eggname if it already exists.
 
     Returns:
@@ -108,7 +109,7 @@ def dbfs_file_exists(api_client, dbfs_path):
 
     Args:
         api_client (ApiClient object): Object used for authenticating to the workspace
-        dbfs_path (str): Path to check
+        dbfs_path (String): Path to check
     
     Returns:
         True if file exists on dbfs, False otherwise.
@@ -118,6 +119,7 @@ def dbfs_file_exists(api_client, dbfs_path):
         file_exists = True
     except:
         file_exists = False
+        pass
     return file_exists
 
 
@@ -128,11 +130,11 @@ def prepare_for_operationalization(
     Installs appropriate versions of several libraries to support operationalization.
 
     Args:
-        cluster_id (str): cluster_id representing the cluster to prepare for operationalization
+        cluster_id (String): cluster_id representing the cluster to prepare for operationalization
         api_client (ApiClient): the ApiClient object used to authenticate to the workspace
-        dbfs_path (str): the path on dbfs to upload libraries to
+        dbfs_path (String): the path on dbfs to upload libraries to
         overwrite (bool): whether to overwrite existing files on dbfs with new files of the same name
-        spark_version (str): str version indicating which version of spark is installed on the databricks cluster
+        spark_version (String): string version indicating which version of spark is installed on the databricks cluster
 
     Returns:
         A dictionary of libraries installed
@@ -200,20 +202,28 @@ if __name__ == "__main__":
         default="dbfs:/FileStore/jars",
     )
     parser.add_argument(
-        "--overwrite", action="store_true", help="Whether to overwrite existing files."
+        "--overwrite",
+        action="store_true",
+        help="Whether to overwrite existing files.",
+        default=False,
     )
     parser.add_argument(
         "--prepare-o16n",
         action="store_true",
         help="Whether to install additional libraries for operationalization.",
+        default=False,
     )
     parser.add_argument(
-        "--mmlspark", action="store_true", help="Whether to install mmlspark."
+        "--mmlspark",
+        action="store_true",
+        help="Whether to install mmlspark.",
+        default=False,
     )
     parser.add_argument(
         "--create-cluster",
         action="store_true",
         help="Whether to create the cluster. This will create a cluster with default parameters.",
+        default=False,
     )
     parser.add_argument(
         "cluster_id",
@@ -224,19 +234,6 @@ if __name__ == "__main__":
     # Check for extension of eggname
     if not args.eggname.endswith(".egg"):
         args.eggname += ".egg"
-
-    # make sure path_to_recommenders is on sys.path to allow for import
-    sys.path.append(args.path_to_recommenders)
-    from scripts.generate_conda_file import PIP_BASE
-
-    ## depend on PIP_BASE:
-    PYPI_RECO_LIB_DEPS = [PIP_BASE["tqdm"], PIP_BASE["papermill"]]
-
-    PYPI_O16N_LIBS = [
-        "azure-cli==2.0.56",
-        "azureml-sdk[databricks]==1.0.8",
-        PIP_BASE["pydocumentdb"],
-    ]
 
     #################
     # Create the egg:
@@ -272,20 +269,8 @@ if __name__ == "__main__":
 
     # Check if file exists to alert user.
     print("Uploading {} to databricks at {}".format(args.eggname, upload_path))
-    if dbfs_file_exists(my_api_client, upload_path):
-        if args.overwrite:
-            print("Overwriting file at {}".format(upload_path))
-        else:
-            raise IOError(
-                """
-            {} already exists on databricks cluster. 
-            This is likely an older version of the library.
-            Please use the '--overwrite' flag to proceed.
-            """.format(
-                    upload_path
-                )
-            )
-
+    if dbfs_file_exists(my_api_client, upload_path) and args.overwrite:
+        print("Overwriting file at {}".format(upload_path))
     DbfsApi(my_api_client).cp(
         recursive=False, src=myegg, dst=upload_path, overwrite=args.overwrite
     )
