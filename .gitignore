@@ -103,18 +103,6 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-# Tensorflow
-*model_checkpoints
-**/outputs
-
-# Azure ML
-aml_config
-aml_scripts
-aml_data
-
-# Spark
-spark-warehouse/
-
 ##########################
 .DS_Store
 .~*
@@ -123,7 +111,6 @@ Untitled*.ipynb
 ~$*
 output.ipynb
 conda*.yaml
-reco_*.yaml
 .idea/
 *.npz
 *.data

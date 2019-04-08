@@ -1,12 +1,10 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-import itertools
-
 import pytest
+import itertools
 import numpy as np
 import pandas as pd
-
 from reco_utils.common.constants import PREDICTION_COL
 from reco_utils.recommender.sar.sar_singlenode import SARSingleNode
 from reco_utils.recommender.sar import TIME_NOW
@@ -25,7 +23,9 @@ def _rearrange_to_test(array, row_ids, col_ids, row_map, col_map):
 
 
 def test_init(header):
-    model = SARSingleNode(remove_seen=True, similarity_type="jaccard", **header)
+    model = SARSingleNode(
+        remove_seen=True, similarity_type="jaccard", **header
+    )
 
     assert model.col_user == "UserId"
     assert model.col_item == "MovieId"
@@ -38,7 +38,10 @@ def test_init(header):
 )
 def test_fit(similarity_type, timedecay_formula, train_test_dummy_timestamp, header):
     model = SARSingleNode(
-        similarity_type=similarity_type, timedecay_formula=timedecay_formula, **header
+        remove_seen=True,
+        similarity_type=similarity_type,
+        timedecay_formula=timedecay_formula,
+        **header
     )
     trainset, testset = train_test_dummy_timestamp
     model.fit(trainset)
@@ -51,7 +54,10 @@ def test_predict(
     similarity_type, timedecay_formula, train_test_dummy_timestamp, header
 ):
     model = SARSingleNode(
-        similarity_type=similarity_type, timedecay_formula=timedecay_formula, **header
+        remove_seen=True,
+        similarity_type=similarity_type,
+        timedecay_formula=timedecay_formula,
+        **header
     )
     trainset, testset = train_test_dummy_timestamp
     model.fit(trainset)
@@ -59,24 +65,8 @@ def test_predict(
 
     assert len(preds) == 2
     assert isinstance(preds, pd.DataFrame)
-    assert preds[header["col_user"]].dtype == trainset[header["col_user"]].dtype
-    assert preds[header["col_item"]].dtype == trainset[header["col_item"]].dtype
-    assert preds[PREDICTION_COL].dtype == trainset[header["col_rating"]].dtype
-
-
-def test_predict_all_items(train_test_dummy_timestamp, header):
-    model = SARSingleNode(**header)
-    trainset, _ = train_test_dummy_timestamp
-    model.fit(trainset)
-
-    user_items = itertools.product(trainset[header["col_user"]].unique(), trainset[header["col_item"]].unique())
-    testset = pd.DataFrame(user_items, columns=[header["col_user"], header["col_item"]])
-    preds = model.predict(testset)
-
-    assert len(preds) == len(testset)
-    assert isinstance(preds, pd.DataFrame)
-    assert preds[header["col_user"]].dtype == trainset[header["col_user"]].dtype
-    assert preds[header["col_item"]].dtype == trainset[header["col_item"]].dtype
+    assert preds[header["col_user"]].dtype == object
+    assert preds[header["col_item"]].dtype == object
     assert preds[PREDICTION_COL].dtype == trainset[header["col_rating"]].dtype
 
 
@@ -96,6 +86,7 @@ def test_sar_item_similarity(
 ):
 
     model = SARSingleNode(
+        remove_seen=True,
         similarity_type=similarity_type,
         timedecay_formula=False,
         time_decay_coefficient=30,
@@ -124,7 +115,11 @@ def test_sar_item_similarity(
         )
     else:
         test_item_similarity = _rearrange_to_test(
-            model.item_similarity, row_ids, col_ids, model.item2index, model.item2index
+            model.item_similarity,
+            row_ids,
+            col_ids,
+            model.item2index,
+            model.item2index,
         )
         assert np.allclose(
             true_item_similarity.astype(test_item_similarity.dtype),
@@ -136,6 +131,7 @@ def test_sar_item_similarity(
 def test_user_affinity(demo_usage_data, sar_settings, header):
     time_now = demo_usage_data[header["col_timestamp"]].max()
     model = SARSingleNode(
+        remove_seen=True,
         similarity_type="cooccurrence",
         timedecay_formula=True,
         time_decay_coefficient=30,
@@ -165,11 +161,12 @@ def test_user_affinity(demo_usage_data, sar_settings, header):
     "threshold,similarity_type,file",
     [(3, "cooccurrence", "count"), (3, "jaccard", "jac"), (3, "lift", "lift")],
 )
-def test_recommend_k_items(
+def test_userpred(
     threshold, similarity_type, file, header, sar_settings, demo_usage_data
 ):
     time_now = demo_usage_data[header["col_timestamp"]].max()
     model = SARSingleNode(
+        remove_seen=True,
         similarity_type=similarity_type,
         timedecay_formula=True,
         time_decay_coefficient=30,
@@ -191,8 +188,7 @@ def test_recommend_k_items(
             demo_usage_data[header["col_user"]] == sar_settings["TEST_USER_ID"]
         ],
         top_k=10,
-        sort_top_k=True,
-        remove_seen=True,
+        sort_top_k=True
     )
     test_items = list(test_results[header["col_item"]])
     test_scores = np.array(test_results["prediction"])
