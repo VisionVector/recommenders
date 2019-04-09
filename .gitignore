@@ -112,6 +112,9 @@ aml_config
 aml_scripts
 aml_data
 
+# Spark
+spark-warehouse/
+
 ##########################
 .DS_Store
 .~*
@@ -120,6 +123,7 @@ Untitled*.ipynb
 ~$*
 output.ipynb
 conda*.yaml
+reco_*.yaml
 .idea/
 *.npz
 *.data
@@ -127,7 +131,15 @@ conda*.yaml
 *.csv
 *.zip
 .vscode/
-tools/repo_metrics/config.py
+scripts/repo_metrics/config.py
+movies.dat
+ratings.dat
+u.item
+u.data
+ml-100k/
+ml-10M100K/
+ml-1m/
+ml-20m/
 *.jar
 *.item
 *.pkl
