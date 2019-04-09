@@ -11,7 +11,7 @@ try:
 except ImportError:
     pass  # so the environment without spark doesn't break
 
-from reco_utils.dataset.download_utils import maybe_download, download_path
+from reco_utils.dataset.url_utils import maybe_download, download_path
 from reco_utils.common.notebook_utils import is_databricks
 
 
@@ -111,7 +111,7 @@ def load_spark_df(
         else:
             path = filepath
 
-        schema = get_spark_schema(header)
+        schema = _get_spark_schema(header)
         df = spark.read.csv(path, schema=schema, sep="\t", header=False)
         df.cache().count() # trigger execution to overcome spark's lazy evaluation
     return df
@@ -160,7 +160,7 @@ def extract_criteo(size, compressed_file, path=None):
     return os.path.join(extracted_dir, filename_selector[size])
 
 
-def get_spark_schema(header=DEFAULT_HEADER):
+def _get_spark_schema(header):
     ## create schema
     schema = StructType()
     ## do label + ints
