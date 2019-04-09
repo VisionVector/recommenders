@@ -371,8 +371,9 @@ def _get_top_k_items(
             row_number().over(window_spec).alias("rank")
         )
         .where(col("rank") <= k)
-        .groupby(col_user)
-        .agg(F.collect_list('item').alias(col_prediction))
+        .withColumn(col_prediction, F.collect_list(col_item).over(Window.partitionBy(col_user)))
+        .select(col_user, col_prediction)
+        .dropDuplicates([col_user, col_prediction])
     )
 
     return items_for_user
