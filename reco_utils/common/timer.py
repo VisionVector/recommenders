@@ -38,7 +38,7 @@ class Timer(object):
         self.stop()
 
     def __str__(self):
-        return "{:0.4f}".format(self.interval)
+        return str(timedelta(seconds=self._interval))
 
     def start(self):
         """Start the timer."""
@@ -62,4 +62,3 @@ class Timer(object):
             raise ValueError("Timer has not been stopped, please use stop().")
         else:
             return self._interval
-
