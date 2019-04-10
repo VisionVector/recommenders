@@ -127,15 +127,16 @@ def test_notebook_dkn(notebooks):
 
 @pytest.mark.smoke
 @pytest.mark.gpu
-def test_wide_deep(notebooks, tmp):
+def test_wide_deep(notebooks, tmpdir):
     notebook_path = notebooks["wide_deep"]
 
+    tmp_dir = str(tmpdir.mkdir("wide_deep_0"))
     params = {
         "MOVIELENS_DATA_SIZE": "100k",
         "EPOCHS": 1,
         "EVALUATE_WHILE_TRAINING": False,
-        "MODEL_DIR": tmp,
-        "EXPORT_DIR_BASE": tmp,
+        "MODEL_DIR": tmp_dir,
+        "EXPORT_DIR_BASE": tmp_dir,
         "RATING_METRICS": ["rmse", "mae"],
         "RANKING_METRICS": ["ndcg_at_k", "precision_at_k"],
     }
