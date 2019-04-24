@@ -215,7 +215,7 @@ def notebooks():
             folder_notebooks, "00_quick_start", "fastai_movielens.ipynb"
         ),
         "xdeepfm_quickstart": os.path.join(
-            folder_notebooks, "00_quick_start", "xdeepfm_criteo.ipynb"
+            folder_notebooks, "00_quick_start", "xdeepfm_synthetic.ipynb"
         ),
         "dkn_quickstart": os.path.join(
             folder_notebooks, "00_quick_start", "dkn_synthetic.ipynb"
