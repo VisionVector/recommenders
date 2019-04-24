@@ -52,7 +52,6 @@ CONDA_BASE = {
     "scikit-learn": "scikit-learn==0.19.1",
     "scipy": "scipy>=1.0.0",
     "scikit-surprise": "scikit-surprise>=1.0.6",
-    "swig": "swig==3.0.12",
     "tensorflow": "tensorflow==1.12.0",
     "lightgbm": "lightgbm==2.2.1",
 }
@@ -66,7 +65,7 @@ CONDA_GPU = {
 }
 
 PIP_BASE = {
-    "azureml-sdk[notebooks,tensorboard]": "azureml-sdk[notebooks,tensorboard]==1.0.18",
+    "azureml-sdk[notebooks,tensorboard,contrib]": "azureml-sdk[notebooks,tensorboard,contrib]==1.0.18",
     "azure-storage": "azure-storage>=0.36.0",
     "black": "black>=18.6b4",
     "category_encoders": "category_encoders>=1.3.0",
@@ -76,7 +75,6 @@ PIP_BASE = {
     "hyperopt": "hyperopt==0.1.1",
     "idna": "idna==2.7",
     "memory-profiler": "memory-profiler>=0.54.0",
-    "nni": "nni==0.5.2.1",
     "nvidia-ml-py3": "nvidia-ml-py3>=7.352.0",
     "papermill": "papermill==0.18.2",
     "pydocumentdb": "pydocumentdb>=2.3.3",
