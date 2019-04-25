@@ -69,9 +69,6 @@ docs/_build/
 # PyBuilder
 target/
 
-# Locust files:
-locustfile.py
-
 # Jupyter Notebook
 .ipynb_checkpoints
 
