@@ -228,7 +228,7 @@ def train_sar(params, data):
 
 def recommend_k_sar(model, test, train):
     with Timer() as t:
-        topk_scores = model.recommend_k_items(test, remove_seen=True)
+        topk_scores = model.recommend_k_items(test)
     return topk_scores, t
 
 
