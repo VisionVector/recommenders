@@ -44,7 +44,7 @@ They have write access to the repo and provide support reviewing issues and pull
     * Reference architecture
 * **[Mirco Milletarì](https://github.com/WessZumino)**
     * Restricted Boltzmann Machine algorithm
-* **[Tao Wu](https://github.com/wutaomsft)**
+* **[Tao Wu](https://github.com/wutao)**
     * Improving documentation
 * **[Le Zhang](https://github.com/yueguoguo)**
     * Reco utils
