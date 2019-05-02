@@ -1,22 +1,21 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
+"""
+Reference implementation of SAR in python/numpy/pandas.
 
+This is not meant to be particularly performant or scalable, just
+a simple and readable implementation.
+"""
 import numpy as np
 import pandas as pd
 import logging
 from scipy import sparse
 
-from reco_utils.common.python_utils import (
-    jaccard,
-    lift,
-    exponential_decay,
-    get_top_k_scored_items,
-)
+from reco_utils.common.python_utils import jaccard, lift, exponential_decay, get_top_k_scored_items
 from reco_utils.common import constants
+from reco_utils.recommender import sar
 
-
-SIMILARITY_TYPES = ["cooccurrence", "jaccard", "lift"]
 
 logger = logging.getLogger()
 
@@ -26,16 +25,17 @@ class SARSingleNode:
 
     def __init__(
         self,
+        remove_seen=True,
         col_user=constants.DEFAULT_USER_COL,
         col_item=constants.DEFAULT_ITEM_COL,
         col_rating=constants.DEFAULT_RATING_COL,
         col_timestamp=constants.DEFAULT_TIMESTAMP_COL,
         col_prediction=constants.DEFAULT_PREDICTION_COL,
-        similarity_type="jaccard",
-        time_decay_coefficient=30,
-        time_now=None,
-        timedecay_formula=False,
-        threshold=1,
+        similarity_type=sar.SIM_JACCARD,
+        time_decay_coefficient=sar.TIME_DECAY_COEFFICIENT,
+        time_now=sar.TIME_NOW,
+        timedecay_formula=sar.TIMEDECAY_FORMULA,
+        threshold=sar.THRESHOLD,
     ):
         """Initialize model parameters
 
@@ -45,7 +45,7 @@ class SARSingleNode:
             col_rating (str): rating column name
             col_timestamp (str): timestamp column name
             col_prediction (str): prediction column name
-            similarity_type (str): ['cooccurrence', 'jaccard', 'lift'] option for computing item-item similarity
+            similarity_type (str): [None, 'jaccard', 'lift'] option for computing item-item similarity
             time_decay_coefficient (float): number of days till ratings are decayed by 1/2
             time_now (int | None): current time for time decay calculation
             timedecay_formula (bool): flag to apply time decay
@@ -56,16 +56,17 @@ class SARSingleNode:
         self.col_user = col_user
         self.col_timestamp = col_timestamp
         self.col_prediction = col_prediction
-        
-        if similarity_type not in SIMILARITY_TYPES:
-            raise ValueError('Similarity type must be one of ["cooccurrence" | "jaccard" | "lift"]')
+
+        self.remove_seen = remove_seen
+
         self.similarity_type = similarity_type
-        self.time_decay_half_life = (
-            time_decay_coefficient * 24 * 60 * 60
-        )  # convert to seconds
+        # convert to seconds
+        self.time_decay_half_life = time_decay_coefficient * 24 * 60 * 60
         self.time_decay_flag = timedecay_formula
         self.time_now = time_now
         self.threshold = threshold
+
+        self.model_str = "sar_ref"
         self.user_affinity = None
         self.item_similarity = None
         self.item_frequencies = None
@@ -75,8 +76,8 @@ class SARSingleNode:
             raise ValueError("Threshold cannot be < 1")
 
         # column for mapping user / item ids to internal indices
-        self.col_item_id = "_indexed_items"
-        self.col_user_id = "_indexed_users"
+        self.col_item_id = sar.INDEXED_ITEMS
+        self.col_user_id = sar.INDEXED_USERS
 
         # obtain all the users and items from both training and test data
         self.n_users = None
@@ -98,7 +99,6 @@ class SARSingleNode:
         indices in a sparse matrix, and the events as the data. Here, we're treating
         the ratings as the event weights.  We convert between different sparse-matrix
         formats to de-duplicate user-item pairs, otherwise they will get added up.
-        
         Args:
             df (pd.DataFrame): Indexed df of users and items.
             n_users (int): Number of users.
@@ -227,21 +227,22 @@ class SARSingleNode:
         self.item_frequencies = item_cooccurrence.diagonal()
 
         logger.info("Calculating item similarity")
-        if self.similarity_type is SIMILARITY_TYPES[0]:
-            logger.info("Using co-occurrence based similarity")
+        if self.similarity_type == sar.SIM_COOCCUR:
             self.item_similarity = item_cooccurrence
-        elif self.similarity_type is SIMILARITY_TYPES[1]:
-            logger.info("Using jaccard based similarity")
+        elif self.similarity_type == sar.SIM_JACCARD:
+            logger.info("Calculating jaccard")
             self.item_similarity = jaccard(item_cooccurrence).astype(
                 df[self.col_rating].dtype
             )
-        elif self.similarity_type is SIMILARITY_TYPES[2]:
-            logger.info("Using lift based similarity")
+        elif self.similarity_type == sar.SIM_LIFT:
+            logger.info("Calculating lift")
             self.item_similarity = lift(item_cooccurrence).astype(
                 df[self.col_rating].dtype
             )
         else:
-            raise ValueError("Unknown similarity type: {}".format(self.similarity_type))
+            raise ValueError(
+                "Unknown similarity type: {0}".format(self.similarity_type)
+            )
 
         # free up some space
         del item_cooccurrence
@@ -295,14 +296,16 @@ class SARSingleNode:
 
         test_scores = np.array([self.item_frequencies])
 
-        logger.info("Getting top K")
+        logger.info('Getting top K')
         top_items, top_scores = get_top_k_scored_items(
             scores=test_scores, top_k=top_k, sort_top_k=sort_top_k
         )
 
         return pd.DataFrame(
             {
-                self.col_item: [self.index2item[item] for item in top_items.flatten()],
+                self.col_item: [
+                    self.index2item[item] for item in top_items.flatten()
+                ],
                 self.col_prediction: top_scores.flatten(),
             }
         )
@@ -359,16 +362,14 @@ class SARSingleNode:
         # remove items in the seed set so recommended items are novel
         test_scores[user_ids, item_ids] = -np.inf
 
-        top_items, top_scores = get_top_k_scored_items(
-            scores=test_scores, top_k=top_k, sort_top_k=sort_top_k
-        )
+        top_items, top_scores = get_top_k_scored_items(scores=test_scores, top_k=top_k, sort_top_k=sort_top_k)
 
         df = pd.DataFrame(
             {
-                self.col_user: np.repeat(
-                    test_users.drop_duplicates().values, top_items.shape[1]
-                ),
-                self.col_item: [self.index2item[item] for item in top_items.flatten()],
+                self.col_user: np.repeat(test_users.drop_duplicates().values, top_items.shape[1]),
+                self.col_item: [
+                    self.index2item[item] for item in top_items.flatten()
+                ],
                 self.col_prediction: top_scores.flatten(),
             }
         )
@@ -391,16 +392,14 @@ class SARSingleNode:
 
         test_scores = self.score(test, remove_seen=remove_seen)
 
-        top_items, top_scores = get_top_k_scored_items(
-            scores=test_scores, top_k=top_k, sort_top_k=sort_top_k
-        )
+        top_items, top_scores = get_top_k_scored_items(scores=test_scores, top_k=top_k, sort_top_k=sort_top_k)
 
         df = pd.DataFrame(
             {
-                self.col_user: np.repeat(
-                    test[self.col_user].drop_duplicates().values, top_items.shape[1]
-                ),
-                self.col_item: [self.index2item[item] for item in top_items.flatten()],
+                self.col_user: np.repeat(test[self.col_user].drop_duplicates().values, top_items.shape[1]),
+                self.col_item: [
+                    self.index2item[item] for item in top_items.flatten()
+                ],
                 self.col_prediction: top_scores.flatten(),
             }
         )
