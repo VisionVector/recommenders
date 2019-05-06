@@ -3,6 +3,8 @@
 
 import papermill as pm
 import pytest
+
+from reco_utils.common.constants import SEED
 from reco_utils.common.gpu_utils import get_number_gpus
 from tests.notebooks_common import OUTPUT_NOTEBOOK, KERNEL_NAME
 
@@ -36,9 +38,9 @@ def test_ncf_smoke(notebooks):
     assert results["recall"] < 0.10
 
 
-@pytest.mark.notebooks
+@pytest.mark.smoke
 @pytest.mark.gpu
-def test_ncf_deep_dive(notebooks):
+def test_ncf_deep_dive_smoke(notebooks):
     notebook_path = notebooks["ncf_deep_dive"]
     pm.execute_notebook(
         notebook_path,
@@ -63,7 +65,7 @@ def test_ncf_deep_dive(notebooks):
 
 @pytest.mark.smoke
 @pytest.mark.gpu
-def test_fastai(notebooks):
+def test_fastai_smoke(notebooks):
     notebook_path = notebooks["fastai"]
     pm.execute_notebook(
         notebook_path,
@@ -85,32 +87,31 @@ def test_fastai(notebooks):
 
 @pytest.mark.smoke
 @pytest.mark.gpu
-@pytest.mark.deeprec
-def test_notebook_xdeepfm(notebooks):
+def test_xdeepfm_smoke(notebooks):
     notebook_path = notebooks["xdeepfm_quickstart"]
     pm.execute_notebook(
         notebook_path,
         OUTPUT_NOTEBOOK,
         kernel_name=KERNEL_NAME,
         parameters=dict(
-            EPOCHS_FOR_SYNTHETIC_RUN=20,
+            EPOCHS_FOR_SYNTHETIC_RUN=1,
             EPOCHS_FOR_CRITEO_RUN=1,
             BATCH_SIZE_SYNTHETIC=128,
             BATCH_SIZE_CRITEO=512,
+            RANDOM_SEED=SEED,
         ),
     )
     results = pm.read_notebook(OUTPUT_NOTEBOOK).dataframe.set_index("name")["value"]
 
-    assert results["res_syn"]["auc"] == pytest.approx(0.982, rel=TOL, abs=ABS_TOL)
-    assert results["res_syn"]["logloss"] == pytest.approx(0.2306, rel=TOL, abs=ABS_TOL)
-    assert results["res_real"]["auc"] == pytest.approx(0.628, rel=TOL, abs=ABS_TOL)
-    assert results["res_real"]["logloss"] == pytest.approx(0.5589, rel=TOL, abs=ABS_TOL)
+    assert results["res_syn"]["auc"] == pytest.approx(0.5043, rel=TOL, abs=ABS_TOL)
+    assert results["res_syn"]["logloss"] == pytest.approx(0.7046, rel=TOL, abs=ABS_TOL)
+    assert results["res_real"]["auc"] == pytest.approx(0.7251, rel=TOL, abs=ABS_TOL)
+    assert results["res_real"]["logloss"] == pytest.approx(0.508, rel=TOL, abs=ABS_TOL)
 
 
 @pytest.mark.smoke
 @pytest.mark.gpu
-@pytest.mark.deeprec
-def test_notebook_dkn(notebooks):
+def test_dkn_smoke(notebooks):
     notebook_path = notebooks["dkn_quickstart"]
     pm.execute_notebook(
         notebook_path,
@@ -127,7 +128,7 @@ def test_notebook_dkn(notebooks):
 
 @pytest.mark.smoke
 @pytest.mark.gpu
-def test_wide_deep(notebooks, tmp):
+def test_wide_deep_smoke(notebooks, tmp):
     notebook_path = notebooks["wide_deep"]
 
     params = {
@@ -138,17 +139,14 @@ def test_wide_deep(notebooks, tmp):
         "EXPORT_DIR_BASE": tmp,
         "RATING_METRICS": ["rmse", "mae"],
         "RANKING_METRICS": ["ndcg_at_k", "precision_at_k"],
+        "RANDOM_SEED": SEED,
     }
     pm.execute_notebook(
         notebook_path, OUTPUT_NOTEBOOK, kernel_name=KERNEL_NAME, parameters=params
     )
     results = pm.read_notebook(OUTPUT_NOTEBOOK).dataframe.set_index("name")["value"]
 
-    # Model performance is highly dependant on the initial random weights
-    # when epochs is small with a small dataset.
-    # Therefore, in the smoke-test context, rather check if the model training is working
-    # with minimum performance metrics as follows:
-    assert results["rmse"] < 2.0
-    assert results["mae"] < 2.0
-    assert results["ndcg_at_k"] > 0.0
-    assert results["precision_at_k"] > 0.0
+    assert results["rmse"] == pytest.approx(1.0394, rel=TOL, abs=ABS_TOL)
+    assert results["mae"] == pytest.approx(0.836116, rel=TOL, abs=ABS_TOL)
+    assert results["ndcg_at_k"] == pytest.approx(0.0954757, rel=TOL, abs=ABS_TOL)
+    assert results["precision_at_k"] == pytest.approx(0.080912, rel=TOL, abs=ABS_TOL)

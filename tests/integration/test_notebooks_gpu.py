@@ -130,25 +130,65 @@ def test_fastai_integration(notebooks, size, epochs, expected_values):
 @pytest.mark.integration
 @pytest.mark.gpu
 @pytest.mark.parametrize(
+    "syn_epochs, criteo_epochs, expected_values",
+    [
+        (
+            15,
+            30,
+            {
+                "res_syn": {
+                    "auc": 0.9716,
+                    "logloss": 0.2278,
+                },
+                "res_real": {
+                    "auc": 0.749,
+                    "logloss": 0.4926,
+                },
+            },
+        )
+    ],
+)
+def test_xdeepfm_integration(notebooks, syn_epochs, criteo_epochs, expected_values):
+    notebook_path = notebooks["xdeepfm_quickstart"]
+    pm.execute_notebook(
+        notebook_path,
+        OUTPUT_NOTEBOOK,
+        kernel_name=KERNEL_NAME,
+        parameters=dict(
+            EPOCHS_FOR_SYNTHETIC_RUN=syn_epochs,
+            EPOCHS_FOR_CRITEO_RUN=criteo_epochs,
+            RANDOM_SEED=SEED,
+        ),
+    )
+    results = pm.read_notebook(OUTPUT_NOTEBOOK).dataframe.set_index("name")["value"]
+
+    for key, value in expected_values.items():
+        assert results[key]["auc"] == pytest.approx(value["auc"], rel=TOL, abs=ABS_TOL)
+        assert results[key]["logloss"] == pytest.approx(value["logloss"], rel=TOL, abs=ABS_TOL)
+
+
+@pytest.mark.integration
+@pytest.mark.gpu
+@pytest.mark.parametrize(
     "size, epochs, expected_values",
     [
         (
             "1m",
             10,
             {
-                "rmse": 0.899594,
-                "mae": 0.707779,
-                "rsquared": 0.350248,
-                "exp_var": 0.350744,
-                "ndcg_at_k": 0.067712,
-                "map_at_k": 0.007496,
-                "precision_at_k": 0.063195,
-                "recall_at_k": 0.020235,
+                "rmse": 0.911973,
+                "mae": 0.71469,
+                "rsquared": 0.335589,
+                "exp_var": 0.336365,
+                "ndcg_at_k": 0.0706927,
+                "map_at_k": 0.00849144,
+                "precision_at_k": 0.0571452,
+                "recall_at_k": 0.0180048,
             },
         )
     ],
 )
-def test_wide_deep(notebooks, size, epochs, expected_values, tmp):
+def test_wide_deep_integration(notebooks, size, epochs, expected_values, tmp):
     notebook_path = notebooks["wide_deep"]
 
     params = {
@@ -159,6 +199,7 @@ def test_wide_deep(notebooks, size, epochs, expected_values, tmp):
         "EXPORT_DIR_BASE": tmp,
         "RATING_METRICS": ["rmse", "mae", "rsquared", "exp_var"],
         "RANKING_METRICS": ["ndcg_at_k", "map_at_k", "precision_at_k", "recall_at_k"],
+        "RANDOM_SEED": SEED,
     }
     pm.execute_notebook(
         notebook_path, OUTPUT_NOTEBOOK, kernel_name=KERNEL_NAME, parameters=params
