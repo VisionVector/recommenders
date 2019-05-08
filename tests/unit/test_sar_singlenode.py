@@ -25,18 +25,12 @@ def _rearrange_to_test(array, row_ids, col_ids, row_map, col_map):
 
 
 def test_init(header):
-    model = SARSingleNode(similarity_type="jaccard", **header)
+    model = SARSingleNode(remove_seen=True, similarity_type="jaccard", **header)
 
     assert model.col_user == "UserId"
     assert model.col_item == "MovieId"
     assert model.col_rating == "Rating"
-    assert model.col_timestamp == "Timestamp"
-    assert model.col_prediction == "prediction"
-    assert model.similarity_type == "jaccard"
-    assert model.time_decay_half_life == 2592000
-    assert model.time_decay_flag == False
-    assert model.time_now == None
-    assert model.threshold == 1
+    # TODO: add more parameters
 
 
 @pytest.mark.parametrize(
