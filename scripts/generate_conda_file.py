@@ -158,12 +158,10 @@ if __name__ == "__main__":
     # check for os platform support
     if platform == 'darwin':
         pip_packages.update(PIP_DARWIN)
-    elif platform.startswith('linux'):
+    if platform == 'linux':
         pip_packages.update(PIP_LINUX)
-    elif platform == 'win32':
+    if platform == 'win32':
         pip_packages.update(PIP_WIN32)
-    else:
-        raise Exception('Unsupported platform, must be Windows, Linux, or macOS')
 
     # write out yaml file
     conda_file = "{}.yaml".format(conda_env)
