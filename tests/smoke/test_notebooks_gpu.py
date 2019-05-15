@@ -36,9 +36,9 @@ def test_ncf_smoke(notebooks):
     assert results["recall"] < 0.10
 
 
-@pytest.mark.smoke
+@pytest.mark.notebooks
 @pytest.mark.gpu
-def test_ncf_deep_dive_smoke(notebooks):
+def test_ncf_deep_dive(notebooks):
     notebook_path = notebooks["ncf_deep_dive"]
     pm.execute_notebook(
         notebook_path,
@@ -63,7 +63,7 @@ def test_ncf_deep_dive_smoke(notebooks):
 
 @pytest.mark.smoke
 @pytest.mark.gpu
-def test_fastai_smoke(notebooks):
+def test_fastai(notebooks):
     notebook_path = notebooks["fastai"]
     pm.execute_notebook(
         notebook_path,
@@ -85,14 +85,15 @@ def test_fastai_smoke(notebooks):
 
 @pytest.mark.smoke
 @pytest.mark.gpu
-def test_xdeepfm_smoke(notebooks):
+@pytest.mark.deeprec
+def test_notebook_xdeepfm(notebooks):
     notebook_path = notebooks["xdeepfm_quickstart"]
     pm.execute_notebook(
         notebook_path,
         OUTPUT_NOTEBOOK,
         kernel_name=KERNEL_NAME,
         parameters=dict(
-            EPOCHS_FOR_SYNTHETIC_RUN=1,
+            EPOCHS_FOR_SYNTHETIC_RUN=20,
             EPOCHS_FOR_CRITEO_RUN=1,
             BATCH_SIZE_SYNTHETIC=128,
             BATCH_SIZE_CRITEO=512,
@@ -100,15 +101,16 @@ def test_xdeepfm_smoke(notebooks):
     )
     results = pm.read_notebook(OUTPUT_NOTEBOOK).dataframe.set_index("name")["value"]
 
-    assert results["res_syn"]["auc"] == pytest.approx(0.5048, rel=TOL, abs=ABS_TOL)
-    assert results["res_syn"]["logloss"] == pytest.approx(0.7025, rel=TOL, abs=ABS_TOL)
-    assert results["res_real"]["auc"] == pytest.approx(0.7249, rel=TOL, abs=ABS_TOL)
-    assert results["res_real"]["logloss"] == pytest.approx(0.5084, rel=TOL, abs=ABS_TOL)
+    assert results["res_syn"]["auc"] == pytest.approx(0.982, rel=TOL, abs=ABS_TOL)
+    assert results["res_syn"]["logloss"] == pytest.approx(0.2306, rel=TOL, abs=ABS_TOL)
+    assert results["res_real"]["auc"] == pytest.approx(0.628, rel=TOL, abs=ABS_TOL)
+    assert results["res_real"]["logloss"] == pytest.approx(0.5589, rel=TOL, abs=ABS_TOL)
 
 
 @pytest.mark.smoke
 @pytest.mark.gpu
-def test_dkn_smoke(notebooks):
+@pytest.mark.deeprec
+def test_notebook_dkn(notebooks):
     notebook_path = notebooks["dkn_quickstart"]
     pm.execute_notebook(
         notebook_path,
@@ -125,7 +127,7 @@ def test_dkn_smoke(notebooks):
 
 @pytest.mark.smoke
 @pytest.mark.gpu
-def test_wide_deep_smoke(notebooks, tmp):
+def test_wide_deep(notebooks, tmp):
     notebook_path = notebooks["wide_deep"]
 
     params = {
