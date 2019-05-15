@@ -19,19 +19,19 @@ ABS_TOL = 0.05
         (
                 "1m",
                 {
-                    "map": 0.064012679,
-                    "ndcg": 0.308012195,
-                    "precision": 0.277214771,
-                    "recall": 0.109291553,
+                    "map": 0.060579,
+                    "ndcg": 0.299245,
+                    "precision": 0.270116,
+                    "recall": 0.104350,
                 },
         ),
         (
                 "10m",
                 {
-                    "map": 0.101402,
-                    "ndcg": 0.321073,
-                    "precision": 0.275766,
-                    "recall": 0.156483,
+                    "map": 0.098745,
+                    "ndcg": 0.319625,
+                    "precision": 0.275756,
+                    "recall": 0.154014,
                 },
         ),
     ],
@@ -155,13 +155,14 @@ def test_nni_tuning_svd(notebooks, tmp):
     # First check if NNI is running
     try:
         check_experiment_status(NNI_STATUS_URL)
-        raise Exception('NNI Server must be stopped before running integration tests')
     except:
-        pass
+        raise Exception("NNI Server must be stopped before running integration tests")
 
     pm.execute_notebook(notebook_path, OUTPUT_NOTEBOOK, kernel_name=KERNEL_NAME,
                         parameters=dict(MOVIELENS_DATA_SIZE="100k",
                                         SURPRISE_READER="ml-100k",
                                         TMP_DIR=tmp,
                                         MAX_TRIAL_NUM=1,
-                                        NUM_EPOCHS=1))
+                                        NUM_EPOCHS=1,
+                                        WAITING_TIME=20,
+                                        MAX_RETRIES=10))
