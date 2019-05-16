@@ -155,14 +155,13 @@ def test_nni_tuning_svd(notebooks, tmp):
     # First check if NNI is running
     try:
         check_experiment_status(NNI_STATUS_URL)
+        raise Exception('NNI Server must be stopped before running integration tests')
     except:
-        raise Exception("NNI Server must be stopped before running integration tests")
+        pass
 
     pm.execute_notebook(notebook_path, OUTPUT_NOTEBOOK, kernel_name=KERNEL_NAME,
                         parameters=dict(MOVIELENS_DATA_SIZE="100k",
                                         SURPRISE_READER="ml-100k",
                                         TMP_DIR=tmp,
                                         MAX_TRIAL_NUM=1,
-                                        NUM_EPOCHS=1,
-                                        WAITING_TIME=20,
-                                        MAX_RETRIES=10))
+                                        NUM_EPOCHS=1))
