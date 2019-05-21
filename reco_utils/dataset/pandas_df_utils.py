@@ -25,7 +25,6 @@ def user_item_pairs(
     item_col=DEFAULT_ITEM_COL,
     user_item_filter_df=None,
     shuffle=True,
-    seed=None
 ):
     """Get all pairs of users and items data.
 
@@ -36,7 +35,6 @@ def user_item_pairs(
         item_col (str): Item id column name.
         user_item_filter_df (pd.DataFrame): User-item pairs to be used as a filter.
         shuffle (bool): If True, shuffles the result.
-        seed (int): Random seed for shuffle
 
     Returns:
         pd.DataFrame: All pairs of user-item from user_df and item_df, excepting the pairs in user_item_filter_df
@@ -56,7 +54,7 @@ def user_item_pairs(
         users_items = filter_by(users_items, user_item_filter_df, [user_col, item_col])
 
     if shuffle:
-        users_items = users_items.sample(frac=1, random_state=seed).reset_index(drop=True)
+        users_items = users_items.sample(frac=1).reset_index(drop=True)
 
     return users_items
 
@@ -193,23 +191,23 @@ class LibffmConverter(object):
         idx = 1
         field_feature_dict = {}
         for field in self.field_names:
-            if df[field].dtype == object:
-                for feature in df[field].values:
-                    # Check whether (field, feature) tuple exists in the dict or not.
-                    # If not, put them into the key-values of the dict and count the index.
-                    if (field, feature) not in field_feature_dict:
-                        field_feature_dict[(field, feature)] = idx
+            for feature in df[field].values:
+                # Check whether (field, feature) tuple exists in the dict or not.
+                # If not, put them into the key-values of the dict and count the index.
+                if (field, feature) not in field_feature_dict:
+                    field_feature_dict[(field, feature)] = idx
+                    if df[field].dtype == object:
                         idx += 1
+            if df[field].dtype != object:
+                idx += 1
 
         self.field_count = len(self.field_names)
         self.feature_count = idx - 1
 
         def _convert(field, feature, field_index, field_feature_index_dict):
-            if isinstance(feature, str):
-                field_feature_index = field_feature_index_dict[(field, feature)]
+            field_feature_index = field_feature_index_dict[(field, feature)]
+            if isinstance(feature, str):                
                 feature = 1
-            else:
-                field_feature_index = field_index
             return "{}:{}:{}".format(field_index, field_feature_index, feature)
 
         for col_index, col in enumerate(self.field_names):

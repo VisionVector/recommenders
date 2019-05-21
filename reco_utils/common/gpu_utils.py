@@ -2,7 +2,6 @@
 # Licensed under the MIT License.
 
 import sys
-import subprocess
 import os
 import glob
 from numba import cuda
@@ -23,33 +22,6 @@ def get_number_gpus():
     except CudaSupportError:
         return 0
 
-
-def get_gpu_info():
-    """Get information of GPUs.
-
-    Returns:
-        list: List of gpu information dictionary
-              {device_name, total_memory (in Mb), free_memory (in Mb)}.
-              Returns an empty list if there is no cuda device available.
-    """
-    gpus = []
-
-    try:
-        for gpu in cuda.gpus:
-            with gpu:
-                meminfo = cuda.current_context().get_memory_info()
-                
-                g = {
-                    "device_name": gpu.name.decode('ASCII'),
-                    "total_memory": meminfo[1] / 1048576,  # Mb
-                    "free_memory": meminfo[0] / 1048576,   # Mb
-                }
-                gpus.append(g)
-    except CudaSupportError:
-        pass
-    
-    return gpus
-    
 
 def clear_memory_all_gpus():
     """Clear memory of all GPUs."""

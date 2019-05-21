@@ -1,11 +1,18 @@
 
+import pandas as pd
+import numpy as np
+from itertools import product
+import pytest
+
 from reco_utils.common.constants import (
     DEFAULT_USER_COL,
     DEFAULT_ITEM_COL,
-    SEED,
+    DEFAULT_RATING_COL,
+    DEFAULT_TIMESTAMP_COL,
 )
 from reco_utils.recommender.ncf.dataset import Dataset
 from tests.ncf_common import python_dataset_ncf, test_specs_ncf
+
 
 N_NEG = 5
 N_NEG_TEST = 10
@@ -14,7 +21,7 @@ BATCH_SIZE = 32
 
 def test_data_preprocessing(python_dataset_ncf):
     train, test = python_dataset_ncf
-    data = Dataset(train=train, test=test, n_neg=N_NEG, n_neg_test=N_NEG_TEST, seed=SEED)
+    data = Dataset(train=train, test=test, n_neg=N_NEG, n_neg_test=N_NEG_TEST)
     
     # shape
     assert len(data.train) == len(train)
@@ -36,7 +43,7 @@ def test_data_preprocessing(python_dataset_ncf):
 
 def test_train_loader(python_dataset_ncf):
     train, test = python_dataset_ncf
-    data = Dataset(train=train, test=test, n_neg=N_NEG, n_neg_test=N_NEG_TEST, seed=SEED)
+    data = Dataset(train=train, test=test, n_neg=N_NEG, n_neg_test=N_NEG_TEST)
 
     # collect positvie user-item dict
     positive_pool = {}
@@ -61,6 +68,7 @@ def test_train_loader(python_dataset_ncf):
 
     data.negative_sampling()
     label_list = []
+    batches = []
     for idx, batch in enumerate(data.train_loader(batch_size=1)):
         user, item, labels = batch
         assert len(user) == 1

@@ -1,11 +1,10 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
-import collections
+import abc
 import itertools
-
+import tensorflow as tf
 import numpy as np
 import pandas as pd
-import tensorflow as tf
 
 MODEL_DIR = 'model_checkpoints'
 
@@ -16,24 +15,25 @@ def pandas_input_fn(
     batch_size=128,
     num_epochs=1,
     shuffle=False,
-    seed=None
+    num_threads=1
 ):
     """Pandas input function for TensorFlow high-level API Estimator.
-    This function returns tf.data.Dataset function.
 
-    Note. tf.estimator.inputs.pandas_input_fn cannot handle array/list column properly.
+    tf.estimator.inputs.pandas_input_fn cannot handle array/list column properly.
+    If the df does not include any array/list data column, one can simply use TensorFlow's pandas_input_fn.
+
     For more information, see (https://www.tensorflow.org/api_docs/python/tf/estimator/inputs/numpy_input_fn)
 
     Args:
-        df (pd.DataFrame): Data containing features.
+        df (pd.DataFrame): Data containing features
         y_col (str): Label column name if df has it.
-        batch_size (int): Batch size for the input function.
+        batch_size (int): Batch size for the input function
         num_epochs (int): Number of epochs to iterate over data. If None will run forever.
         shuffle (bool): If True, shuffles the data queue.
-        seed (int): Random seed for shuffle.
+        num_threads (int): Number of threads used for reading and enqueueing.
 
     Returns:
-        tf.data.Dataset function
+        tf.estimator.inputs.numpy_input_fn: Function that has signature of ()->(dict of features, targets)
     """
 
     X_df = df.copy()
@@ -48,39 +48,17 @@ def pandas_input_fn(
         if isinstance(values[0], (list, np.ndarray)):
             values = np.array([l for l in values], dtype=np.float32)
         X[col] = values
-            
-    return lambda : _dataset(
+
+    input_fn = tf.estimator.inputs.numpy_input_fn(
         x=X,
         y=y,
         batch_size=batch_size,
         num_epochs=num_epochs,
         shuffle=shuffle,
-        seed=seed
+        num_threads=num_threads
     )
 
-
-def _dataset(
-    x,
-    y=None,
-    batch_size=128,
-    num_epochs=1,
-    shuffle=False,
-    seed=None
-):
-    if y is None:
-        dataset = tf.data.Dataset.from_tensor_slices(x)
-    else:
-        dataset = tf.data.Dataset.from_tensor_slices((x, y))
-
-    if shuffle:
-        dataset = dataset.shuffle(1000,  # buffer size = 1000
-                                  seed=seed,
-                                  reshuffle_each_iteration=True)  
-    elif seed is not None:
-        import warnings
-        warnings.warn("Seed has set but `shuffle=False`. Seed will be ignored.")
-    
-    return dataset.repeat(num_epochs).batch(batch_size)
+    return input_fn
 
 
 def build_optimizer(name, lr=0.001, **kwargs):
