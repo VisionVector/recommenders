@@ -25,7 +25,7 @@ def user_item_pairs(
     item_col=DEFAULT_ITEM_COL,
     user_item_filter_df=None,
     shuffle=True,
-    seed=None,
+    seed=None
 ):
     """Get all pairs of users and items data.
 
@@ -56,9 +56,7 @@ def user_item_pairs(
         users_items = filter_by(users_items, user_item_filter_df, [user_col, item_col])
 
     if shuffle:
-        users_items = users_items.sample(frac=1, random_state=seed).reset_index(
-            drop=True
-        )
+        users_items = users_items.sample(frac=1, random_state=seed).reset_index(drop=True)
 
     return users_items
 
@@ -137,14 +135,10 @@ class LibffmConverter(object):
 
     def __init__(self, filepath=None):
         self.filepath = filepath
-        self.col_rating = None
-        self.field_names = None
-        self.field_count = None
-        self.feature_count = None
 
     def fit(self, df, col_rating=DEFAULT_RATING_COL):
-        """Fit the dataframe for libffm format.
-        This method does nothing but check the validity of the input columns
+        """Fit the dataframe for libffm format. In there method does nothing but check the validity of 
+        the input columns
 
         Args:
             df (pd.DataFrame): input Pandas dataframe.
@@ -153,7 +147,6 @@ class LibffmConverter(object):
         Return:
             obj: the instance of the converter
         """
-
         # Check column types.
         types = df.dtypes
         if not all(
@@ -184,7 +177,7 @@ class LibffmConverter(object):
         Return:
             pd.DataFrame: output libffm format dataframe.
         """
-        if self.col_rating not in df.columns:
+        if not self.col_rating in df.columns:
             raise ValueError(
                 "Input dataset does not contain the label column {} in the fitting dataset".format(
                     self.col_rating
@@ -418,7 +411,7 @@ class PandasHash:
     """Wrapper class to allow pandas objects (DataFrames or Series) to be hashable"""
 
     # reserve space just for a single pandas object
-    __slots__ = "pandas_object"
+    __slots__ = 'pandas_object'
 
     def __init__(self, pandas_object):
         """Initialize class
@@ -427,7 +420,7 @@ class PandasHash:
         """
 
         if not isinstance(pandas_object, (pd.DataFrame, pd.Series)):
-            raise TypeError("Can only wrap pandas DataFrame or Series objects")
+            raise TypeError('Can only wrap pandas DataFrame or Series objects')
         self.pandas_object = pandas_object
 
     def __eq__(self, other):
@@ -492,5 +485,4 @@ def lru_cache_df(maxsize, typed=False):
         wrapper.cache_clear = cached_wrapper.cache_clear
 
         return wrapper
-
     return decorating_function
