@@ -136,11 +136,11 @@ def test_fastai_integration(notebooks, size, epochs, expected_values):
     [
         (
             15,
-            10,
+            30,
             {
                 "res_syn": {
                     "auc": 0.9716,
-                    "logloss": 0.699,
+                    "logloss": 0.2278,
                 },
                 "res_real": {
                     "auc": 0.749,
@@ -160,8 +160,6 @@ def test_xdeepfm_integration(notebooks, syn_epochs, criteo_epochs, expected_valu
         parameters=dict(
             EPOCHS_FOR_SYNTHETIC_RUN=syn_epochs,
             EPOCHS_FOR_CRITEO_RUN=criteo_epochs,
-            BATCH_SIZE_SYNTHETIC=1024,
-            BATCH_SIZE_CRITEO=1024,
             RANDOM_SEED=seed,
         ),
     )
