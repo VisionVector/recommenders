@@ -21,6 +21,7 @@ try:
         DoubleType,
     )
     from pyspark.sql.functions import col
+    from reco_utils.common.spark_utils import start_or_get_spark
 except ImportError:
     pass  # skip this import if we are in pure python environment
 
@@ -207,9 +208,10 @@ def test_load_spark_df(
     genres_example,
     year_example,
     tmp,
-    spark,
 ):
-    """Test MovieLens dataset load into pySpark.DataFrame"""
+    """Test MovieLens dataset load into pySpark.DataFrame
+    """
+    spark = start_or_get_spark("MovieLensLoaderTesting")
 
     # Test if correct data are loaded
     header = ["1", "2", "3"]

@@ -15,6 +15,7 @@ from reco_utils.common.constants import (
 try:
     from pyspark.sql import functions as F
     from pyspark.sql.functions import col
+    from reco_utils.common.spark_utils import start_or_get_spark
     from reco_utils.dataset.spark_splitters import (
         spark_chrono_split,
         spark_random_split,
@@ -75,7 +76,8 @@ def python_data(test_specs):
 
 
 @pytest.fixture(scope="module")
-def spark_dataset(python_data, spark):
+def spark_dataset(python_data):
+    spark = start_or_get_spark("SplitterTesting")
     return spark.createDataFrame(python_data)
 
 
