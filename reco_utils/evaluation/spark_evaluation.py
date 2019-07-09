@@ -1,14 +1,10 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-
-try:
-    from pyspark.mllib.evaluation import RegressionMetrics, RankingMetrics
-    from pyspark.sql import Window, DataFrame
-    from pyspark.sql.functions import col, row_number, expr
-    import pyspark.sql.functions as F
-except ImportError:
-    pass  # skip this import if we are in pure python environment
+from pyspark.mllib.evaluation import RegressionMetrics, RankingMetrics
+from pyspark.sql import Window, DataFrame
+from pyspark.sql.functions import col, row_number, expr
+import pyspark.sql.functions as F
 
 from reco_utils.common.constants import (
     DEFAULT_PREDICTION_COL,
