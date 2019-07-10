@@ -5,14 +5,13 @@ import abc
 import time
 import numpy as np
 import tensorflow as tf
-
-from reco_utils.recommender.deeprec.deeprec_utils import cal_metric
+from ..deeprec_utils import cal_metric
 
 
 __all__ = ["BaseModel"]
 
 
-class BaseModel:
+class BaseModel(object):
     def __init__(self, hparams, iterator_creator, graph=None, seed=None):
         """Initializing the model. Create common logics which are needed by all deeprec models, such as loss function, 
         parameter set.
