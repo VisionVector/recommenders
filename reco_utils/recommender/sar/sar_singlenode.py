@@ -24,13 +24,7 @@ logger = logging.getLogger()
 
 
 class SARSingleNode:
-    """Simple Algorithm for Recommendations (SAR) implementation
-    
-    SAR is a fast scalable adaptive algorithm for personalized recommendations based on user transaction history 
-    and items description. The core idea behind SAR is to recommend items like those that a user already has 
-    demonstrated an affinity to. It does this by 1) estimating the affinity of users for items, 2) estimating 
-    similarity across items, and then 3) combining the estimates to generate a set of recommendations for a given user. 
-    """
+    """SAR reference implementation"""
 
     def __init__(
         self,
@@ -110,8 +104,7 @@ class SARSingleNode:
         self.seen_items = None
 
     def compute_affinity_matrix(self, df, rating_col):
-        """ Affinity matrix.
-
+        """ Affinity matrix
         The user-affinity matrix can be constructed by treating the users and items as
         indices in a sparse matrix, and the events as the data. Here, we're treating
         the ratings as the event weights.  We convert between different sparse-matrix
@@ -131,7 +124,7 @@ class SARSingleNode:
         ).tocsr()
 
     def compute_time_decay(self, df, decay_column):
-        """Compute time decay on provided column.
+        """Compute time decay on provided column
 
         Args:
             df (pd.DataFrame): DataFrame of users and items
@@ -156,11 +149,9 @@ class SARSingleNode:
         return df.groupby([self.col_user, self.col_item]).sum().reset_index()
 
     def compute_coocurrence_matrix(self, df):
-        """ Co-occurrence matrix.
-
-        The co-occurrence matrix is defined as :math:`C = U^T * U`  
-        
-        where U is the user_affinity matrix with 1's as values (instead of ratings).
+        """ Co-occurrence matrix
+        C = U'.transpose() * U'
+        where U' is the user_affinity matrix with 1's as values (instead of ratings).
 
         Args:
             df (pd.DataFrame): DataFrame of users and items
@@ -182,7 +173,7 @@ class SARSingleNode:
         return item_cooccurrence.astype(df[self.col_rating].dtype)
 
     def set_index(self, df):
-        """Generate continuous indices for users and items to reduce memory usage.
+        """Generate continuous indices for users and items to reduce memory usage
 
         Args:
             df (pd.DataFrame): dataframe with user and item ids
@@ -202,7 +193,7 @@ class SARSingleNode:
         self.n_items = len(self.index2item)
 
     def fit(self, df):
-        """Main fit method for SAR.
+        """Main fit method for SAR
 
         Args:
             df (pd.DataFrame): User item rating dataframe
@@ -283,15 +274,15 @@ class SARSingleNode:
         logger.info("Done training")
 
     def score(self, test, remove_seen=False, normalize=False):
-        """Score all items for test users.
+        """Score all items for test users
 
         Args:
             test (pd.DataFrame): user to test
             remove_seen (bool): flag to remove items seen in training from recommendation
             normalize (bool): flag to normalize scores to be in the same scale as the original ratings
- 
+ 1
         Returns:
-            np.ndarray: Value of interest of all items for the users.
+            np.ndarray
         """
 
         # get user / item indices from test set
@@ -330,14 +321,14 @@ class SARSingleNode:
         return test_scores
 
     def get_popularity_based_topk(self, top_k=10, sort_top_k=True):
-        """Get top K most frequently occurring items across all users.
+        """Get top K most frequently occurring items across all users
 
         Args:
-            top_k (int): number of top items to recommend.
-            sort_top_k (bool): flag to sort top k results.
+            top_k (int): number of top items to recommend
+            sort_top_k (bool): flag to sort top k results
 
         Returns:
-            pd.DataFrame: top k most popular items.
+            pd.DataFrame: top k most popular items
         """
 
         test_scores = np.array([self.item_frequencies])
@@ -459,7 +450,6 @@ class SARSingleNode:
 
     def predict(self, test):
         """Output SAR scores for only the users-items pairs which are in the test set
-        
         Args:
             test (pd.DataFrame): DataFrame that contains users and items to test
 
@@ -488,4 +478,5 @@ class SARSingleNode:
                 self.col_prediction: test_scores[user_ids, item_ids],
             }
         )
+
         return df

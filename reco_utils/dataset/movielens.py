@@ -63,6 +63,8 @@ class _DataFormat:
         self._item_path = item_path
         self._item_has_header = item_has_header
 
+    """ Rating file """
+
     @property
     def separator(self):
         return self._sep
@@ -74,6 +76,8 @@ class _DataFormat:
     @property
     def has_header(self):
         return self._has_header
+
+    """ Item (Movie) file """
 
     @property
     def item_separator(self):
@@ -166,23 +170,19 @@ def load_pandas_df(
     Returns:
         pd.DataFrame: Movie rating dataset.
         
+    Examples:
+        To load just user-id, item-id, and ratings from MovieLens-1M dataset,
+        >>> df = load_pandas_df('1m', ('UserId', 'ItemId', 'Rating'))
 
-    **Examples**
+        To load rating's timestamp together,
+        >>> df = load_pandas_df('1m', ('UserId', 'ItemId', 'Rating', 'Timestamp'))
 
-    .. code-block:: python
-    
-        # To load just user-id, item-id, and ratings from MovieLens-1M dataset,
-        df = load_pandas_df('1m', ('UserId', 'ItemId', 'Rating'))
-
-        # To load rating's timestamp together,
-        df = load_pandas_df('1m', ('UserId', 'ItemId', 'Rating', 'Timestamp'))
-
-        # To load movie's title, genres, and released year info along with the ratings data,
-        df = load_pandas_df('1m', ('UserId', 'ItemId', 'Rating', 'Timestamp'),
-            title_col='Title',
-            genres_col='Genres',
-            year_col='Year'
-        )
+        To load movie's title, genres, and released year info along with the ratings data,
+        >>> df = load_pandas_df('1m', ('UserId', 'ItemId', 'Rating', 'Timestamp'),
+        ...     title_col='Title',
+        ...     genres_col='Genres',
+        ...     year_col='Year'
+        ... )
     """
     size = size.lower()
     if size not in DATA_FORMAT:
@@ -339,24 +339,25 @@ def load_spark_df(
     genres_col=None,
     year_col=None,
 ):
-    """Loads the MovieLens dataset as `pyspark.DataFrame`.
+    """Loads the MovieLens dataset as pySpark.DataFrame.
 
-    Download the dataset from http://files.grouplens.org/datasets/movielens, unzip, and load as `pyspark.DataFrame`.
-
-    To load movie information only, you can use `load_item_df` function. 
+    Download the dataset from http://files.grouplens.org/datasets/movielens, unzip, and load
+    To load movie information only, you can use load_item_df function. 
 
     Args:
-        spark (pyspark.SparkSession): Spark session.
+        spark (pySpark.SparkSession)
         size (str): Size of the data to load. One of ("100k", "1m", "10m", "20m").
         header (list or tuple): Rating dataset header.
             If schema is provided, this argument is ignored.
-        schema (pyspark.StructType): Dataset schema. By default:
-            StructType([
-            StructField(DEFAULT_USER_COL, IntegerType()),
-            StructField(DEFAULT_ITEM_COL, IntegerType()),
-            StructField(DEFAULT_RATING_COL, FloatType()),
-            StructField(DEFAULT_TIMESTAMP_COL, LongType()),
-            ])
+        schema (pySpark.StructType): Dataset schema. By default,
+            StructType(
+                [
+                    StructField(DEFAULT_USER_COL, IntegerType()),
+                    StructField(DEFAULT_ITEM_COL, IntegerType()),
+                    StructField(DEFAULT_RATING_COL, FloatType()),
+                    StructField(DEFAULT_TIMESTAMP_COL, LongType()),
+                ]
+            )
         local_cache_path (str): Path (directory or a zip file) to cache the downloaded zip file.
             If None, all the intermediate files will be stored in a temporary directory and removed after use.
         dbutils (Databricks.dbutils): Databricks utility object
@@ -366,27 +367,24 @@ def load_spark_df(
         year_col (str): Movie release year column name. If None, the column will not be loaded.
 
     Returns:
-        pyspark.DataFrame: Movie rating dataset.
+        pySpark.DataFrame: Movie rating dataset.
         
-    **Examples**
+    Examples:
+        To load just user-id, item-id, and ratings from MovieLens-1M dataset,
+        >>> spark_df = load_spark_df(spark, '1m', ('UserId', 'ItemId', 'Rating'))
 
-    .. code-block:: python
-    
-        # To load just user-id, item-id, and ratings from MovieLens-1M dataset,
-        spark_df = load_spark_df(spark, '1m', ('UserId', 'ItemId', 'Rating'))
+        To load rating's timestamp together,
+        >>> spark_df = load_spark_df(spark, '1m', ('UserId', 'ItemId', 'Rating', 'Timestamp'))
 
-        # To load rating's timestamp together,
-        spark_df = load_spark_df(spark, '1m', ('UserId', 'ItemId', 'Rating', 'Timestamp'))
+        To load movie's title, genres, and released year info along with the ratings data,
+        >>> spark_df = load_spark_df(spark, '1m', ('UserId', 'ItemId', 'Rating', 'Timestamp'),
+        ...     title_col='Title',
+        ...     genres_col='Genres',
+        ...     year_col='Year'
+        ... )
 
-        # To load movie's title, genres, and released year info along with the ratings data,
-        spark_df = load_spark_df(spark, '1m', ('UserId', 'ItemId', 'Rating', 'Timestamp'),
-            title_col='Title',
-            genres_col='Genres',
-            year_col='Year'
-        )
-
-        # On DataBricks, pass the dbutils argument as follows:
-        spark_df = load_spark_df(spark, dbutils=dbutils)
+        On DataBricks, pass the dbutils argument as follows:
+        >>> spark_df = load_spark_df(spark, dbutils=dbutils)
     """
     size = size.lower()
     if size not in DATA_FORMAT:
@@ -423,7 +421,7 @@ def load_spark_df(
             dbutils.fs.mv(spark_datapath, dbfs_datapath)
             spark_datapath = dbfs_datapath
 
-        # pyspark's read csv currently doesn't support multi-character delimiter, thus we manually handle that
+        # pySpark's read csv currently doesn't support multi-character delimiter, thus we manually handle that
         separator = DATA_FORMAT[size].separator
         if len(separator) > 1:
             raw_data = spark.sparkContext.textFile(spark_datapath)

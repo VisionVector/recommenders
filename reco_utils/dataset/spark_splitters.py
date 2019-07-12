@@ -3,18 +3,8 @@
 
 import numpy as np
 
-try:
-    from pyspark.sql import Window
-    from pyspark.sql.functions import (
-        col,
-        row_number,
-        broadcast,
-        rand,
-        collect_list,
-        size,
-    )
-except ImportError:
-    pass  # skip this import if we are in pure python environment
+from pyspark.sql import Window
+from pyspark.sql.functions import col, row_number, broadcast, rand, collect_list, size
 
 from reco_utils.common.constants import (
     DEFAULT_ITEM_COL,
@@ -26,8 +16,7 @@ from reco_utils.dataset.split_utils import process_split_ratio, min_rating_filte
 
 
 def spark_random_split(data, ratio=0.75, seed=42):
-    """Spark random splitter.
-    
+    """Spark random splitter
     Randomly split the data into several splits.
 
     Args:
@@ -59,8 +48,7 @@ def spark_chrono_split(
     col_item=DEFAULT_ITEM_COL,
     col_timestamp=DEFAULT_TIMESTAMP_COL,
 ):
-    """Spark chronological splitter.
-
+    """Spark chronological splitter
     This function splits data in a chronological manner. That is, for each user / item, the
     split function takes proportions of ratings which is specified by the split ratio(s).
     The split is stratified.
@@ -108,9 +96,7 @@ def spark_chrono_split(
     window_count = Window.partitionBy(split_by_column)
     window_spec = Window.partitionBy(split_by_column).orderBy(col(col_timestamp))
 
-    rating_all = data.withColumn(
-        "count", size(collect_list(col_timestamp).over(window_count))
-    )
+    rating_all = data.withColumn('count', size(collect_list(col_timestamp).over(window_count)))
 
     rating_rank = rating_all.withColumn(
         "rank", row_number().over(window_spec) / col("count")
@@ -140,8 +126,7 @@ def spark_stratified_split(
     col_rating=DEFAULT_RATING_COL,
     seed=42,
 ):
-    """Spark stratified splitter.
-
+    """Spark stratified splitter
     For each user / item, the split function takes proportions of ratings which is
     specified by the split ratio(s). The split is stratified.
 
@@ -190,9 +175,7 @@ def spark_stratified_split(
     window_count = Window.partitionBy(split_by_column)
     window_spec = Window.partitionBy(split_by_column).orderBy(rand(seed=seed))
 
-    rating_all = data.withColumn(
-        "count", size(collect_list(col_rating).over(window_count))
-    )
+    rating_all = data.withColumn('count', size(collect_list(col_rating).over(window_count)))
     rating_rank = rating_all.withColumn(
         "rank", row_number().over(window_spec) / col("count")
     )
@@ -218,10 +201,11 @@ def spark_timestamp_split(
     col_item=DEFAULT_ITEM_COL,
     col_timestamp=DEFAULT_TIMESTAMP_COL,
 ):
-    """Spark timestamp based splitter.
-
-    The splitter splits the data into sets by timestamps without stratification on either user or item.
-    The ratios are applied on the timestamp column which is divided accordingly into several partitions.
+    """Spark timestamp based splitter
+    The splitter splits the data into sets by timestamps without stratification on either
+    user or item.
+    The ratios are applied on the timestamp column which is divided accordingly into
+    several partitions.
 
     Args:
         data (spark.DataFrame): Spark DataFrame to be split.

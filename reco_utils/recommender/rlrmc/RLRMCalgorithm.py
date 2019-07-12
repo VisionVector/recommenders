@@ -18,7 +18,9 @@ logger = logging.getLogger(__name__)
 
 
 class RLRMCalgorithm(object):
-    """RLRMC algorithm implementation."""
+    """
+    RLRMC algorithm implementation.
+    """
 
     def __init__(
         self,
@@ -30,7 +32,8 @@ class RLRMCalgorithm(object):
         maxiter=100,
         seed=42,
     ):
-        """Initialize parameters.
+        """
+        Initialize parameters
 
         Args:
             rank (int): rank of the final model. Should be a positive integer.
@@ -65,8 +68,7 @@ class RLRMCalgorithm(object):
         return W0
 
     def fit_and_evaluate(self, RLRMCdata, verbosity=0):
-        """Main fit and evalute method for RLRMC. In addition to fitting the model, it also computes the per 
-        iteration statistics in train (and validation) datasets.
+        """Main fit and evalute method for RLRMC. In addition to fitting the model, it also computes the per iteration statistics in train (and validation) datasets.
 
         Args:
             RLRMCdata (RLRMCdataset): the RLRMCdataset object.
@@ -76,7 +78,7 @@ class RLRMCalgorithm(object):
         self.fit(RLRMCdata, verbosity, True)
 
     def fit(self, RLRMCdata, verbosity=0, _evaluate=False):
-        """The underlying fit method for RLRMC
+        """the underlying fit method for RLRMC
 
         Args:
             RLRMCdata (RLRMCdataset): the RLRMCdataset object.
@@ -146,10 +148,10 @@ class RLRMCalgorithm(object):
         self.L = np.dot(Wopt[0], Wopt[2])
         self.R = Wopt[1]
 
+    # computes residual_global = a*b - cd at given indices in csr_matrix format
     @staticmethod
     @njit(nogil=True, parallel=True)
     def _computeLoss_csrmatrix(a, b, cd, indices, indptr, residual_global):
-        """computes residual_global = a*b - cd at given indices in csr_matrix format"""
         N = a.shape[0]
         M = a.shape[1]
         for i in prange(N):
@@ -256,14 +258,12 @@ class RLRMCalgorithm(object):
         return [gradU1, gradU2, gradB]
 
     def predict(self, user_input, item_input, low_memory=False):
-        """Predict function of this trained model
-            
-        Args:
-            user_input ( list or element of list ): userID or userID list 
-            item_input ( list or element of list ): itemID or itemID list
-        
-        Returns:
-            list or float: list of predicted rating or predicted rating score. 
+        """ predict function of this trained model
+            Args:
+                user_input ( list or element of list ): userID or userID list 
+                item_input ( list or element of list ): itemID or itemID list
+            Returns:
+                list or float: list of predicted rating or predicted rating score. 
         """
         # index converting
         user_input = np.array([self.user2id[x] for x in user_input])  # rows
