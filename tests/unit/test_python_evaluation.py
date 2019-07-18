@@ -35,8 +35,10 @@ TOL = 0.0001
 def rating_true():
     return pd.DataFrame(
         {
-            DEFAULT_USER_COL: [1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1,],
+            DEFAULT_USER_COL: [1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
             DEFAULT_ITEM_COL: [
+                1,
+                2,
                 3,
                 1,
                 4,
@@ -53,10 +55,8 @@ def rating_true():
                 12,
                 13,
                 14,
-                1,
-                2,
             ],
-            DEFAULT_RATING_COL: [3, 5, 5, 3, 3, 1, 5, 5, 5, 4, 4, 3, 3, 3, 2, 1, 5, 4,],
+            DEFAULT_RATING_COL: [5, 4, 3, 5, 5, 3, 3, 1, 5, 5, 5, 4, 4, 3, 3, 3, 2, 1],
         }
     )
 
@@ -65,8 +65,10 @@ def rating_true():
 def rating_pred():
     return pd.DataFrame(
         {
-            DEFAULT_USER_COL: [1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1,],
+            DEFAULT_USER_COL: [1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
             DEFAULT_ITEM_COL: [
+                3,
+                10,
                 12,
                 10,
                 3,
@@ -83,10 +85,10 @@ def rating_pred():
                 2,
                 11,
                 14,
-                3,
-                10,
             ],
             DEFAULT_PREDICTION_COL: [
+                14,
+                13,
                 12,
                 14,
                 13,
@@ -103,10 +105,8 @@ def rating_pred():
                 7,
                 6,
                 5,
-                14,
-                13,
             ],
-            DEFAULT_RATING_COL: [3, 5, 5, 3, 3, 1, 5, 5, 5, 4, 4, 3, 3, 3, 2, 1, 5, 4,],
+            DEFAULT_RATING_COL: [5, 4, 3, 5, 5, 3, 3, 1, 5, 5, 5, 4, 4, 3, 3, 3, 2, 1],
         }
     )
 
@@ -115,9 +115,11 @@ def rating_pred():
 def rating_nohit():
     return pd.DataFrame(
         {
-            DEFAULT_USER_COL: [1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1,],
+            DEFAULT_USER_COL: [1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
             DEFAULT_ITEM_COL: [100] * 18,
             DEFAULT_PREDICTION_COL: [
+                14,
+                13,
                 12,
                 14,
                 13,
@@ -134,8 +136,6 @@ def rating_nohit():
                 7,
                 6,
                 5,
-                14,
-                13,
             ],
         }
     )
