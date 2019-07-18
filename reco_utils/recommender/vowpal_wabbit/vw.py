@@ -10,7 +10,9 @@ repository or pip or the command line can be used. This is merely to demonstrate
 import os
 from subprocess import run
 from tempfile import TemporaryDirectory
+
 import pandas as pd
+
 
 from reco_utils.common.constants import (
     DEFAULT_USER_COL,
@@ -34,7 +36,6 @@ class VW:
         **kwargs,
     ):
         """Initialize model parameters
-
         Args:
             col_user (str): user column name
             col_item (str): item column name
@@ -63,11 +64,9 @@ class VW:
 
     @staticmethod
     def to_vw_cmd(params):
-        """Convert dictionary of parameters to vw command line.
-
+        """Convert dictionary of parameters to vw command line
         Args:
             params (dict): key = parameter, value = value (use True if parameter is just a flag)
-        
         Returns:
             list[str]: vw command line parameters as list of strings
         """
@@ -88,10 +87,8 @@ class VW:
 
     def parse_train_params(self, params):
         """Parse input hyper-parameters to build vw train commands
-        
         Args:
             params (dict): key = parameter, value = value (use True if parameter is just a flag)
-        
         Returns:
             list[str]: vw command line parameters as list of strings
         """
@@ -127,10 +124,8 @@ class VW:
 
     def parse_test_params(self, params):
         """Parse input hyper-parameters to build vw test commands
-        
         Args:
             params (dict): key = parameter, value = value (use True if parameter is just a flag)
-        
         Returns:
             list[str]: vw command line parameters as list of strings
         """
@@ -188,7 +183,6 @@ class VW:
 
     def to_vw_file(self, df, train=True):
         """Convert Pandas DataFrame to vw input format file
-        
         Args:
             df (pd.DataFrame): input DataFrame
             train (bool): flag for train mode (or test mode if False)
@@ -228,7 +222,6 @@ class VW:
 
     def fit(self, df):
         """Train model
-        
         Args:
             df (pd.DataFrame): input training data
         """
@@ -241,7 +234,6 @@ class VW:
 
     def predict(self, df):
         """Predict results
-        
         Args:
             df (pd.DataFrame): input test data
         """
