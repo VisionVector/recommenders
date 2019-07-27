@@ -2,18 +2,19 @@
 # Licensed under the MIT License.
 
 import abc
+import os
 import time
 import numpy as np
+import collections
 import tensorflow as tf
-
-from reco_utils.recommender.deeprec.deeprec_utils import cal_metric
+from ..deeprec_utils import cal_metric
 
 
 __all__ = ["BaseModel"]
 
 
-class BaseModel:
-    def __init__(self, hparams, iterator_creator, graph=None, seed=None):
+class BaseModel(object):
+    def __init__(self, hparams, iterator_creator, graph=None, seed=42):
         """Initializing the model. Create common logics which are needed by all deeprec models, such as loss function, 
         parameter set.
 
@@ -23,7 +24,6 @@ class BaseModel:
             graph (obj): An optional graph.
             seed (int): Random seed.
         """
-        self.seed = seed
         tf.set_random_seed(seed)
         np.random.seed(seed)
 
@@ -149,27 +149,27 @@ class BaseModel:
 
     def _get_initializer(self):
         if self.hparams.init_method == "tnormal":
-            return tf.truncated_normal_initializer(stddev=self.hparams.init_value, seed=self.seed)
+            return tf.truncated_normal_initializer(stddev=self.hparams.init_value)
         elif self.hparams.init_method == "uniform":
             return tf.random_uniform_initializer(
-                -self.hparams.init_value, self.hparams.init_value, seed=self.seed
+                -self.hparams.init_value, self.hparams.init_value
             )
         elif self.hparams.init_method == "normal":
-            return tf.random_normal_initializer(stddev=self.hparams.init_value, seed=self.seed)
+            return tf.random_normal_initializer(stddev=self.hparams.init_value)
         elif self.hparams.init_method == "xavier_normal":
-            return tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed)
+            return tf.contrib.layers.xavier_initializer(uniform=False)
         elif self.hparams.init_method == "xavier_uniform":
-            return tf.contrib.layers.xavier_initializer(uniform=True, seed=self.seed)
+            return tf.contrib.layers.xavier_initializer(uniform=True)
         elif self.hparams.init_method == "he_normal":
             return tf.contrib.layers.variance_scaling_initializer(
-                factor=2.0, mode="FAN_IN", uniform=False, seed=self.seed
+                factor=2.0, mode="FAN_IN", uniform=False
             )
         elif self.hparams.init_method == "he_uniform":
             return tf.contrib.layers.variance_scaling_initializer(
-                factor=2.0, mode="FAN_IN", uniform=True, seed=self.seed
+                factor=2.0, mode="FAN_IN", uniform=True
             )
         else:
-            return tf.truncated_normal_initializer(stddev=self.hparams.init_value, seed=self.seed)
+            return tf.truncated_normal_initializer(stddev=self.hparams.init_value)
 
     def _compute_data_loss(self):
         if self.hparams.loss == "cross_entropy_loss":
@@ -501,7 +501,4 @@ class BaseModel:
                 step_pred = self.infer(load_sess, batch_data_input)
                 step_pred = np.reshape(step_pred, -1)
                 wt.write("\n".join(map(str, step_pred)))
-
-            # line break after each batch.
-            wt.write("\n")
         return self
