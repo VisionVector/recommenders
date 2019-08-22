@@ -32,7 +32,7 @@ def find_wikidataID(name):
         return entity_id
     try:
         pageID = r.json().get("query", {}).get("search", [{}])[0].get("pageid", "entityNotFound")
-    except IndexError as e:
+    except Exception as e:
         print("Page Name not found in Wikipedia")
         return "entityNotFound"
 
@@ -52,7 +52,12 @@ def find_wikidataID(name):
         entity_id = "entityNotFound"
         return entity_id
     
-    entity_id = r.json().get("query", {}).get("pages", {}).get(str(pageID), {}).get("pageprops", {}).get("wikibase_item", "entityNotFound")
+    try:
+        entity_id = r.json().get("query", {}).get("pages", {}).get(str(pageID), {}).get("pageprops", {}).get("wikibase_item", "entityNotFound")
+    except Exception as e:
+        print(e)
+        entity_id = "entityNotFound"
+        return entity_id
     return entity_id
 
 def query_entity_links(entityID):
@@ -150,6 +155,13 @@ def query_entity_description(entityID):
     except requests.exceptions.RequestException as err:
         print(err)
         description = "descriptionNotFound"
+        return description
     
-    description = r.json().get("results", {}).get("bindings", [{}])[0].get("o",{}).get("value", "descriptionNotFound")
+    try:
+        description = r.json().get("results", {}).get("bindings", [{}])[0].get("o",{}).get("value", "descriptionNotFound")
+    except Exception as e:
+        print(e)
+        print("Description not found")
+        description = "descriptionNotFound"
+        return description
     return description
