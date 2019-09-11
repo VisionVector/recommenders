@@ -313,7 +313,7 @@ class SARSingleNode:
                 test_scores = np.array(
                     np.divide(
                         test_scores,
-                        self.unity_user_affinity[user_ids, :].dot(self.item_similarity)
+                        self.unity_user_affinity.dot(self.item_similarity)[user_ids, :]
                     )
                 )
                 test_scores = np.where(np.isnan(test_scores), -np.inf, test_scores)
@@ -415,7 +415,7 @@ class SARSingleNode:
         return df.replace(-np.inf, np.nan).dropna()
 
     def recommend_k_items(
-        self, test, top_k=10, sort_top_k=True, remove_seen=False, normalize=False
+        self, test, top_k=10, sort_top_k=True, remove_seen=False
     ):
         """Recommend top K items for all users which are in the test set
 
@@ -429,7 +429,7 @@ class SARSingleNode:
             pd.DataFrame: top k recommendation items for each user
         """
 
-        test_scores = self.score(test, remove_seen=remove_seen, normalize=normalize)
+        test_scores = self.score(test, remove_seen=remove_seen)
 
         top_items, top_scores = get_top_k_scored_items(
             scores=test_scores, top_k=top_k, sort_top_k=sort_top_k
