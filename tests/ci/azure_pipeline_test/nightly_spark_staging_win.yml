@@ -1,5 +1,5 @@
 pool:
-  name: RecommendersAgentPoolWin
+  name: RecoDevTeamWindows
   timeoutInMinutes: 180
 
 steps:
@@ -41,4 +41,3 @@ steps:
   displayName: 'Remove Conda Env'
   condition: succeededOrFailed()
   timeoutInMinutes: 10
-
