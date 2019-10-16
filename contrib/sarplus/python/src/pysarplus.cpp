@@ -1,8 +1,3 @@
-/*
- * Copyright (c) Recommenders contributors.
- * Licensed under the MIT License.
- */
-
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
