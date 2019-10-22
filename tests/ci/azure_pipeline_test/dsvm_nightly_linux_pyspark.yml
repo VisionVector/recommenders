@@ -15,7 +15,7 @@ pr: none
 
 jobs:
 - job: nightly
-  displayName : 'Nightly tests Linux GPU'
+  displayName : 'Nightly tests Linux Spark'
   timeoutInMinutes: 180 # how long to run the job before automatically cancelling
   pool:
     name: recolinuxpool
@@ -27,19 +27,19 @@ jobs:
     displayName: 'Add Conda to PATH'
 
   - script: |
-      conda env remove -n nightly_reco_gpu && \
-      python ./scripts/generate_conda_file.py --gpu --name nightly_reco_gpu && \
-      conda env create --quiet -f nightly_reco_gpu.yaml 2> log
+      conda env remove -n nightly_reco_pyspark && \
+      python ./scripts/generate_conda_file.py --pyspark --name nightly_reco_pyspark && \
+      conda env create --quiet -f nightly_reco_pyspark.yaml 2> log
     displayName: 'Setup Conda Env'
     timeoutInMinutes: 10
 
   - script: |
       . /anaconda/etc/profile.d/conda.sh && \
-      conda activate nightly_reco_gpu && \
+      conda activate nightly_reco_pyspark && \
       echo "Smoke tests" && \
-      pytest tests/smoke -m "smoke and not spark and gpu" --junitxml=reports/test-smoke.xml && \
+      pytest tests/smoke -m "smoke and spark and not gpu" --junitxml=reports/test-smoke.xml && \
       echo "Integration tests" && \
-      pytest tests/integration -m "integration and not spark and gpu" --junitxml=reports/test-integration.xml && \
+      pytest tests/integration -m "integration and spark and not gpu" --junitxml=reports/test-integration.xml && \
       conda deactivate    
     displayName: 'Run Tests'
     timeoutInMinutes: 180
@@ -52,10 +52,9 @@ jobs:
     condition: succeededOrFailed()
 
   - script: |
-      conda env remove -n nightly_reco_gpu -y   
+      conda env remove -n nightly_reco_pyspark -y   
     workingDirectory: tests
     displayName: 'Conda remove'
     continueOnError: true
     condition: succeededOrFailed()
     timeoutInMinutes: 10
-
