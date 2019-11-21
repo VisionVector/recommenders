@@ -235,7 +235,7 @@ if __name__ == "__main__":
 
     PYPI_O16N_LIBS = [
         "azure-cli==2.0.56",
-        "azureml-sdk[databricks]==1.0.69",
+        "azureml-sdk[databricks]==1.0.8",
         PIP_BASE["pydocumentdb"],
     ]
 
