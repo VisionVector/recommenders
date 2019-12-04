@@ -11,15 +11,12 @@ trigger:
 - staging
 - master
 
-variables:
-- group: LinuxAgentPool
-
 jobs:
 - job: unit
   displayName: "Unit tests Linux GPU"
   timeoutInMinutes: 20 # how long to run the job before automatically cancelling
   pool:
-    name: $(Agent_Pool)
+    name: recolinuxpool
 
   steps:
   - bash: |

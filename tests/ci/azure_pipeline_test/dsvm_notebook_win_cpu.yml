@@ -11,15 +11,12 @@ trigger:
 - staging
 - master
 
-variables:
-- group: WindowsAgentPool
-
 jobs:
 - job: unit
   displayName: 'Unit tests Windows CPU on notebooks'
   timeoutInMinutes: 20 # how long to run the job before automatically cancelling
   pool:
-    name: $(Agent_Pool)
+    name: RecommendersAgentPoolWin
 
   # workspace:
   #   clean: all
