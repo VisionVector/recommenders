@@ -7,13 +7,11 @@ schedules:
   branches:
     include:
     - master
-  always: true
 - cron: "7 16 * * *"
   displayName: Nightly build staging
   branches:
     include:
     - staging
-  always: true
 
 trigger: none
 
