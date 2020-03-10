@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-from setuptools import setup
+from setuptools import setup, find_packages
 from os import chdir, path
 
 chdir(path.abspath(path.dirname(__file__)))
@@ -13,7 +13,7 @@ with open(path.join("reco_utils", "README.md"), encoding="utf-8") as f:
 
 setup(
     name="reco_utils",
-    version=VERSION,
+    version=VERSION + ".post0",
     description="Recommender System Utilities",
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
@@ -30,6 +30,7 @@ setup(
         "Programming Language :: Python :: 3.6",
     ],
     keywords="recommendations recommenders recommender system engine machine learning python spark gpu",
-    packages=["reco_utils"],
+    package_dir={"": "reco_utils"},
+    packages=find_packages(where="reco_utils", exclude=["azureml_designer_modules"]),
     python_requires=">=3.6, <4",
 )
