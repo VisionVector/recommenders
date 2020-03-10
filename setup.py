@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-from setuptools import setup, find_packages
+from setuptools import setup
 from os import chdir, path
 
 chdir(path.abspath(path.dirname(__file__)))
@@ -30,7 +30,6 @@ setup(
         "Programming Language :: Python :: 3.6",
     ],
     keywords="recommendations recommenders recommender system engine machine learning python spark gpu",
-    package_dir={"": "reco_utils"},
-    packages=find_packages(where="reco_utils", exclude=["azureml_designer_modules"]),
+    packages=["reco_utils"],
     python_requires=">=3.6, <4",
 )
