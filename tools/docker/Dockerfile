@@ -1,119 +1,127 @@
-# syntax=docker/dockerfile:1
-
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-#####################################################################
-# Stage build order depending on the compute:
-#     Compute Stage (CPU/GPU) -> Dependencies Stage -> Final Stage
-#####################################################################
-# Valid computes: cpu, gpu
-ARG COMPUTE="cpu"
+ARG ENV="cpu"
+ARG HOME="/root"
 
+FROM ubuntu:18.04 AS base
 
-#####################################################################
-# Compute Stage - CPU
-# Choose an appropriate CPU compute image
-#####################################################################
-# * [buildpack-deps:24.04](https://github.com/docker-library/buildpack-deps/blob/master/ubuntu/noble/Dockerfile)
-#   + [Created on 2024-08-17](https://hub.docker.com/layers/library/buildpack-deps/noble/images/sha256-dbfee7e7ee2340b0d6567efd3a8a9281ce45ee78598485b4d7a7f09fe641811a)
-FROM buildpack-deps@sha256:dbfee7e7ee2340b0d6567efd3a8a9281ce45ee78598485b4d7a7f09fe641811a AS cpu
+LABEL maintainer="Microsoft Recommender Project <RecoDevTeam@service.microsoft.com>"
 
+ARG HOME
+ENV HOME="${HOME}"
+WORKDIR ${HOME}
 
-#####################################################################
-# Compute Stage - GPU
-# Choose an appropriate GPU compute image
-#####################################################################
-# * [nvidia/cuda:12.6.1-devel-ubuntu24.04](https://gitlab.com/nvidia/container-images/cuda/-/blob/master/dist/12.6.1/ubuntu2404/devel/Dockerfile)
-#   + [Created on 2024-09-13](https://hub.docker.com/layers/nvidia/cuda/12.6.1-devel-ubuntu24.04/images/sha256-bfc293f21611f3c47a3442cf6516ebfe99d529926a4bef4bc389ef02fd038800)
-# * See also [AML GPU Base Image](https://github.com/Azure/AzureML-Containers/blob/master/base/gpu/openmpi4.1.0-cuda11.8-cudnn8-ubuntu22.04)
-FROM nvcr.io/nvidia/cuda:12.6.1-devel-ubuntu24.04@sha256:bfc293f21611f3c47a3442cf6516ebfe99d529926a4bef4bc389ef02fd038800 AS gpu
-
+# Install base dependencies
 RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive \
-    apt-get install -y wget git && \
-    apt-get clean -y && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y curl git wget build-essential
+
+# Install cmake which is a requirement by xlearn 
+ARG CMAKE="https://github.com/Kitware/CMake/releases/download/v3.15.2/cmake-3.15.2.tar.gz"
+RUN wget ${CMAKE} -O cmake.tgz && \
+    mkdir cmake && \
+    tar xzf cmake.tgz --strip-components=1 -C cmake && \
+    cd cmake && \
+    ./bootstrap && \
+    make && \
+    make install && \
+    cd .. && \
+    rm cmake.tgz && \
+    rm -rf cmake
+
+# Install Anaconda
+ARG ANACONDA="https://repo.continuum.io/miniconda/Miniconda3-4.7.12.1-Linux-x86_64.sh"
+RUN curl ${ANACONDA} -o anaconda.sh && \
+    /bin/bash anaconda.sh -b -p conda && \
+    rm anaconda.sh && \
+    echo ". ${HOME}/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
+    echo "conda activate base" >> ~/.bashrc
+ENV PATH="${HOME}/conda/bin:${PATH}"
+
+# Clone Recommenders repo
+ARG BRANCH="master"
+RUN git clone --depth 1 --single-branch -b ${BRANCH} https://github.com/microsoft/recommenders
+
+# Setup Jupyter notebook configuration
+ENV NOTEBOOK_CONFIG="${HOME}/.jupyter/jupyter_notebook_config.py"
+RUN mkdir ${HOME}/.jupyter && \
+    echo "c.NotebookApp.token = ''" >> ${NOTEBOOK_CONFIG} && \
+    echo "c.NotebookApp.ip = '0.0.0.0'" >> ${NOTEBOOK_CONFIG} && \
+    echo "c.NotebookApp.allow_root = True" >> ${NOTEBOOK_CONFIG} && \
+    echo "c.NotebookApp.open_browser = False" >> ${NOTEBOOK_CONFIG} && \
+    echo "c.MultiKernelManager.default_kernel_name = 'python3'" >> ${NOTEBOOK_CONFIG}
 
 
-#####################################################################
-# Dependencies Stage
-# Set up all dependencies.  This Stage is used by dev containers,
-# because editable installation is required.
-#####################################################################
-FROM ${COMPUTE} AS deps
+# CPU Stage
+FROM base AS cpu
 
-# Valid versions: 3.8, 3.9, 3.10, 3.11
-ARG PYTHON_VERSION="3.11"
-
-ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
-
-WORKDIR /root
-USER root:root
-
-SHELL ["/bin/bash", "-c"]
-
-# Install Conda
-RUN wget -qO /tmp/conda.sh "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh" && \
-    bash /tmp/conda.sh -bf -p /root/conda && \
-    /root/conda/bin/conda clean -ay && \
-    rm -rf /root/conda/pkgs && \
-    rm /tmp/conda.sh && \
-    /root/conda/bin/conda init bash && \
-    /root/conda/bin/conda config --set auto_activate_base false 
-
-# Accept Conda Terms of Service for required channels
-RUN /root/conda/bin/conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
-RUN /root/conda/bin/conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
-
-# Create Conda environment
-RUN /root/conda/bin/conda create -n Recommenders -c conda-forge -y python=${PYTHON_VERSION} pip
+RUN python recommenders/scripts/generate_conda_file.py --name base
 
 
-#####################################################################
+# PySpark Stage
+FROM base AS pyspark
+
+# Install base dependencies
+RUN apt-get update && \
+    apt-get install -y libgomp1 openjdk-8-jre
+
+# Install Spark
+ARG SPARK="http://archive.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.7.tgz"
+RUN mkdir spark && \
+    curl ${SPARK} -o spark.tgz && \
+    tar xzf spark.tgz --strip-components 1 -C spark && \
+    rm spark.tgz
+
+# Setup Conda environment
+RUN python recommenders/scripts/generate_conda_file.py --name base --pyspark
+
+ENV JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64" \
+    PYSPARK_PYTHON="${HOME}/conda/bin/python" \
+    PYSPARK_DRIVER_PYTHON="${HOME}/conda/bin/python" \
+    SPARK_HOME="${HOME}/spark"
+
+
+# GPU Stage
+FROM nvidia/cuda:9.0-base AS gpu
+
+ARG HOME
+WORKDIR ${HOME}
+
+COPY --from=base ${HOME} .
+
+# Setup Conda environment
+ENV PATH="${HOME}/conda/bin:${PATH}"
+RUN python recommenders/scripts/generate_conda_file.py --name base --gpu
+
+
+# Full Stage
+FROM gpu AS full
+
+ARG HOME
+WORKDIR ${HOME}
+
+COPY --from=pyspark ${HOME}/spark spark
+
+# Setup Conda environment
+RUN python recommenders/scripts/generate_conda_file.py --name base --gpu --pyspark
+
+ENV JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64" \
+    PYSPARK_PYTHON="${HOME}/conda/bin/python" \
+    PYSPARK_DRIVER_PYTHON="${HOME}/conda/bin/python" \
+    SPARK_HOME="${HOME}/spark"
+
+
 # Final Stage
-# Install Recommenders
-#####################################################################
-FROM deps AS final
+FROM $ENV AS final
 
-# Extra dependencies: dev, gpu, spark
-ARG EXTRAS=""
+# Install Conda dependencies
+RUN conda env update -f base.yaml && \
+    conda clean -fay && \
+    python -m ipykernel install --user --name 'python3' --display-name 'python3'
 
-# Git ref of Recommenders to install: main, staging, etc.
-# Empty value ("") indicates editable installation of current clone
-ARG GIT_REF="main"
+ARG HOME
+WORKDIR ${HOME}/recommenders
 
-ARG JDK_VERSION="21"
-
-ARG RECO_DIR="/root/Recommenders"
-
-# Copy Recommenders into the image
-COPY ./ ${RECO_DIR}
-
-# Install Recommenders and its dependencies
-RUN source /root/conda/bin/activate && \
-    conda activate Recommenders && \
-    if [[ "${EXTRAS}" =~ spark ]]; then conda install -c conda-forge -y "openjdk>=${JDK_VERSION}"; fi && \
-    if [ -z "${GIT_REF}" ]; then \
-        pip install ${RECO_DIR}${EXTRAS}; \
-    else \
-        pip install recommenders${EXTRAS}@git+https://github.com/recommenders-team/recommenders.git@${GIT_REF}; \
-    fi && \
-    jupyter notebook --generate-config && \
-    echo "c.MultiKernelManager.default_kernel_name = 'Recommenders'" >> /root/.jupyter/jupyter_notebook_config.py && \
-    python -m ipykernel install --user --name Recommenders --display-name "Python (Recommenders)"
-
-# Activate Recommenders Conda environment
-ENV PS1='(Recommenders) \[\]\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\u@\h:\w\$ \[\]'
-ENV PATH="/root/conda/envs/Recommenders/bin:/root/conda/condabin:${PATH}"
-ENV CONDA_SHLVL='1'
-ENV CONDA_PROMPT_MODIFIER='(Recommenders) '
-ENV CONDA_PREFIX="/root/conda/envs/Recommenders"
-ENV CONDA_EXE="/root/conda/bin/conda"
-ENV CONDA_PYTHON_EXE="/root/conda/bin/python"
-ENV JAVA_HOME="/root/conda/envs/Recommenders/lib/jvm"
-ENV JAVA_LD_LIBRARY_PATH="${JAVA_HOME}/lib/server"
-
-# Setup Jupyter notebook
 EXPOSE 8888
-CMD ["jupyter", "notebook", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root", "--ServerApp.allow_origin='*'", "--IdentityProvider.token=''"]
+CMD ["jupyter", "notebook"]
+
