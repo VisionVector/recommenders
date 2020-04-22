@@ -56,15 +56,12 @@ The table below lists the recommender algorithms currently available in the repo
 | Factorization Machine (FM) / Field-Aware FM (FFM) | [Python CPU](notebooks/02_model/fm_deep_dive.ipynb) | Content-Based Filtering | Algorithm that predict labels with user/item features |
 | FastAI Embedding Dot Bias (FAST) | [Python CPU / Python GPU](notebooks/00_quick_start/fastai_movielens.ipynb) | Collaborative Filtering | General purpose algorithm with embeddings and biases for users and items |
 | LightGBM/Gradient Boosting Tree<sup>*</sup> | [Python CPU](notebooks/00_quick_start/lightgbm_tinycriteo.ipynb) / [PySpark](notebooks/02_model/mmlspark_lightgbm_criteo.ipynb) | Content-Based Filtering | Gradient Boosting Tree algorithm for fast training and low memory usage in content-based problems |
-| Neural Recommendation with Long- and Short-term User Representations (LSTUR) | [Python CPU / Python GPU](notebooks/00_quick_start/lstur_synthetic.ipynb) | Content-Based Filtering | Neural recommendation algorithm with long- and short-term user interest modeling |
-| Neural Recommendation with Attentive Multi-View Learning (NAML) | [Python CPU / Python GPU](notebooks/00_quick_start/naml_synthetic.ipynb) | Content-Based Filtering | Neural recommendation algorithm with attentive multi-view learning |
 | Neural Collaborative Filtering (NCF) | [Python CPU / Python GPU](notebooks/00_quick_start/ncf_movielens.ipynb) | Collaborative Filtering | Deep learning algorithm with enhanced performance for implicit feedback |
-| Neural Recommendation with Personalized Attention (NPA) | [Python CPU / Python GPU](notebooks/00_quick_start/npa_synthetic.ipynb) | Content-Based Filtering | Neural recommendation algorithm with personalized attention network |
-| Neural Recommendation with Multi-Head Self-Attention (NRMS) | [Python CPU / Python GPU](notebooks/00_quick_start/nrms_synthetic.ipynbb) | Content-Based Filtering | Neural recommendation algorithm with multi-head self-attention |
 | Restricted Boltzmann Machines (RBM) | [Python CPU / Python GPU](notebooks/00_quick_start/rbm_movielens.ipynb) | Collaborative Filtering | Neural network based algorithm for learning the underlying probability distribution for explicit or implicit feedback |
 | Riemannian Low-rank Matrix Completion (RLRMC)<sup>*</sup> | [Python CPU](notebooks/00_quick_start/rlrmc_movielens.ipynb) | Collaborative Filtering | Matrix factorization algorithm using Riemannian conjugate gradients optimization with small memory consumption. |
 | Simple Algorithm for Recommendation (SAR)<sup>*</sup> | [Python CPU](notebooks/00_quick_start/sar_movielens.ipynb) | Collaborative Filtering | Similarity-based algorithm for implicit feedback dataset |
 | Surprise/Singular Value Decomposition (SVD) | [Python CPU](notebooks/02_model/surprise_svd_deep_dive.ipynb) | Collaborative Filtering | Matrix factorization algorithm for predicting explicit rating feedback in datasets that are not very large |
+| Term Frequency - Inverse Document Frequency (TF-IDF) | [Python CPU](notebooks/00_quick_start/tfidf_covid.ipynb) | Content-Based Filtering | Simple similarity-based algorithm for content-based recommendations with text datasets |
 | Vowpal Wabbit Family (VW)<sup>*</sup> | [Python CPU (online training)](notebooks/02_model/vowpal_wabbit_deep_dive.ipynb) | Content-Based Filtering | Fast online learning algorithms, great for scenarios where user features / context are constantly changing |
 | Wide and Deep | [Python CPU / Python GPU](notebooks/00_quick_start/wide_deep_movielens.ipynb) | Hybrid | Deep learning algorithm that can memorize feature interactions and generalize user features |
 
@@ -124,4 +121,3 @@ The following tests run on an AzureML [compute target](https://docs.microsoft.co
 ### Related projects
 
 [Microsoft AI Github](https://github.com/microsoft/ai): Find other Best Practice projects, and Azure AI design patterns in our central repository. 
-
