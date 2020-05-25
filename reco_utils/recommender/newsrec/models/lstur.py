@@ -120,13 +120,18 @@ class LSTURModel(BaseModel):
                 recurrent_initializer=keras.initializers.glorot_uniform(seed=self.seed),
                 bias_initializer=keras.initializers.Zeros(),
             )(layers.Masking(mask_value=0.0)(click_title_presents))
-
+            
             user_present = layers.Concatenate()([short_uemb, long_u_emb])
             user_present = layers.Dense(
                 hparams.gru_unit,
                 bias_initializer=keras.initializers.Zeros(),
                 kernel_initializer=keras.initializers.glorot_uniform(seed=self.seed),
             )(user_present)
+
+        click_title_presents = layers.TimeDistributed(titleencoder)(his_input_title)
+        user_present = AttLayer2(hparams.attention_hidden_dim, seed=self.seed)(
+            click_title_presents
+        )
 
         model = keras.Model(
             [his_input_title, user_indexes], user_present, name="user_encoder"

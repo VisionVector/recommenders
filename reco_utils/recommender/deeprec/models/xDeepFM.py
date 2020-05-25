@@ -18,7 +18,6 @@ class XDeepFMModel(BaseModel):
     24th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining, 
     KDD 2018, London, 2018.
     """
-
     def _build_graph(self):
         """The main function to create xdeepfm's logic.
         
