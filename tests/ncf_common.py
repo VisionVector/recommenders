@@ -11,7 +11,9 @@ from reco_utils.common.constants import (
     DEFAULT_RATING_COL,
     DEFAULT_TIMESTAMP_COL,
 )
-from reco_utils.dataset.python_splitters import python_chrono_split
+from reco_utils.dataset.python_splitters import (
+    python_chrono_split,
+)
 
 # ncf data generation
 @pytest.fixture(scope="module")

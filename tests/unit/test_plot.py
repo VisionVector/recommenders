@@ -11,13 +11,15 @@ def test_line_graph():
         x_guides=[0, 1],
         x_name="Epoch",
         y_name="Accuracy",
-        legend_loc="best",
+        legend_loc='best'
     )
     plt.close()
 
     # Single graph as a subplot
     line_graph(
-        values=[1, 2, 3], labels="Train", subplot=(1, 1, 1),
+        values=[1, 2, 3],
+        labels="Train",
+        subplot=(1, 1, 1),
     )
     plt.close()
 

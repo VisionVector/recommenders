@@ -68,3 +68,4 @@ class Timer(object):
             raise ValueError("Timer has not been stopped, please use stop().")
         else:
             return self._interval
+
