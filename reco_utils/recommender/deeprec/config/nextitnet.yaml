@@ -8,9 +8,8 @@ data:
 #model
 model:
     method : classification # classification or regression
-    model_type : sli_rec
+    model_type : NextItNet
     layer_sizes : [100, 64]  # layers' size of DNN. In this example, DNN has two layers, and each layer has 100 hidden nodes.
-    att_fcn_layer_sizes : [80, 40]
     activation : [relu, relu] # activation function for DNN
     user_dropout: True 
     dropout : [0.3, 0.3]  #drop out values for DNN layer
@@ -37,21 +36,23 @@ train:
     enable_BN : True  # whether to use batch normalization in hidden layers
     EARLY_STOP : 10 # the number of epoch that controls EARLY STOPPING
     max_seq_length : 50 # the maximum number of records in the history sequence
-    hidden_size : 40 # the shape of hidden size used in RNN 
-    attention_size : 40 # the shape of attention size
-    need_sample: True # whether to perform dynamic negative sampling in mini-batch
-    train_num_ngs: 4 # indicates how many negative instances followed by one positive instances if need_sample is True
+    need_sample : True # whether to perform dynamic negative sampling in mini-batch
+    train_num_ngs : 4 # indicates how many negative instances followed by one positive instances if need_sample is True
+
+    min_seq_length : 3 # the minimum number of records in the history sequence
+    dilations : [1, 2, 4, 1, 2, 4] # dilations in each delated CNN layer
+    kernel_size : 3 # kernel size in each delated CNN layer
 
 #show info
 #metric :'auc', 'logloss', 'group_auc'
 info:
     show_step : 100   # print training information after a certain number of mini-batch 
-    save_model: True   # whether to save modl
+    save_model: True   # whether to save models
     save_epoch : 1    # if save_model is set to True, save the model every save_epoch.
     metrics : ['auc','logloss']  # metrics for evaluation.
     pairwise_metrics : ['mean_mrr', 'ndcg@2;4;6', "group_auc"]  # pairwise metrics for evaluation, available when pairwise comparisons are needed
-    MODEL_DIR : ./tests/resources/deeprec/slirec/model/slirec_model/ # directory of saved models.
-    SUMMARIES_DIR : ./tests/resources/deeprec/slirec/summary/slirec_summary/  # directory of saved summaries.
+    MODEL_DIR : ./tests/resources/deeprec/nextitnet/model/nextitnet_model/  # directory of saved models.
+    SUMMARIES_DIR : ./tests/resources/deeprec/nextitnet/summary/nextitnet_summary/  # directory of saved summaries.
     write_tfevents : True  # whether to save summaries.
 
     
