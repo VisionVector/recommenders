@@ -12,10 +12,8 @@ They have admin access to the repo and provide support reviewing issues and pull
    * Reco utils metrics computations
    * Tests for Surprise
    * Model selection notebooks (AzureML for SVD, NNI) 
-* **[Jianxun Lian](https://github.com/Leavingseason)**
-   * xDeepFM algorithm
-   * DKN algorithm
-   * Review, development and optimization of MSRA algorithms.
+* **[Jeremy Reynolds](https://github.com/jreynolds01)**
+   * Reference architecture
 * **[Jun Ki Min](https://github.com/loomlike)**
    * ALS notebook
    * Wide & Deep algorithm
@@ -29,6 +27,10 @@ They have admin access to the repo and provide support reviewing issues and pull
    * Reco utils review, development and optimization.
    * Github statistics.
    * Continuous integration build / test setup.
+* **[Nikhil Joglekar](https://github.com/nikhilrj)**
+   * Improving documentation
+   * Quick start notebook
+   * Operationalization notebook
 * **[Scott Graham](https://github.com/gramhagen)**
    * Improving documentation
    * VW notebook
@@ -59,8 +61,9 @@ To contributors: please add your name to the list when you submit a patch to the
    * Spark optimization and support
 * **[Heather Spetalnick (Shapiro)](https://github.com/heatherbshapiro)**
    * AzureML documentation and support
-* **[Jeremy Reynolds](https://github.com/jreynolds01)**
-   * Reference architecture
+* **[Jianxun Lian](https://github.com/Leavingseason)**
+   * xDeepFM algorithm
+   * DKN algorithm
 * **[Markus Cozowicz](https://github.com/eisber)**
    * SAR improvements on Spark
 * **[Max Kaznady](https://github.com/maxkazmsft)**
@@ -73,15 +76,8 @@ To contributors: please add your name to the list when you submit a patch to the
    * Restricted Boltzmann Machine algorithm
 * **[Nicolas Hug](https://github.com/NicolasHug)**
    * Jupyter notebook demonstrating the use of [Surprise](https://github.com/NicolasHug/Surprise) library for recommendations
-* **[Nikhil Joglekar](https://github.com/nikhilrj)**
-   * Improving documentation
-   * Quick start notebook
-   * Operationalization notebook
 * **[Pratik Jawanpuria](https://github.com/pratikjawanpuria)**
    * RLRMC algorithm
-* **[Qi Wan](https://github.com/Qcactus)**
-   * LightGCN algorithm
-   * Deep dive notebook demonstrating the use of LightGCN
 * **[Quoc-Tuan Truong](https://github.com/tqtg)**
    * BPR notebook using [Cornac](https://github.com/PreferredAI/cornac) framework
 * **[Robert Alexander](https://github.com/roalexan)**
