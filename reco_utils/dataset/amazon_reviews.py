@@ -24,7 +24,6 @@ def data_preprocessing(
     sample_rate=0.01,
     valid_num_ngs=4,
     test_num_ngs=9,
-    is_history_expanding=True,
 ):
     """Create data for training, validation and testing from original dataset
 
@@ -38,10 +37,7 @@ def data_preprocessing(
     _create_item2cate(instance_output)
     sampled_instance_file = _get_sampled_data(instance_output, sample_rate=sample_rate)
     preprocessed_output = _data_processing(sampled_instance_file)
-    if is_history_expanding:
-        _data_generating(preprocessed_output, train_file, valid_file, test_file)
-    else:
-        _data_generating_no_history_expanding(preprocessed_output, train_file, valid_file, test_file)
+    _data_generating(preprocessed_output, train_file, valid_file, test_file)
     _create_vocab(train_file, user_vocab, item_vocab, cate_vocab)
     _negative_sampling_offline(
         sampled_instance_file, valid_file, test_file, valid_num_ngs, test_num_ngs
@@ -237,83 +233,6 @@ def _data_generating(input_file, train_file, valid_file, test_file, min_sequence
             cate_list.append(category)
             dt_list.append(date_time)
 
-def _data_generating_no_history_expanding(input_file, train_file, valid_file, test_file, min_sequence=1):
-    f_input = open(input_file, "r")
-    f_train = open(train_file, "w")
-    f_valid = open(valid_file, "w")
-    f_test = open(test_file, "w")
-    print("data generating...")
-
-    last_user_id = None
-    last_movie_id = None
-    last_category = None
-    last_datetime = None
-    last_tfile = None
-    for line in f_input:
-        line_split = line.strip().split("\t")
-        tfile = line_split[0]
-        label = int(line_split[1])
-        user_id = line_split[2]
-        movie_id = line_split[3]
-        date_time = line_split[4]
-        category = line_split[5]
-
-        if last_tfile == "train":
-            fo = f_train
-        elif last_tfile == "valid":
-            fo = f_valid
-        elif last_tfile == "test":
-            fo = f_test
-        if user_id != last_user_id or tfile == "valid" or tfile == "test":
-            if last_user_id != None:
-                history_clk_num = len(movie_id_list)
-                cat_str = ""
-                mid_str = ""
-                dt_str = ""
-                for c1 in cate_list[:-1]:
-                    cat_str += c1 + ","
-                for mid in movie_id_list[:-1]:
-                    mid_str += mid + ","
-                for dt_time in dt_list[:-1]:
-                    dt_str += dt_time + ","
-                if len(cat_str) > 0:
-                    cat_str = cat_str[:-1]
-                if len(mid_str) > 0:
-                    mid_str = mid_str[:-1]
-                if len(dt_str) > 0:
-                    dt_str = dt_str[:-1]
-                if history_clk_num > min_sequence:
-                    fo.write(
-                        line_split[1]
-                        + "\t"
-                        + last_user_id
-                        + "\t"
-                        + last_movie_id
-                        + "\t"
-                        + last_category
-                        + "\t"
-                        + last_datetime
-                        + "\t"
-                        + mid_str
-                        + "\t"
-                        + cat_str
-                        + "\t"
-                        + dt_str
-                        + "\n"
-                    )
-            if tfile == "train" or last_user_id == None:        
-                movie_id_list = []
-                cate_list = []
-                dt_list = []
-        last_user_id = user_id
-        last_movie_id = movie_id
-        last_category = category
-        last_datetime = date_time
-        last_tfile = tfile
-        if label:
-            movie_id_list.append(movie_id)
-            cate_list.append(category)
-            dt_list.append(date_time)
 
 def _create_item2cate(instance_file):
     print("creating item2cate dict")
