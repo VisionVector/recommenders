@@ -62,7 +62,7 @@ The table below lists the recommender algorithms currently available in the repo
 | Attentive Asynchronous Singular Value Decomposition (A2SVD)<sup>*</sup> | [Python CPU / Python GPU](examples/00_quick_start/sequential_recsys_amazondataset.ipynb) | Collaborative Filtering | Sequential-based algorithm that aims to capture both long and short-term user preferences using attention mechanism |
 | Cornac/Bayesian Personalized Ranking (BPR) | [Python CPU](examples/02_model_collaborative_filtering/cornac_bpr_deep_dive.ipynb) | Collaborative Filtering | Matrix factorization algorithm for predicting item ranking with implicit feedback |
 | Convolutional Sequence Embedding Recommendation (Caser) | [Python CPU / Python GPU](examples/00_quick_start/sequential_recsys_amazondataset.ipynb) | Collaborative Filtering | Algorithm based on convolutions that aims to capture both user’s general preferences and sequential patterns |
-| Deep Knowledge-Aware Network (DKN)<sup>*</sup> | [Python CPU / Python GPU](examples/00_quick_start/dkn_synthetic.ipynb) | Content-Based Filtering | Deep learning algorithm incorporating a knowledge graph and article embeddings to provide powerful news or article recommendations |
+| Deep Knowledge-Aware Network (DKN)<sup>*</sup> | [Python CPU / Python GPU](examples/00_quick_start/dkn_MIND_dataset.ipynb) | Content-Based Filtering | Deep learning algorithm incorporating a knowledge graph and article embeddings to provide powerful news or article recommendations |
 | Extreme Deep Factorization Machine (xDeepFM)<sup>*</sup> | [Python CPU / Python GPU](examples/00_quick_start/xdeepfm_criteo.ipynb) | Hybrid | Deep learning based algorithm for implicit and explicit feedback with user/item features |
 | FastAI Embedding Dot Bias (FAST) | [Python CPU / Python GPU](examples/00_quick_start/fastai_movielens.ipynb) | Collaborative Filtering | General purpose algorithm with embeddings and biases for users and items |
 | LightFM/Hybrid Matrix Factorization | [Python CPU](examples/02_model_hybrid/lightfm_deep_dive.ipynb) | Hybrid | Hybrid matrix factorization algorithm for both implicit and explicit feedbacks |
@@ -134,7 +134,15 @@ The following tests run on a Windows and Linux DSVM daily. These machines run 24
 - [Computer vision best practices](https://github.com/microsoft/computervision-recipes): Best practices and examples on computer vision.
 - [Forecasting best practices](https://github.com/microsoft/forecasting): Best practices and examples on time series forecasting.
 
+<<<<<<< HEAD
 ## Reference papers
+=======
+| Build Type | Branch | Status |  | Branch | Status |
+| --- | --- | --- | --- | --- | --- |
+| **nightly_cpu_tests** | master | [![Build Status](https://dev.azure.com/best-practices/recommenders/_apis/build/status/nightly_cpu_tests?branchName=master)](https://dev.azure.com/best-practices/recommenders/_build/latest?definitionId=25&branchName=master) |   | Staging | [![Build Status](https://dev.azure.com/best-practices/recommenders/_apis/build/status/nightly_cpu_tests?branchName=staging)](https://dev.azure.com/best-practices/recommenders/_build/latest?definitionId=25&branchName=staging) |
+| **nightly_gpu_tests** | master | [![Build Status](https://dev.azure.com/best-practices/recommenders/_apis/build/status/bp-nightly_gpu_tests?branchName=master)](https://dev.azure.com/best-practices/recommenders/_build/latest?definitionId=5&branchName=master) |   | Staging | [![Build Status](https://dev.azure.com/best-practices/recommenders/_apis/build/status/bp-nightly_gpu_tests?branchName=staging)](https://dev.azure.com/best-practices/recommenders/_build/latest?definitionId=5&branchName=staging) |
+-->
+>>>>>>> staging
 
 - A. Argyriou, M. González-Fierro, and L. Zhang, "Microsoft Recommenders: Best Practices for Production-Ready Recommendation Systems", *WWW 2020: International World Wide Web Conference Taipei*, 2020. Available online: https://dl.acm.org/doi/abs/10.1145/3366424.3382692
 - L. Zhang, T. Wu, X. Xie, A. Argyriou, M. González-Fierro and J. Lian, "Building Production-Ready Recommendation System at Scale", *ACM SIGKDD Conference on Knowledge Discovery and Data Mining 2019 (KDD 2019)*, 2019.
