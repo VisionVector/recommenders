@@ -349,7 +349,7 @@ def test_naml_quickstart_integration(notebooks, epochs, seed, expected_values):
     [
         (
             5,
-            42,
+            40,
             {
                 "res_syn": {
                     "group_auc": 0.5599,
@@ -382,7 +382,6 @@ def test_lstur_quickstart_integration(notebooks, epochs, seed, expected_values):
         assert results[key]["ndcg@10"] == pytest.approx(
             value["ndcg@10"], rel=TOL, abs=ABS_TOL
         )
-
 
 @pytest.mark.gpu
 @pytest.mark.integration

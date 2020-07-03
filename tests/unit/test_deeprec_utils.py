@@ -81,10 +81,11 @@ def test_DKN_iterator(resource_path):
     news_feature_file = os.path.join(data_path, r'doc_feature.txt')
     user_history_file = os.path.join(data_path, r'user_history.txt')
     yaml_file = os.path.join(data_path, "dkn.yaml")
-    download_deeprec_resources(
+    if not os.path.exists(yaml_file):
+        download_deeprec_resources(
             "https://recodatasets.blob.core.windows.net/deeprec/",
             data_path,
-            "mind-demo.zip",
+            "dknresources.zip",
         )
 
     hparams = prepare_hparams(yaml_file,
@@ -95,7 +96,7 @@ def test_DKN_iterator(resource_path):
                               contextEmb_file="")
     iterator = DKNTextIterator(hparams, tf.Graph())
     assert iterator is not None
-    for res, impression, data_size in iterator.load_data_from_file(data_file):
+    for res, impression in iterator.load_data_from_file(data_file):
         assert isinstance(res, dict)
 
 
