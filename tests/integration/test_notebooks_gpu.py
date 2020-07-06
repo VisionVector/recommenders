@@ -268,10 +268,10 @@ def test_slirec_quickstart_integration(
             42,
             {
                 "res_syn": {
-                    "group_auc": 0.5889,
-                    "mean_mrr": 0.2013,
-                    "ndcg@5": 0.2025,
-                    "ndcg@10": 0.2668,
+                    "group_auc": 0.5845,
+                    "mean_mrr": 0.202,
+                    "ndcg@5": 0.1977,
+                    "ndcg@10": 0.2655,
                 }
             },
         )
@@ -311,16 +311,16 @@ def test_nrms_quickstart_integration(notebooks, epochs, seed, expected_values):
             {
                 "res_syn": {
                     "group_auc": 0.5667,
-                    "mean_mrr": 0.1919,
-                    "ndcg@5": 0.1955,
-                    "ndcg@10": 0.2574,
+                    "mean_mrr": 0.1827,
+                    "ndcg@5": 0.1898,
+                    "ndcg@10": 0.2465,
                 }
             },
         )
     ],
 )
 def test_naml_quickstart_integration(notebooks, epochs, seed, expected_values):
-    notebook_path = notebooks["naml_quickstart"]
+    notebook_path = notebooks["nrms_quickstart"]
 
     params = {"epochs": epochs, "seed": seed}
     pm.execute_notebook(
@@ -349,13 +349,13 @@ def test_naml_quickstart_integration(notebooks, epochs, seed, expected_values):
     [
         (
             5,
-            40,
+            42,
             {
                 "res_syn": {
-                    "group_auc": 0.5790,
-                    "mean_mrr": 0.1931,
-                    "ndcg@5": 0.1931,
-                    "ndcg@10": 0.2571,
+                    "group_auc": 0.5599,
+                    "mean_mrr": 0.2027,
+                    "ndcg@5": 0.2065,
+                    "ndcg@10": 0.268,
                 }
             },
         )
@@ -383,6 +383,7 @@ def test_lstur_quickstart_integration(notebooks, epochs, seed, expected_values):
             value["ndcg@10"], rel=TOL, abs=ABS_TOL
         )
 
+
 @pytest.mark.gpu
 @pytest.mark.integration
 @pytest.mark.parametrize(
@@ -393,10 +394,10 @@ def test_lstur_quickstart_integration(notebooks, epochs, seed, expected_values):
             42,
             {
                 "res_syn": {
-                    "group_auc": 0.5609,
-                    "mean_mrr": 0.1783,
-                    "ndcg@5": 0.1697,
-                    "ndcg@10": 0.2486,
+                    "group_auc": 0.5583,
+                    "mean_mrr": 0.1741,
+                    "ndcg@5": 0.1676,
+                    "ndcg@10": 0.2462,
                 }
             },
         )
