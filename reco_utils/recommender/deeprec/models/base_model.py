@@ -455,6 +455,7 @@ class BaseModel:
                     )
 
             eval_start = time.time()
+            train_res = self.run_eval(train_file)
             eval_res = self.run_eval(valid_file)
             train_info = ",".join(
                 [
