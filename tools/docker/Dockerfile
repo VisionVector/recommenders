@@ -14,7 +14,20 @@ WORKDIR ${HOME}
 
 # Install base dependencies
 RUN apt-get update && \
-    apt-get install -y curl git
+    apt-get install -y curl git wget build-essential
+
+# Install cmake which is a requirement by xlearn 
+ARG CMAKE="https://github.com/Kitware/CMake/releases/download/v3.15.2/cmake-3.15.2.tar.gz"
+RUN wget ${CMAKE} -O cmake.tgz && \
+    mkdir cmake && \
+    tar xzf cmake.tgz --strip-components=1 -C cmake && \
+    cd cmake && \
+    ./bootstrap && \
+    make && \
+    make install && \
+    cd .. && \
+    rm cmake.tgz && \
+    rm -rf cmake
 
 # Install Anaconda
 ARG ANACONDA="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
@@ -101,11 +114,7 @@ ENV JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64" \
 # Final Stage
 FROM $ENV AS final
 
-# Install XLearn dependencies
-RUN apt-get update && \
-    apt-get install -y build-essential cmake
-
-# Install Conda packages
+# Install Conda dependencies
 RUN conda env update -f base.yaml && \
     conda clean -fay && \
     python -m ipykernel install --user --name 'python3' --display-name 'python3'
@@ -115,3 +124,4 @@ WORKDIR ${HOME}/recommenders
 
 EXPOSE 8888
 CMD ["jupyter", "notebook"]
+
