@@ -10,8 +10,8 @@ from reco_utils.recommender.newsrec.models.nrms import NRMSModel
 from reco_utils.recommender.newsrec.models.naml import NAMLModel
 from reco_utils.recommender.newsrec.models.lstur import LSTURModel
 from reco_utils.recommender.newsrec.models.npa import NPAModel
-from reco_utils.recommender.newsrec.io.mind_iterator import MINDIterator
-from reco_utils.recommender.newsrec.io.mind_all_iterator import MINDAllIterator
+from reco_utils.recommender.newsrec.io.news_iterator import NewsIterator
+from reco_utils.recommender.newsrec.io.naml_iterator import NAMLIterator
 
 
 @pytest.fixture
@@ -21,26 +21,16 @@ def resource_path():
 
 @pytest.mark.gpu
 def test_nrms_component_definition(tmp):
-    wordEmb_file = os.path.join(tmp, "utils", "embedding.npy")
-    userDict_file = os.path.join(tmp, "utils", "uid2index.pkl")
-    wordDict_file = os.path.join(tmp, "utils", "word_dict.pkl")
-    yaml_file = os.path.join(tmp, "utils", r"nrms.yaml")
+    yaml_file = os.path.join(tmp, "nrms.yaml")
+    wordEmb_file = os.path.join(tmp, "embedding.npy")
 
     if not os.path.exists(yaml_file):
         download_deeprec_resources(
-            r"https://recodatasets.blob.core.windows.net/newsrec/",
-            os.path.join(tmp, "utils"),
-            "MINDdemo_utils.zip",
+            "https://recodatasets.blob.core.windows.net/newsrec/", tmp, "nrms.zip"
         )
 
-    hparams = prepare_hparams(
-        yaml_file,
-        wordEmb_file=wordEmb_file,
-        wordDict_file=wordDict_file,
-        userDict_file=userDict_file,
-        epochs=1,
-    )
-    iterator = MINDIterator
+    hparams = prepare_hparams(yaml_file, wordEmb_file=wordEmb_file, epochs=1)
+    iterator = NewsIterator
     model = NRMSModel(hparams, iterator)
 
     assert model.model is not None
@@ -51,30 +41,16 @@ def test_nrms_component_definition(tmp):
 
 @pytest.mark.gpu
 def test_naml_component_definition(tmp):
-    wordEmb_file = os.path.join(tmp, "utils", "embedding_all.npy")
-    userDict_file = os.path.join(tmp, "utils", "uid2index.pkl")
-    wordDict_file = os.path.join(tmp, "utils", "word_dict_all.pkl")
-    vertDict_file = os.path.join(tmp, "utils", "vert_dict.pkl")
-    subvertDict_file = os.path.join(tmp, "utils", "subvert_dict.pkl")
-    yaml_file = os.path.join(tmp, "utils", r"naml.yaml")
+    yaml_file = os.path.join(tmp, "naml.yaml")
+    wordEmb_file = os.path.join(tmp, "embedding.npy")
 
     if not os.path.exists(yaml_file):
         download_deeprec_resources(
-            r"https://recodatasets.blob.core.windows.net/newsrec/",
-            os.path.join(tmp, "utils"),
-            "MINDdemo_utils.zip",
+            "https://recodatasets.blob.core.windows.net/newsrec/", tmp, "naml.zip"
         )
 
-    hparams = prepare_hparams(
-        yaml_file,
-        wordEmb_file=wordEmb_file,
-        wordDict_file=wordDict_file,
-        userDict_file=userDict_file,
-        vertDict_file=vertDict_file,
-        subvertDict_file=subvertDict_file,
-        epochs=1,
-    )
-    iterator = MINDAllIterator
+    hparams = prepare_hparams(yaml_file, wordEmb_file=wordEmb_file, epochs=1)
+    iterator = NAMLIterator
     model = NAMLModel(hparams, iterator)
 
     assert model.model is not None
@@ -85,26 +61,16 @@ def test_naml_component_definition(tmp):
 
 @pytest.mark.gpu
 def test_npa_component_definition(tmp):
-    wordEmb_file = os.path.join(tmp, "utils", "embedding.npy")
-    userDict_file = os.path.join(tmp, "utils", "uid2index.pkl")
-    wordDict_file = os.path.join(tmp, "utils", "word_dict.pkl")
-    yaml_file = os.path.join(tmp, "utils", r"npa.yaml")
+    yaml_file = os.path.join(tmp, "npa.yaml")
+    wordEmb_file = os.path.join(tmp, "embedding.npy")
 
     if not os.path.exists(yaml_file):
         download_deeprec_resources(
-            r"https://recodatasets.blob.core.windows.net/newsrec/",
-            os.path.join(tmp, "utils"),
-            "MINDdemo_utils.zip",
+            "https://recodatasets.blob.core.windows.net/newsrec/", tmp, "npa.zip"
         )
 
-    hparams = prepare_hparams(
-        yaml_file,
-        wordEmb_file=wordEmb_file,
-        wordDict_file=wordDict_file,
-        userDict_file=userDict_file,
-        epochs=1,
-    )
-    iterator = MINDIterator
+    hparams = prepare_hparams(yaml_file, wordEmb_file=wordEmb_file, epochs=1)
+    iterator = NewsIterator
     model = NPAModel(hparams, iterator)
 
     assert model.model is not None
@@ -115,25 +81,16 @@ def test_npa_component_definition(tmp):
 
 @pytest.mark.gpu
 def test_lstur_component_definition(tmp):
-    wordEmb_file = os.path.join(tmp, "utils", "embedding.npy")
-    userDict_file = os.path.join(tmp, "utils", "uid2index.pkl")
-    wordDict_file = os.path.join(tmp, "utils", "word_dict.pkl")
-    yaml_file = os.path.join(tmp, "utils", r"lstur.yaml")
+    yaml_file = os.path.join(tmp, "lstur.yaml")
+    wordEmb_file = os.path.join(tmp, "embedding.npy")
 
     if not os.path.exists(yaml_file):
         download_deeprec_resources(
-            r"https://recodatasets.blob.core.windows.net/newsrec/",
-            os.path.join(tmp, "utils"),
-            "MINDdemo_utils.zip",
+            "https://recodatasets.blob.core.windows.net/newsrec/", tmp, "lstur.zip"
         )
-    hparams = prepare_hparams(
-        yaml_file,
-        wordEmb_file=wordEmb_file,
-        wordDict_file=wordDict_file,
-        userDict_file=userDict_file,
-        epochs=1,
-    )
-    iterator = MINDIterator
+
+    hparams = prepare_hparams(yaml_file, wordEmb_file=wordEmb_file, epochs=1)
+    iterator = NewsIterator
     model = LSTURModel(hparams, iterator)
 
     assert model.model is not None
