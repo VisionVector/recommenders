@@ -30,54 +30,48 @@ class DKN(BaseModel):
         self.graph = tf.Graph()
         with self.graph.as_default():
             with tf.name_scope("embedding"):
-                word2vec_embedding = self._init_embedding(hparams.wordEmb_file)
                 self.embedding = tf.Variable(
-                    word2vec_embedding,
+                    tf.constant(
+                        0.0, shape=[hparams.word_size, hparams.dim], dtype=tf.float32
+                    ),
                     trainable=True,
                     name="word",
                 )
 
+                word2vec_embedding = self._init_embedding(hparams.wordEmb_file)
+                self.init_embedding = self.embedding.assign(word2vec_embedding)
+
                 if hparams.use_entity:
+                    self.entity_embedding = tf.Variable(
+                        tf.constant(
+                            0.0, shape=[hparams.entity_size, hparams.dim], dtype=tf.float32
+                        ),
+                        trainable=True,
+                        name="entity",
+                    )
                     e_embedding = self._init_embedding(hparams.entityEmb_file)
                     W = tf.Variable(
                         tf.random_uniform([hparams.entity_dim, hparams.dim], -1, 1)
                     )
                     b = tf.Variable(tf.zeros([hparams.dim]))
                     e_embedding_transformed = tf.nn.tanh(tf.matmul(e_embedding, W) + b)
-                    self.entity_embedding = tf.Variable(
-                        e_embedding_transformed,
-                        trainable=True,
-                        name="entity",
-                    )
-                else:
-                    self.entity_embedding = tf.Variable(
+                    self.entity_embedding.assign(e_embedding_transformed)
+
+                if hparams.use_entity and hparams.use_context:
+                    self.context_embedding = tf.Variable(
                         tf.constant(
                             0.0, shape=[hparams.entity_size, hparams.dim], dtype=tf.float32
                         ),
                         trainable=True,
-                        name="entity",
+                        name="context",
                     )
-
-                if hparams.use_context:
                     c_embedding = self._init_embedding(hparams.contextEmb_file)
                     W = tf.Variable(
                         tf.random_uniform([hparams.entity_dim, hparams.dim], -1, 1)
                     )
                     b = tf.Variable(tf.zeros([hparams.dim]))
                     c_embedding_transformed = tf.nn.tanh(tf.matmul(c_embedding, W) + b)
-                    self.context_embedding = tf.Variable(
-                        c_embedding_transformed,
-                        trainable=True,
-                        name="context",
-                    )
-                else:
-                    self.context_embedding = tf.Variable(
-                        tf.constant(
-                            0.0, shape=[hparams.entity_size, hparams.dim], dtype=tf.float32
-                        ),
-                        trainable=True,
-                        name="context",
-                    )
+                    self.context_embedding.assign(c_embedding_transformed)
 
         super().__init__(hparams, iterator_creator, graph=self.graph)
 
@@ -398,49 +392,3 @@ class DKN(BaseModel):
         h_pool = tf.concat(pooled_outputs, axis=-1)
         h_pool_flat = tf.reshape(h_pool, [-1, self.num_filters_total])
         return h_pool_flat
-
-    def infer_embedding(self, sess, feed_dict):
-        """Infer document embedding in feed_dict with current model.
-
-        Args:
-            sess (obj): The model session object.
-            feed_dict (dict): Feed values for evaluation. This is a dictionary that maps graph elements to values.
-
-        Returns:
-            list: news embedding in a batch
-        """
-        feed_dict[self.layer_keeps] = self.keep_prob_test
-        feed_dict[self.is_train_stage] = False
-        return sess.run([self.news_field_embed_final_batch], feed_dict=feed_dict)
-
-    def run_get_embedding(self, infile_name, outfile_name):
-        """infer document embedding with current model.
-
-        Args:
-            infile_name (str): Input file name, format is [Newsid] [w1,w2,w3...] [e1,e2,e3...]
-            outfile_name (str): Output file name, format is [Newsid] [embedding]
-
-        Returns:
-            obj: An instance of self.
-        """
-        load_sess = self.sess
-        with tf.gfile.GFile(outfile_name, "w") as wt:
-            for (
-                batch_data_input,
-                newsid_list,
-                data_size,
-            ) in self.iterator.load_infer_data_from_file(infile_name):
-                news_embedding = self.infer_embedding(load_sess, batch_data_input)[0]
-                for i in range(data_size):
-                    wt.write(
-                        newsid_list[i]
-                        + " "
-                        + ",".join(
-                            [
-                                str(embedding_value)
-                                for embedding_value in news_embedding[i]
-                            ]
-                        )
-                        + "\n"
-                    )
-        return self
