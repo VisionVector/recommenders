@@ -2,8 +2,9 @@
 # Licensed under the MIT License.
 
 
-import os
+import tensorflow as tf
 import six
+import os
 from sklearn.metrics import (
     roc_auc_score,
     log_loss,
@@ -14,11 +15,9 @@ from sklearn.metrics import (
 import numpy as np
 import yaml
 import zipfile
+from reco_utils.dataset.download_utils import maybe_download
 import json
 import pickle as pkl
-import tensorflow as tf
-
-from reco_utils.dataset.download_utils import maybe_download
 
 
 def flat_config(config):
@@ -52,7 +51,6 @@ def check_type(config):
         "word_size",
         "entity_size",
         "doc_size",
-        "history_size",
         "FEATURE_COUNT",
         "FIELD_COUNT",
         "dim",
@@ -150,7 +148,6 @@ def check_nn_config(f_config):
     elif f_config["model_type"] in ["dkn", "DKN"]:
         required_parameters = [
             "doc_size",
-            "history_size",
             "wordEmb_file",
             "entityEmb_file",
             "contextEmb_file",
@@ -158,7 +155,6 @@ def check_nn_config(f_config):
             "user_history_file",
             "word_size",
             "entity_size",
-            "use_entity",
             "use_context",
             "data_format",
             "dim",
@@ -333,19 +329,11 @@ def create_hparams(flags):
         # dkn
         wordEmb_file=flags["wordEmb_file"] if "wordEmb_file" in flags else None,
         entityEmb_file=flags["entityEmb_file"] if "entityEmb_file" in flags else None,
-        contextEmb_file=flags["contextEmb_file"]
-        if "contextEmb_file" in flags
-        else None,
-        news_feature_file=flags["news_feature_file"]
-        if "news_feature_file" in flags
-        else None,
-        user_history_file=flags["user_history_file"]
-        if "user_history_file" in flags
-        else None,
-        use_entity=flags["use_entity"] if "use_entity" in flags else True,
-        use_context=flags["use_context"] if "use_context" in flags else True,
+        contextEmb_file=flags["contextEmb_file"] if "contextEmb_file" in flags else None,
+        news_feature_file=flags["news_feature_file"] if "news_feature_file" in flags else None,
+        user_history_file=flags["user_history_file"] if "user_history_file" in flags else None,
+        use_context=flags["use_context"] if "use_context" in flags else None,
         doc_size=flags["doc_size"] if "doc_size" in flags else None,
-        history_size=flags["history_size"] if "history_size" in flags else None,
         word_size=flags["word_size"] if "word_size" in flags else None,
         entity_size=flags["entity_size"] if "entity_size" in flags else None,
         entity_dim=flags["entity_dim"] if "entity_dim" in flags else None,
@@ -516,11 +504,11 @@ def mrr_score(y_true, y_score):
     """Computing mrr score metric.
 
     Args:
-        y_true (np.ndarray): ground-truth labels.
-        y_score (np.ndarray): predicted labels.
+        y_true (numpy.ndarray): ground-truth labels.
+        y_score (numpy.ndarray): predicted labels.
     
     Returns:
-        np.ndarray: mrr scores.
+        numpy.ndarray: mrr scores.
     """
     order = np.argsort(y_score)[::-1]
     y_true = np.take(y_true, order)
@@ -532,11 +520,11 @@ def ndcg_score(y_true, y_score, k=10):
     """Computing ndcg score metric at k.
 
     Args:
-        y_true (np.ndarray): ground-truth labels.
-        y_score (np.ndarray): predicted labels.
+        y_true (numpy.ndarray): ground-truth labels.
+        y_score (numpy.ndarray): predicted labels.
 
     Returns:
-        np.ndarray: ndcg scores.
+        numpy.ndarray: ndcg scores.
     """
     best = dcg_score(y_true, y_true, k)
     actual = dcg_score(y_true, y_score, k)
@@ -547,11 +535,11 @@ def hit_score(y_true, y_score, k=10):
     """Computing hit score metric at k.
 
     Args:
-        y_true (np.ndarray): ground-truth labels.
-        y_score (np.ndarray): predicted labels.
+        y_true (numpy.ndarray): ground-truth labels.
+        y_score (numpy.ndarray): predicted labels.
 
     Returns:
-        np.ndarray: hit score.
+        numpy.ndarray: hit score.
     """
     ground_truth = np.where(y_true == 1)[0]
     argsort = np.argsort(y_score)[::-1][:k]
@@ -565,11 +553,11 @@ def dcg_score(y_true, y_score, k=10):
     """Computing dcg score metric at k.
 
     Args:
-        y_true (np.ndarray): ground-truth labels.
-        y_score (np.ndarray): predicted labels.
+        y_true (numpy.ndarray): ground-truth labels.
+        y_score (numpy.ndarray): predicted labels.
 
     Returns:
-        np.ndarray: dcg scores.
+        numpy.ndarray: dcg scores.
     """
     k = min(np.shape(y_true)[-1], k)
     order = np.argsort(y_score)[::-1]
