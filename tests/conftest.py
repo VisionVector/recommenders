@@ -199,7 +199,7 @@ def notebooks():
             folder_notebooks, "00_quick_start", "xdeepfm_criteo.ipynb"
         ),
         "dkn_quickstart": os.path.join(
-            folder_notebooks, "00_quick_start", "dkn_MIND.ipynb"
+            folder_notebooks, "00_quick_start", "dkn_MIND_dataset.ipynb"
         ),
         "lightgbm_quickstart": os.path.join(
             folder_notebooks, "00_quick_start", "lightgbm_tinycriteo.ipynb"
@@ -211,19 +211,22 @@ def notebooks():
             folder_notebooks, "00_quick_start", "sequential_recsys_amazondataset.ipynb"
         ),
         "nrms_quickstart": os.path.join(
-            folder_notebooks, "00_quick_start", "nrms_MIND.ipynb"
+            folder_notebooks, "00_quick_start", "nrms_synthetic.ipynb"
         ),
         "naml_quickstart": os.path.join(
-            folder_notebooks, "00_quick_start", "naml_MIND.ipynb"
+            folder_notebooks, "00_quick_start", "naml_synthetic.ipynb"
         ),
         "lstur_quickstart": os.path.join(
-            folder_notebooks, "00_quick_start", "lstur_MIND.ipynb"
+            folder_notebooks, "00_quick_start", "lstur_synthetic.ipynb"
         ),
         "npa_quickstart": os.path.join(
-            folder_notebooks, "00_quick_start", "npa_MIND.ipynb"
+            folder_notebooks, "00_quick_start", "npa_synthetic.ipynb"
         ),
         "rlrmc_quickstart": os.path.join(
             folder_notebooks, "00_quick_start", "rlrmc_movielens.ipynb"
+        ),
+        "geoimc_quickstart": os.path.join(
+            folder_notebooks, "00_quick_start", "geoimc_movielens.ipynb"
         ),
         "data_split": os.path.join(
             folder_notebooks, "01_prepare_data", "data_split.ipynb"
@@ -243,11 +246,6 @@ def notebooks():
             folder_notebooks,
             "02_model_collaborative_filtering",
             "baseline_deep_dive.ipynb",
-        ),
-        "lightgcn_deep_dive": os.path.join(
-            folder_notebooks,
-            "02_model_collaborative_filtering",
-            "lightgcn_deep_dive.ipynb",
         ),
         "ncf_deep_dive": os.path.join(
             folder_notebooks, "02_model_hybrid", "ncf_deep_dive.ipynb"
@@ -272,6 +270,9 @@ def notebooks():
         ),
         "xlearn_fm_deep_dive": os.path.join(
             folder_notebooks, "02_model_hybrid", "fm_deep_dive.ipynb"
+        ),
+        "lightgcn_deep_dive": os.path.join(
+            folder_notebooks, "02_model", "lightgcn_deep_dive.ipynb"
         ),
         "evaluation": os.path.join(folder_notebooks, "03_evaluate", "evaluation.ipynb"),
         "spark_tuning": os.path.join(

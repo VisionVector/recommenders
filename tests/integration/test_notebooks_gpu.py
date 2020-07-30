@@ -264,14 +264,14 @@ def test_slirec_quickstart_integration(
     "epochs, seed, expected_values",
     [
         (
-            8,
+            10,
             42,
             {
                 "res_syn": {
-                    "group_auc": 0.6217,
-                    "mean_mrr": 0.2783,
-                    "ndcg@5": 0.3024,
-                    "ndcg@10": 0.3719,
+                    "group_auc": 0.5889,
+                    "mean_mrr": 0.2013,
+                    "ndcg@5": 0.2025,
+                    "ndcg@10": 0.2668,
                 }
             },
         )
@@ -306,14 +306,14 @@ def test_nrms_quickstart_integration(notebooks, epochs, seed, expected_values):
     "epochs, seed, expected_values",
     [
         (
-            6,
+            5,
             42,
             {
                 "res_syn": {
-                    "group_auc": 0.6436,
-                    "mean_mrr": 0.2990,
-                    "ndcg@5": 0.3297,
-                    "ndcg@10": 0.3933,
+                    "group_auc": 0.5667,
+                    "mean_mrr": 0.1919,
+                    "ndcg@5": 0.1955,
+                    "ndcg@10": 0.2574,
                 }
             },
         )
@@ -352,10 +352,10 @@ def test_naml_quickstart_integration(notebooks, epochs, seed, expected_values):
             40,
             {
                 "res_syn": {
-                    "group_auc": 0.6444,
-                    "mean_mrr": 0.2983,
-                    "ndcg@5": 0.3287,
-                    "ndcg@10": 0.3938,
+                    "group_auc": 0.5790,
+                    "mean_mrr": 0.1931,
+                    "ndcg@5": 0.1931,
+                    "ndcg@10": 0.2571,
                 }
             },
         )
@@ -383,21 +383,20 @@ def test_lstur_quickstart_integration(notebooks, epochs, seed, expected_values):
             value["ndcg@10"], rel=TOL, abs=ABS_TOL
         )
 
-
 @pytest.mark.gpu
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "epochs, seed, expected_values",
     [
         (
-            6,
+            5,
             42,
             {
                 "res_syn": {
-                    "group_auc": 0.6035,
-                    "mean_mrr": 0.2765,
-                    "ndcg@5": 0.2977,
-                    "ndcg@10": 0.3637,
+                    "group_auc": 0.5609,
+                    "mean_mrr": 0.1783,
+                    "ndcg@5": 0.1697,
+                    "ndcg@10": 0.2486,
                 }
             },
         )
@@ -470,21 +469,3 @@ def test_lightgcn_deep_dive_integration(
 
     for key, value in expected_values.items():
         assert results[key] == pytest.approx(value, rel=TOL, abs=ABS_TOL)
-
-
-@pytest.mark.gpu
-@pytest.mark.integration
-def test_dkn_quickstart_integration(notebooks):
-    notebook_path = notebooks["dkn_quickstart"]
-    pm.execute_notebook(
-        notebook_path,
-        OUTPUT_NOTEBOOK,
-        kernel_name=KERNEL_NAME,
-        parameters=dict(epochs=5, batch_size=500),
-    )
-    results = pm.read_notebook(OUTPUT_NOTEBOOK).dataframe.set_index("name")["value"]
-
-    assert results["res"]["auc"] == pytest.approx(0.5651, rel=TOL, abs=ABS_TOL)
-    assert results["res"]["mean_mrr"] == pytest.approx(0.1639, rel=TOL, abs=ABS_TOL)
-    assert results["res"]["ndcg@5"] == pytest.approx(0.1735, rel=TOL, abs=ABS_TOL)
-    assert results["res"]["ndcg@10"] == pytest.approx(0.2301, rel=TOL, abs=ABS_TOL)
