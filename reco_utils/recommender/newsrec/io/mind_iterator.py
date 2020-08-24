@@ -254,15 +254,6 @@ class MINDIterator(BaseIterator):
                     click_title_indexes = []
                     cnt = 0
 
-        if cnt > 0:
-            yield self._convert_data(
-                label_list,
-                imp_indexes,
-                user_indexes,
-                candidate_title_indexes,
-                click_title_indexes,
-            )
-
     def _convert_data(
         self,
         label_list,
@@ -334,12 +325,6 @@ class MINDIterator(BaseIterator):
                 user_indexes = []
                 impr_indexes = []
                 click_title_indexes = []
-                cnt = 0
-
-        if cnt > 0:
-            yield self._convert_user_data(
-                user_indexes, impr_indexes, click_title_indexes,
-            )
 
     def _convert_user_data(
         self, user_indexes, impr_indexes, click_title_indexes,
@@ -391,12 +376,6 @@ class MINDIterator(BaseIterator):
                 )
                 news_indexes = []
                 candidate_title_indexes = []
-                cnt = 0
-
-        if cnt > 0:
-            yield self._convert_news_data(
-                news_indexes, candidate_title_indexes,
-            )
 
     def _convert_news_data(
         self, news_indexes, candidate_title_indexes,
@@ -437,13 +416,8 @@ class MINDIterator(BaseIterator):
         indexes = np.arange(len(self.labels))
 
         for index in indexes:
-            impr_label = np.array(self.labels[index], dtype="int32")
-            impr_news = np.array(self.imprs[index], dtype="int32")
+            impr_label = np.array(self.labels[index], dtype='int32')
+            impr_news = np.array(self.imprs[index], dtype='int32')
 
-            yield (
-                self.impr_indexes[index],
-                impr_news,
-                self.uindexes[index],
-                impr_label,
-            )
+            yield (self.impr_indexes[index], impr_news, self.uindexes[index], impr_label)
 
