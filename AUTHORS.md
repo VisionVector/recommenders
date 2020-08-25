@@ -47,7 +47,6 @@ To contributors: please add your name to the list when you submit a patch to the
    * Deep dive notebook demonstrating the use of NCF
 * **[Bamdev Mishra](https://github.com/bamdevm)**
    * RLRMC algorithm
-   * GeoIMC algorithm
 * **[Beth Zeranski](https://github.com/bethz)**
    * DevOps Pipelines used as a control plane to run existing Pytests on AzureML
    * Automation scripts to configure AzureML environment for pipeline use 
@@ -80,7 +79,6 @@ To contributors: please add your name to the list when you submit a patch to the
    * Operationalization notebook
 * **[Pratik Jawanpuria](https://github.com/pratikjawanpuria)**
    * RLRMC algorithm
-   * GeoIMC algorithm
 * **[Qi Wan](https://github.com/Qcactus)**
    * LightGCN algorithm
    * Deep dive notebook demonstrating the use of LightGCN
@@ -88,8 +86,6 @@ To contributors: please add your name to the list when you submit a patch to the
    * BPR notebook using [Cornac](https://github.com/PreferredAI/cornac) framework
 * **[Robert Alexander](https://github.com/roalexan)**
    * Windows test pipelines
-* **[Satyadev Ntv](https://github.com/satyadevntv)**
-   * GeoIMC algorithm
 * **[Yassine Khelifi](https://github.com/datashinobi)**
    * SAR notebook quickstart
 * **[Zhenhui Xu](https://github.com/motefly)**
