@@ -1,8 +1,6 @@
-# Copyright (c) Recommenders contributors.
-# Licensed under the MIT License.
-#
-# This script provides some common usage functions to load the MAG dataset.
-
+r"""
+This script provides some common usage functions to load the MAG dataset.
+"""
 
 from datetime import datetime
 import codecs

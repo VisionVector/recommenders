@@ -1,5 +1,3 @@
-# Copyright (c) Recommenders contributors.
-# Licensed under the MIT License.
 #
 #   MicrosoftAcademicGraph class to read MAG streams for Pandas
 #
