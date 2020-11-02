@@ -96,11 +96,8 @@ def compute_ranking_predictions(
         pd.DataFrame: dataframe with usercol, itemcol, predcol
     """
     preds_lst = []
-    users = data[usercol].unique()
-    items = data[itemcol].unique()
-
-    for user in users:
-        for item in items:
+    for user in data[usercol].unique():
+        for item in data[itemcol].unique():
             preds_lst.append([user, item, algo.predict(user, item).est])
 
     all_predictions = pd.DataFrame(data=preds_lst, columns=[usercol, itemcol, predcol])
