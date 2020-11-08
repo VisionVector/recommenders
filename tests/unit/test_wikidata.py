@@ -15,7 +15,7 @@ from reco_utils.dataset.wikidata import (
 def q():
     return {
         "correct": "the lord of the rings",
-        "not_correct": "yXzCGhyFfWatQAPxeuRd09RqqWAMsCYRxZcxUDv",
+        "not_correct": "000000aaaaa",
         "entity_id": "Q15228",
     }
 
