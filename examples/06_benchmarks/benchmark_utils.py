@@ -35,8 +35,6 @@ from reco_utils.recommender.fastai.fastai_utils import (
     hide_fastai_progress_bar,
 )
 from reco_utils.recommender.cornac.cornac_utils import predict_ranking
-from reco_utils.recommender.deeprec.models.graphrec.lightgcn import LightGCN
-from reco_utils.recommender.deeprec.DataModel.ImplicitCF import ImplicitCF
 from reco_utils.evaluation.spark_evaluation import (
     SparkRatingEvaluation,
     SparkRankingEvaluation,
@@ -50,7 +48,7 @@ from reco_utils.evaluation.python_evaluation import (
 from reco_utils.evaluation.python_evaluation import rmse, mae, rsquared, exp_var
 
 
-def prepare_training_als(train, test):
+def prepare_training_als(train):
     schema = StructType(
         (
             StructField(DEFAULT_USER_COL, IntegerType()),
@@ -114,7 +112,7 @@ def recommend_k_als(model, test, train):
     return topk_scores, t
 
 
-def prepare_training_svd(train, test):
+def prepare_training_svd(train):
     reader = surprise.Reader("ml-100k", rating_scale=(1, 5))
     return surprise.Dataset.load_from_df(
         train.drop(DEFAULT_TIMESTAMP_COL, axis=1), reader=reader
@@ -153,7 +151,7 @@ def recommend_k_svd(model, test, train):
     return topk_scores, t
 
 
-def prepare_training_fastai(train, test):
+def prepare_training_fastai(train):
     data = train.copy()
     data[DEFAULT_USER_COL] = data[DEFAULT_USER_COL].astype("str")
     data[DEFAULT_ITEM_COL] = data[DEFAULT_ITEM_COL].astype("str")
@@ -226,7 +224,7 @@ def recommend_k_fastai(model, test, train):
     return topk_scores, t
 
 
-def prepare_training_ncf(train, test):
+def prepare_training_ncf(train):
     return NCFDataset(
         train=train,
         col_user=DEFAULT_USER_COL,
@@ -269,7 +267,7 @@ def recommend_k_ncf(model, test, train):
     return topk_scores, t
 
 
-def prepare_training_bpr(train, test):
+def prepare_training_bpr(train):
     return cornac.data.Dataset.from_uir(
         train.drop(DEFAULT_TIMESTAMP_COL, axis=1).itertuples(index=False), seed=SEED
     )
@@ -307,18 +305,6 @@ def recommend_k_sar(model, test, train):
     with Timer() as t:
         topk_scores = model.recommend_k_items(test, remove_seen=True)
     return topk_scores, t
-
-
-def prepare_training_lightgcn(train, test):
-    pass
-
-
-def train_lightgcn(params, data):
-    pass
-
-
-def recommend_k_lightgcn(model, test, train):
-    pass
 
 
 def rating_metrics_pyspark(test, predictions):
