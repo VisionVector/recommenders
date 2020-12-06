@@ -35,9 +35,6 @@ from reco_utils.recommender.fastai.fastai_utils import (
     hide_fastai_progress_bar,
 )
 from reco_utils.recommender.cornac.cornac_utils import predict_ranking
-from reco_utils.recommender.deeprec.models.graphrec.lightgcn import LightGCN
-from reco_utils.recommender.deeprec.DataModel.ImplicitCF import ImplicitCF
-from reco_utils.recommender.deeprec.deeprec_utils import prepare_hparams
 from reco_utils.evaluation.spark_evaluation import (
     SparkRatingEvaluation,
     SparkRankingEvaluation,
@@ -51,7 +48,7 @@ from reco_utils.evaluation.python_evaluation import (
 from reco_utils.evaluation.python_evaluation import rmse, mae, rsquared, exp_var
 
 
-def prepare_training_als(train, test):
+def prepare_training_als(train):
     schema = StructType(
         (
             StructField(DEFAULT_USER_COL, IntegerType()),
@@ -81,7 +78,7 @@ def prepare_metrics_als(train, test):
         )
     )
     spark = start_or_get_spark()
-    return spark.createDataFrame(train, schema), spark.createDataFrame(test, schema)
+    return prepare_training_als(train), spark.createDataFrame(test, schema)
 
 
 def predict_als(model, test):
@@ -90,7 +87,7 @@ def predict_als(model, test):
     return preds, t
 
 
-def recommend_k_als(model, test, train, top_k=DEFAULT_K, remove_seen=True):
+def recommend_k_als(model, test, train):
     with Timer() as t:
         # Get the cross join of all user-item pairs and score them.
         users = train.select(DEFAULT_USER_COL).distinct()
@@ -98,7 +95,7 @@ def recommend_k_als(model, test, train, top_k=DEFAULT_K, remove_seen=True):
         user_item = users.crossJoin(items)
         dfs_pred = model.transform(user_item)
 
-        # Remove seen items
+        # Remove seen items.
         dfs_pred_exclude_train = dfs_pred.alias("pred").join(
             train.alias("train"),
             (dfs_pred[DEFAULT_USER_COL] == train[DEFAULT_USER_COL])
@@ -115,7 +112,7 @@ def recommend_k_als(model, test, train, top_k=DEFAULT_K, remove_seen=True):
     return topk_scores, t
 
 
-def prepare_training_svd(train, test):
+def prepare_training_svd(train):
     reader = surprise.Reader("ml-100k", rating_scale=(1, 5))
     return surprise.Dataset.load_from_df(
         train.drop(DEFAULT_TIMESTAMP_COL, axis=1), reader=reader
@@ -141,7 +138,7 @@ def predict_svd(model, test):
     return preds, t
 
 
-def recommend_k_svd(model, test, train, top_k=DEFAULT_K, remove_seen=True):
+def recommend_k_svd(model, test, train):
     with Timer() as t:
         topk_scores = compute_ranking_predictions(
             model,
@@ -149,12 +146,12 @@ def recommend_k_svd(model, test, train, top_k=DEFAULT_K, remove_seen=True):
             usercol=DEFAULT_USER_COL,
             itemcol=DEFAULT_ITEM_COL,
             predcol=DEFAULT_PREDICTION_COL,
-            remove_seen=remove_seen,
+            remove_seen=True,
         )
     return topk_scores, t
 
 
-def prepare_training_fastai(train, test):
+def prepare_training_fastai(train):
     data = train.copy()
     data[DEFAULT_USER_COL] = data[DEFAULT_USER_COL].astype("str")
     data[DEFAULT_ITEM_COL] = data[DEFAULT_ITEM_COL].astype("str")
@@ -196,7 +193,7 @@ def predict_fastai(model, test):
     return preds, t
 
 
-def recommend_k_fastai(model, test, train, top_k=DEFAULT_K, remove_seen=True):
+def recommend_k_fastai(model, test, train):
     with Timer() as t:
         total_users, total_items = model.data.train_ds.x.classes.values()
         total_items = total_items[1:]
@@ -222,12 +219,12 @@ def recommend_k_fastai(model, test, train, top_k=DEFAULT_K, remove_seen=True):
             user_col=DEFAULT_USER_COL,
             item_col=DEFAULT_ITEM_COL,
             prediction_col=DEFAULT_PREDICTION_COL,
-            top_k=top_k,
+            top_k=DEFAULT_K,
         )
     return topk_scores, t
 
 
-def prepare_training_ncf(train, test):
+def prepare_training_ncf(train):
     return NCFDataset(
         train=train,
         col_user=DEFAULT_USER_COL,
@@ -245,7 +242,7 @@ def train_ncf(params, data):
     return model, t
 
 
-def recommend_k_ncf(model, test, train, top_k=DEFAULT_K, remove_seen=True):
+def recommend_k_ncf(model, test, train):
     with Timer() as t:
         users, items, preds = [], [], []
         item = list(train[DEFAULT_ITEM_COL].unique())
@@ -270,7 +267,7 @@ def recommend_k_ncf(model, test, train, top_k=DEFAULT_K, remove_seen=True):
     return topk_scores, t
 
 
-def prepare_training_bpr(train, test):
+def prepare_training_bpr(train):
     return cornac.data.Dataset.from_uir(
         train.drop(DEFAULT_TIMESTAMP_COL, axis=1).itertuples(index=False), seed=SEED
     )
@@ -283,7 +280,7 @@ def train_bpr(params, data):
     return model, t
 
 
-def recommend_k_bpr(model, test, train, top_k=DEFAULT_K, remove_seen=True):
+def recommend_k_bpr(model, test, train):
     with Timer() as t:
         topk_scores = predict_ranking(
             model,
@@ -291,7 +288,7 @@ def recommend_k_bpr(model, test, train, top_k=DEFAULT_K, remove_seen=True):
             usercol=DEFAULT_USER_COL,
             itemcol=DEFAULT_ITEM_COL,
             predcol=DEFAULT_PREDICTION_COL,
-            remove_seen=remove_seen,
+            remove_seen=True,
         )
     return topk_scores, t
 
@@ -304,31 +301,9 @@ def train_sar(params, data):
     return model, t
 
 
-def recommend_k_sar(model, test, train, top_k=DEFAULT_K, remove_seen=True):
+def recommend_k_sar(model, test, train):
     with Timer() as t:
-        topk_scores = model.recommend_k_items(
-            test, top_k=top_k, remove_seen=remove_seen
-        )
-    return topk_scores, t
-
-
-def prepare_training_lightgcn(train, test):
-    return ImplicitCF(train=train, test=test)
-
-
-def train_lightgcn(params, data):
-    hparams = prepare_hparams(**params)
-    model = LightGCN(hparams, data)
-    with Timer() as t:
-        model.fit()
-    return model, t
-
-
-def recommend_k_lightgcn(model, test, train, top_k=DEFAULT_K, remove_seen=True):
-    with Timer() as t:
-        topk_scores = model.recommend_k_items(
-            test, top_k=top_k, remove_seen=remove_seen
-        )
+        topk_scores = model.recommend_k_items(test, remove_seen=True)
     return topk_scores, t
 
 
