@@ -106,7 +106,6 @@ class BaseModel:
                     task
                 )
             )
-        pred = tf.identity(pred, name='pred')
         return pred
 
     def _add_summaries(self):
@@ -704,4 +703,4 @@ class BaseModel:
                     + b_nn_output
                 )
                 self.logit = nn_output
-        return nn_output
+                return nn_output
