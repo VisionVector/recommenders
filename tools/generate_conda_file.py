@@ -57,7 +57,8 @@ CONDA_BASE = {
     "swig": "swig==3.0.12",
     "lightgbm": "lightgbm==2.2.1",
     "cornac": "cornac>=1.1.2",
-    "papermill": "papermill==0.19.1",
+    "papermill": "papermill>=2.2.0",
+    "nteract-scrapbook": "nteract-scrapbook>=0.4.0",
     "tqdm": "tqdm>=4.31.1",
 }
 
