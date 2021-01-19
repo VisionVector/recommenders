@@ -26,13 +26,13 @@ URL_MIND_SMALL_VALID = (
     "https://mind201910small.blob.core.windows.net/release/MINDsmall_dev.zip"
 )
 URL_MIND_DEMO_TRAIN = (
-    "https://recodatasets.z20.web.core.windows.net/newsrec/MINDdemo_train.zip"
+    "https://recodatasets.blob.core.windows.net/newsrec/MINDdemo_train.zip"
 )
 URL_MIND_DEMO_VALID = (
-      "https://recodatasets.z20.web.core.windows.net/newsrec/MINDdemo_dev.zip"
+      "https://recodatasets.blob.core.windows.net/newsrec/MINDdemo_dev.zip"
 )
 URL_MIND_DEMO_UTILS = (
-      "https://recodatasets.z20.web.core.windows.net/newsrec/MINDdemo_utils.zip"
+      "https://recodatasets.blob.core.windows.net/newsrec/MINDdemo_utils.zip"
 )
 
 URL_MIND = {
@@ -412,7 +412,7 @@ def word_tokenize(sent):
         list: words in the sentence   
     '''
     
-    #treat onsecutive words or special punctuation as words
+    #treat consecutive words or special punctuation as words
     pat = re.compile(r'[\w]+|[.,!?;|]')
     if isinstance(sent, str):
         return pat.findall(sent.lower())
