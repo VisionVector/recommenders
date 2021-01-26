@@ -1,14 +1,12 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-import sys
-import pytest
 import papermill as pm
-import scrapbook as sb
+import pytest
+import sys
 
 from reco_utils.tuning.nni.nni_utils import check_experiment_status, NNI_STATUS_URL
 from tests.notebooks_common import OUTPUT_NOTEBOOK, KERNEL_NAME
-
 
 TOL = 0.05
 ABS_TOL = 0.05
@@ -46,9 +44,7 @@ def test_sar_single_node_integration(notebooks, size, expected_values):
         kernel_name=KERNEL_NAME,
         parameters=dict(TOP_K=10, MOVIELENS_DATA_SIZE=size),
     )
-    results = sb.read_notebook(OUTPUT_NOTEBOOK).scraps.dataframe.set_index("name")[
-        "value"
-    ]
+    results = pm.read_notebook(OUTPUT_NOTEBOOK).dataframe.set_index("name")["value"]
 
     for key, value in expected_values.items():
         assert results[key] == pytest.approx(value, rel=TOL, abs=ABS_TOL)
@@ -72,15 +68,14 @@ def test_sar_single_node_integration(notebooks, size, expected_values):
 )
 def test_baseline_deep_dive_integration(notebooks, size, expected_values):
     notebook_path = notebooks["baseline_deep_dive"]
+    pm.execute_notebook(notebook_path, OUTPUT_NOTEBOOK, kernel_name=KERNEL_NAME)
     pm.execute_notebook(
         notebook_path,
         OUTPUT_NOTEBOOK,
         kernel_name=KERNEL_NAME,
         parameters=dict(TOP_K=10, MOVIELENS_DATA_SIZE=size),
     )
-    results = sb.read_notebook(OUTPUT_NOTEBOOK).scraps.dataframe.set_index("name")[
-        "value"
-    ]
+    results = pm.read_notebook(OUTPUT_NOTEBOOK).dataframe.set_index("name")["value"]
 
     for key, value in expected_values.items():
         assert results[key] == pytest.approx(value, rel=TOL, abs=ABS_TOL)
@@ -114,9 +109,7 @@ def test_surprise_svd_integration(notebooks, size, expected_values):
         kernel_name=KERNEL_NAME,
         parameters=dict(MOVIELENS_DATA_SIZE=size),
     )
-    results = sb.read_notebook(OUTPUT_NOTEBOOK).scraps.dataframe.set_index("name")[
-        "value"
-    ]
+    results = pm.read_notebook(OUTPUT_NOTEBOOK).dataframe.set_index("name")["value"]
 
     for key, value in expected_values.items():
         assert results[key] == pytest.approx(value, rel=TOL, abs=ABS_TOL)
@@ -149,9 +142,7 @@ def test_vw_deep_dive_integration(notebooks, size, expected_values):
         kernel_name=KERNEL_NAME,
         parameters=dict(MOVIELENS_DATA_SIZE=size, TOP_K=10),
     )
-    results = sb.read_notebook(OUTPUT_NOTEBOOK).scraps.dataframe.set_index("name")[
-        "value"
-    ]
+    results = pm.read_notebook(OUTPUT_NOTEBOOK).dataframe.set_index("name")["value"]
 
     for key, value in expected_values.items():
         assert results[key] == pytest.approx(value, rel=TOL, abs=ABS_TOL)
@@ -188,13 +179,10 @@ def test_wikidata_integration(notebooks, tmp):
             MOVIELENS_DATA_SIZE="100k", MOVIELENS_SAMPLE=True, MOVIELENS_SAMPLE_SIZE=5
         ),
     )
-    results = sb.read_notebook(OUTPUT_NOTEBOOK).scraps.dataframe.set_index("name")[
-        "value"
-    ]
 
+    results = pm.read_notebook(OUTPUT_NOTEBOOK).dataframe.set_index("name")["value"]
     # NOTE: The return number should be always 5, but sometimes we get less because wikidata is unstable
     assert results["length_result"] >= 1
-
 
 @pytest.mark.integration
 def test_mind_utils_integration(notebooks, tmp):
@@ -203,12 +191,12 @@ def test_mind_utils_integration(notebooks, tmp):
         notebook_path,
         OUTPUT_NOTEBOOK,
         kernel_name=KERNEL_NAME,
-        parameters=dict(mind_type="small", word_embedding_dim=300),
+        parameters=dict(
+            mind_type="small", word_embedding_dim=300
+        ),
     )
-    results = sb.read_notebook(OUTPUT_NOTEBOOK).scraps.dataframe.set_index("name")[
-        "value"
-    ]
 
+    results = pm.read_notebook(OUTPUT_NOTEBOOK).dataframe.set_index("name")["value"]
     assert results["utils_state"]["vert_num"] == 17
     assert results["utils_state"]["subvert_num"] == 17
     assert results["utils_state"]["word_num"] == 31029
@@ -216,7 +204,6 @@ def test_mind_utils_integration(notebooks, tmp):
     assert results["utils_state"]["embedding_exist_num"] == 29081
     assert results["utils_state"]["embedding_exist_num_all"] == 48422
     assert results["utils_state"]["uid2index"] == 50000
-
 
 @pytest.mark.integration
 @pytest.mark.parametrize(
@@ -234,9 +221,7 @@ def test_cornac_bpr_integration(notebooks, size, expected_values):
         kernel_name=KERNEL_NAME,
         parameters=dict(MOVIELENS_DATA_SIZE=size),
     )
-    results = sb.read_notebook(OUTPUT_NOTEBOOK).scraps.dataframe.set_index("name")[
-        "value"
-    ]
+    results = pm.read_notebook(OUTPUT_NOTEBOOK).dataframe.set_index("name")["value"]
 
     for key, value in expected_values.items():
         assert results[key] == pytest.approx(value, rel=TOL, abs=ABS_TOL)
@@ -250,24 +235,31 @@ def test_xlearn_fm_integration(notebooks):
         kernel_name=KERNEL_NAME,
         parameters=dict(LEARNING_RATE=0.2, EPOCH=10),
     )
-    results = sb.read_notebook(OUTPUT_NOTEBOOK).scraps.dataframe.set_index("name")[
-        "value"
-    ]
+    results = pm.read_notebook(OUTPUT_NOTEBOOK).dataframe.set_index("name")["value"]
 
     assert results["auc_score"] == pytest.approx(0.75, rel=TOL, abs=ABS_TOL)
 
 
 @pytest.mark.integration
 @pytest.mark.parametrize(
-    "expected_values", [({"rmse": 0.4969, "mae": 0.4761})],
+    "expected_values",
+    [
+        (
+            {
+                "rmse": 0.4969,
+                "mae": 0.4761
+            }
+        )
+    ],
 )
 def test_geoimc_integration(notebooks, expected_values):
     notebook_path = notebooks["geoimc_quickstart"]
-    pm.execute_notebook(notebook_path, OUTPUT_NOTEBOOK, kernel_name=KERNEL_NAME)
-    results = sb.read_notebook(OUTPUT_NOTEBOOK).scraps.dataframe.set_index("name")[
-        "value"
-    ]
+    pm.execute_notebook(
+        notebook_path,
+        OUTPUT_NOTEBOOK,
+        kernel_name=KERNEL_NAME
+    )
+    results = pm.read_notebook(OUTPUT_NOTEBOOK).dataframe.set_index("name")["value"]
 
     for key, value in expected_values.items():
         assert results[key] == pytest.approx(value, rel=TOL, abs=ABS_TOL)
-

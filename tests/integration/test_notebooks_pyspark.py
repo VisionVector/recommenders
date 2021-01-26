@@ -4,8 +4,6 @@
 import sys
 import pytest
 import papermill as pm
-import scrapbook as sb
-
 from tests.notebooks_common import OUTPUT_NOTEBOOK, KERNEL_NAME
 
 
@@ -23,9 +21,8 @@ def test_als_pyspark_integration(notebooks):
         kernel_name=KERNEL_NAME,
         parameters=dict(TOP_K=10, MOVIELENS_DATA_SIZE="1m"),
     )
-    results = sb.read_notebook(OUTPUT_NOTEBOOK).scraps.dataframe.set_index("name")[
-        "value"
-    ]
+    nb = pm.read_notebook(OUTPUT_NOTEBOOK)
+    results = nb.dataframe.set_index("name")["value"]
 
     assert results["map"] == pytest.approx(0.00201, rel=TOL, abs=ABS_TOL)
     assert results["ndcg"] == pytest.approx(0.02516, rel=TOL, abs=ABS_TOL)
@@ -49,8 +46,6 @@ def test_mmlspark_lightgbm_criteo_integration(notebooks):
         kernel_name=KERNEL_NAME,
         parameters=dict(DATA_SIZE="full", NUM_ITERATIONS=50, EARLY_STOPPING_ROUND=10),
     )
-    results = sb.read_notebook(OUTPUT_NOTEBOOK).scraps.dataframe.set_index("name")[
-        "value"
-    ]
-
+    nb = pm.read_notebook(OUTPUT_NOTEBOOK)
+    results = nb.dataframe.set_index("name")["value"]
     assert results["auc"] == pytest.approx(0.68895, rel=TOL, abs=ABS_TOL)
