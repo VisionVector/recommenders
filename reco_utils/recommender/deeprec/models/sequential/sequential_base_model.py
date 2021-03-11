@@ -332,6 +332,5 @@ class SequentialBaseModel(BaseModel):
             tf.trainable_variables(),
             tf.trainable_variables(self.sequential_scope._name + "/embedding"),
         )
-        layer_params = list(set(all_variables) - set(embed_variables)) 
-        layer_params = [a for a in layer_params if '_no_reg' not in a.name] 
+        layer_params = list(set(all_variables) - set(embed_variables))
         self.layer_params.extend(layer_params)
