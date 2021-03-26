@@ -1,31 +1,33 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
-
 
 import sys
 import pytest
-
-from recommenders.utils.notebook_utils import execute_notebook, read_notebook
+try:
+    import papermill as pm
+    import scrapbook as sb
+except ImportError:
+    pass  # disable error while collecting tests for non-notebook environments
 
 
 TOL = 0.05
 ABS_TOL = 0.05
 
 
-# This is a flaky test that can fail unexpectedly
-@pytest.mark.flaky(reruns=5, reruns_delay=2)
+@pytest.mark.smoke
 @pytest.mark.spark
-@pytest.mark.notebooks
 def test_als_pyspark_smoke(notebooks, output_notebook, kernel_name):
     notebook_path = notebooks["als_pyspark"]
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path,
         output_notebook,
         kernel_name=kernel_name,
         parameters=dict(TOP_K=10, MOVIELENS_DATA_SIZE="100k"),
     )
 
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
     assert results["map"] == pytest.approx(0.0052, rel=TOL, abs=ABS_TOL)
     assert results["ndcg"] == pytest.approx(0.0463, rel=TOL, abs=ABS_TOL)
@@ -37,19 +39,19 @@ def test_als_pyspark_smoke(notebooks, output_notebook, kernel_name):
     assert results["rsquared"] == pytest.approx(0.2611, rel=TOL, abs=ABS_TOL)
 
 
-# This is a flaky test that can fail unexpectedly
-@pytest.mark.flaky(reruns=5, reruns_delay=2)
+@pytest.mark.smoke
 @pytest.mark.spark
-@pytest.mark.notebooks
 @pytest.mark.skipif(sys.platform == "win32", reason="Not implemented on Windows")
 def test_mmlspark_lightgbm_criteo_smoke(notebooks, output_notebook, kernel_name):
     notebook_path = notebooks["mmlspark_lightgbm_criteo"]
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path,
         output_notebook,
         kernel_name=kernel_name,
-        parameters=dict(DATA_SIZE="sample", NUM_ITERATIONS=50),
+        parameters=dict(DATA_SIZE="sample", NUM_ITERATIONS=50, EARLY_STOPPING_ROUND=10),
     )
 
-    results = read_notebook(output_notebook)
-    assert results["auc"] == pytest.approx(0.65, rel=TOL, abs=ABS_TOL)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
+    assert results["auc"] == pytest.approx(0.68895, rel=TOL, abs=ABS_TOL)

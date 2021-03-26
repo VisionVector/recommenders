@@ -1,4 +1,4 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 """
 AzureML Hyperdrive entry script for wide-deep model
@@ -7,9 +7,10 @@ import argparse
 import os
 import shutil
 
+import papermill as pm
 import tensorflow as tf
 
-print("TensorFlow version:", tf.__version__)
+print("TensorFlow version:", tf.VERSION)
 
 try:
     from azureml.core import Run
@@ -18,12 +19,11 @@ try:
 except ImportError:
     run = None
 
-from recommenders.utils.constants import (
+from reco_utils.common.constants import (
     DEFAULT_USER_COL,
     DEFAULT_ITEM_COL,
     DEFAULT_RATING_COL,
 )
-from recommenders.utils.notebook_utils import execute_notebook, read_notebook
 
 
 NOTEBOOK_NAME = os.path.join("notebooks", "00_quick_start", "wide_deep_movielens.ipynb")
@@ -150,12 +150,12 @@ for k, v in params.items():
 
 print("Run", NOTEBOOK_NAME)
 
-execute_notebook(
+pm.execute_notebook(
     NOTEBOOK_NAME, OUTPUT_NOTEBOOK, parameters=params, kernel_name="python3"
 )
-results = read_notebook(OUTPUT_NOTEBOOK)
+nb = pm.read_notebook(OUTPUT_NOTEBOOK)
 
-for m, v in results:
+for m, v in nb.data.items():
     _log(m, v)
 
 # clean-up

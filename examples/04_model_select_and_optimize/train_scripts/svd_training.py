@@ -1,5 +1,8 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
+import sys
+
+sys.path.append("../../")
 
 import argparse
 import os
@@ -14,8 +17,8 @@ try:
 except ModuleNotFoundError:
     HAS_AML = False
 
-from recommenders.evaluation.python_evaluation import *
-from recommenders.models.surprise.surprise_utils import (
+from reco_utils.evaluation.python_evaluation import *
+from reco_utils.recommender.surprise.surprise_utils import (
     predict,
     compute_ranking_predictions,
 )
