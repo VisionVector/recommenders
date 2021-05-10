@@ -104,8 +104,6 @@ setup(
     keywords="recommendations recommenders recommender system engine machine learning python spark gpu",
     install_requires=install_requires,
     package_dir={"reco_utils": "reco_utils"},
-    packages=find_packages(
-        where=".", exclude=["tests", "tools", "examples", "contrib"]
-    ),
+    packages=find_packages(where=".", exclude=["tests", "tools", "examples"]),
     python_requires=">=3.6, <4",
 )
