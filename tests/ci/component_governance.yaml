@@ -3,7 +3,7 @@
 
 # Pull request against these branches will trigger this build
 pr: 
-  - main
+  - master
 
 # no CI trigger
 trigger: none
