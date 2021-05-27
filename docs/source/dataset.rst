@@ -12,14 +12,6 @@ Recommendation datasets
 .. automodule:: reco_utils.dataset.criteo
     :members:
 
-.. automodule:: reco_utils.dataset.amazon_reviews
-    :members:
-
-.. automodule:: reco_utils.dataset.covid_utils
-    :members:
-
-.. automodule:: reco_utils.dataset.mind
-    :members:  
 
 Download utilities 
 ===============================
