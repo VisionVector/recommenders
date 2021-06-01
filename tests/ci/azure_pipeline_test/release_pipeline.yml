@@ -6,13 +6,10 @@ pr: none
 
 # A new tag will trigger the build
 trigger:
-  branches:
-    include:
-    - pipeline_release
-  tags:
-    include:
-    - 0.*
-    - 1.*
+- pipeline_release
+  # tags:
+  #   include:
+  #   - *
 
 variables:
 - group: LinuxAgentPool
