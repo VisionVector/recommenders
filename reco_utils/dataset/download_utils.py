@@ -89,7 +89,7 @@ def download_path(path=None):
         yield path
 
 
-def unzip_file(zip_src, dst_dir, clean_zip_file=False):
+def unzip_file(zip_src, dst_dir, clean_zip_file=True):
     """Unzip a file
 
     Args:
