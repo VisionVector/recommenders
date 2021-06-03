@@ -8,10 +8,9 @@ The module `reco_utils <https://github.com/microsoft/recommenders/tree/main/reco
 evaluating recommender systems. 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Contents:
 
-    AzureML <azureml>
     Common <common>
     Dataset <dataset>
     Evaluation <evaluation>
