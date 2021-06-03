@@ -4,12 +4,8 @@
 import sys
 import os
 import glob
-import logging
 from numba import cuda
 from numba.cuda.cudadrv.error import CudaSupportError
-
-
-logger = logging.getLogger(__name__)
 
 
 DEFAULT_CUDA_PATH_LINUX = "/usr/local/cuda/version.txt"
@@ -17,7 +13,7 @@ DEFAULT_CUDA_PATH_LINUX = "/usr/local/cuda/version.txt"
 
 def get_number_gpus():
     """Get the number of GPUs in the system.
-
+    
     Returns:
         int: Number of GPUs.
     """
@@ -31,7 +27,7 @@ def get_gpu_info():
     """Get information of GPUs.
 
     Returns:
-        list: List of gpu information dictionary as with `device_name`, `total_memory` (in Mb) and `free_memory` (in Mb).
+        list: List of gpu information dictionary  as with device_name, total_memory (in Mb) and free_memory (in Mb).
         Returns an empty list if there is no cuda device available.
     """
     gpus = []
@@ -58,12 +54,12 @@ def clear_memory_all_gpus():
             with gpu:
                 cuda.current_context().deallocations.clear()
     except CudaSupportError:
-        logger.info("No CUDA available")
+        print("No CUDA available")
 
 
 def get_cuda_version(unix_path=DEFAULT_CUDA_PATH_LINUX):
     """Get CUDA version.
-
+    
     Args:
         unix_path (str): Path to CUDA version file in Linux/Mac.
 
@@ -85,7 +81,7 @@ def get_cuda_version(unix_path=DEFAULT_CUDA_PATH_LINUX):
 
 def get_cudnn_version():
     """Get the CuDNN version.
-
+    
     Returns:
         str: Version of the library.
 
