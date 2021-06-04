@@ -32,26 +32,27 @@ Please see the [setup guide](SETUP.md) for more details on setting up your machi
 
 To setup on your local machine:
 
-To install core utilities, CPU-based algorithms, and dependencies
+1. Install Anaconda with Python >= 3.6. [Miniconda](https://conda.io/miniconda.html) is a quick way to get started.
 
-1. Ensure software required for compilation is installed. On Linux this can be supported by adding build-essential dependencies:
-```bash
-sudo apt-get install -y build-essential
-```
-On Windows you will need [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
-  
-
-2. Install the package from pypi.org:
+2. Clone the repository
 
 ```bash
-pip install --upgrade pip
-pip install ms-recommenders[examples]
+git clone https://github.com/Microsoft/Recommenders
 ```
 
-4. Register your (conda or virtual) environment with Jupyter:
+3. Run the generate conda file script to create a conda environment: (This is for a basic python environment, see [SETUP.md](SETUP.md) for PySpark and GPU environment setup)
 
 ```bash
-python -m ipykernel install --user --name my_environment_name --display-name "Python (reco)"
+cd Recommenders
+python tools/generate_conda_file.py
+conda env create -f reco_base.yaml  
+```
+
+4. Activate the conda environment and register it with Jupyter:
+
+```bash
+conda activate reco_base
+python -m ipykernel install --user --name reco_base --display-name "Python (reco)"
 ```
 
 5. Start the Jupyter notebook server
@@ -62,9 +63,7 @@ jupyter notebook
 
 6. Run the [SAR Python CPU MovieLens](examples/00_quick_start/sar_movielens.ipynb) notebook under the `00_quick_start` folder. Make sure to change the kernel to "Python (reco)".
 
-For additional options of installing the package (support for GPU, Spark etc.) see [this guide](reco_utils/README.md).
-
-**NOTE** - The [Alternating Least Squares (ALS)](examples/00_quick_start/als_movielens.ipynb) notebooks require a PySpark environment to run. Please follow the steps in the [setup guide](SETUP.md#dependencies-setup) to run these notebooks in a PySpark environment. For the deep learning algorithms, it is recommended to use a GPU machine and to follow the steps in the [setup guide](SETUP.md#dependencies-setup) to set up Nvidia libraries.
+**NOTE** - The [Alternating Least Squares (ALS)](examples/00_quick_start/als_movielens.ipynb) notebooks require a PySpark environment to run. Please follow the steps in the [setup guide](SETUP.md#dependencies-setup) to run these notebooks in a PySpark environment. For the deep learning algorithms, it is recommended to use a GPU machine.
 
 ## Algorithms
 
