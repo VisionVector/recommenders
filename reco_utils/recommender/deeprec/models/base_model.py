@@ -15,8 +15,6 @@ __all__ = ["BaseModel"]
 
 
 class BaseModel:
-    """Base class for models"""
-
     def __init__(self, hparams, iterator_creator, graph=None, seed=None):
         """Initializing the model. Create common logics which are needed by all deeprec models, such as loss function,
         parameter set.
