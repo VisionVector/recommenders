@@ -4,11 +4,8 @@
 import pandas as pd
 import requests
 import logging
-from retrying import retry
-
 
 logger = logging.getLogger(__name__)
-
 
 API_URL_WIKIPEDIA = "https://en.wikipedia.org/w/api.php"
 API_URL_WIKIDATA = "https://query.wikidata.org/sparql"
@@ -34,7 +31,6 @@ def get_session(session=None):
     return session
 
 
-@retry(wait_random_min=1000, wait_random_max=5000, stop_max_attempt_number=5)
 def find_wikidata_id(name, limit=1, session=None):
     """Find the entity ID in wikidata from a title string.
 
@@ -44,7 +40,7 @@ def find_wikidata_id(name, limit=1, session=None):
         session (requests.Session): requests session to reuse connections
 
     Returns:
-        (str): wikidata entityID corresponding to the title string.
+        (str): wikidata entityID corresponding to the title string. 
                   'entityNotFound' will be returned if no page is found
     """
 
@@ -88,7 +84,6 @@ def find_wikidata_id(name, limit=1, session=None):
     return entity_id
 
 
-@retry(wait_random_min=1000, wait_random_max=5000, stop_max_attempt_number=5)
 def query_entity_links(entity_id, session=None):
     """Query all linked pages from a wikidata entityID
 
@@ -166,7 +161,6 @@ def read_linked_entities(data):
     ]
 
 
-@retry(wait_random_min=1000, wait_random_max=5000, stop_max_attempt_number=5)
 def query_entity_description(entity_id, session=None):
     """Query entity wikidata description from entityID
 
@@ -176,7 +170,7 @@ def query_entity_description(entity_id, session=None):
 
     Returns:
         (str): Wikidata short description of the entityID
-               descriptionNotFound' will be returned if no
+               descriptionNotFound' will be returned if no 
                description is found
     """
     query = (
