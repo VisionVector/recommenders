@@ -6,7 +6,6 @@ from setuptools import setup, find_packages
 import time
 from os import environ
 
-# Version
 here = Path(__file__).absolute().parent
 version_data = {}
 with open(here.joinpath("reco_utils", "__init__.py"), "r") as f:
@@ -89,7 +88,7 @@ extras_require["experimental"] = [
 setup(
     name=name,
     version=version,
-    description="Microsoft Recommenders, a library of best practices and utilities for building recommendation systems",
+    description="Recommender System Utilities",
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     url="https://github.com/microsoft/recommenders",
@@ -113,7 +112,7 @@ setup(
         "Operating System :: MacOS",
     ],
     extras_require=extras_require,
-    keywords="recommendations recommendation recommenders recommender system engine "
+    keywords="recommendations recommenders recommender system engine "
     "machine learning python spark gpu",
     install_requires=install_requires,
     package_dir={"reco_utils": "reco_utils"},
