@@ -7,26 +7,21 @@ See the [online documentation](https://readthedocs.org/projects/microsoft-recomm
 # Installation
 
 ## Pre-requisites
-Some dependencies require compilation during pip installation, on Linux this can be supported by adding build-essential dependencies:
+Some dependencies require compilation during pip installation, on linux this can be supported by adding build-essential dependencies:
 ```bash
 sudo apt-get install -y build-essential
 ```
 
 On Windows you will need [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
 
-For more details about the software requirements that must be pre-installed on each supported platform, see the [setup guide](https://github.com/microsoft/recommenders/blob/main/SETUP.md).   
-
-## Basic installation
-
-To install core utilities, CPU-based algorithms, and dependencies
+Install core utilities, cpu-based algorithms, and dependencies
 ```bash
-pip install --upgrade pip
 pip install ms-recommenders
 ```
 
 ## Optional Dependencies
 
-By default `ms-recommenders` does not install all dependencies used throughout the code or the notebook examples in this repo. Instead we require a bare minimum set of dependencies needed to execute functionality in the `ms-recommenders` package (excluding Spark and GPU functionality). We also allow the user to specify which groups of dependencies are needed at installation time (or later if updating the pip installation). The following groups are provided:
+By default ms-recommenders does not install all dependencies used throughout the code or the notebook examples in this repo. Instead we require a bare minimum set of dependencies needed to execute functionality in the ms-recommenders package (excluding Spark and GPU functionality). We also allow the user to specify which groups of dependencies are needed at installation time (or later if updating the pip installation). The following groups are provided:
 
 - examples: dependencies needed to run [example notebooks](https://github.com/microsoft/recommenders/tree/main/examples)
 - gpu: dependencies to enable GPU functionality (PyTorch & TensorFlow)
@@ -35,14 +30,14 @@ By default `ms-recommenders` does not install all dependencies used throughout t
 - all: all of the above dependencies
 - experimental: current experimental dependencies that are being evaluated (e.g. libraries that require advanced build requirements or might conflict with libraries from other options)
 
-Note that, currently, NNI and Vowpal Wabbit are in the experimental group.
+Note that, currently, Surprise, NNI and Vowpal Wabbit are in the experimental group.
 
 These groups can be installed alone or in combination:
 ```bash
-# install recommenders with core requirements and support for CPU-based recommender algorithms and notebooks
+# install recommenders with core requirements and support for all recommender algorithms and notebooks
 pip install ms-recommenders[examples]
 
-# add support for running example notebooks and GPU functionality
+# add support for running example notebooks and gpu functionality
 pip install ms-recommenders[examples,gpu]
 ```
 
@@ -64,25 +59,8 @@ When installing with GPU support you will need to point to the PyTorch index to 
 We are currently evaluating inclusion of the following dependencies:
 
  - vowpalwabbit: current examples show how to use vowpal wabbit after it has been installed on the command line; using the [PyPI package](https://pypi.org/project/vowpalwabbit/) with the scikit-learn interface will facilitate easier integration into python environments
+ - scikit-surprise: successful installation can be done after ms-recommenders either using `conda install` or by upgrading numpy to version 1.20 (which, however, is not consistent with the version of tensorflow-gpu we install)
  - nni: a more recent version can be installed but is untested (and requires a higher numpy version as above).
-
-
-## Installing the utilities from a local copy
-
-In case you want to use a version of the source code that is not published on PyPI, one alternative is to install from a clone of the source code on your machine. To this end, 
-a [setup.py](../setup.py) file is provided in order to simplify the installation of the utilities in this repo from the main directory.
-
-This still requires an environment to be installed as described in the [setup guide](../SETUP.md). Once the necessary dependencies are installed, you can use the following command to install `reco_utils` as a python package.
-
-    pip install -e .
-
-It is also possible to install directly from GitHub. Or from a specific branch as well.
-
-    pip install -e git+https://github.com/microsoft/recommenders/#egg=pkg
-    pip install -e git+https://github.com/microsoft/recommenders/@staging#egg=pkg
-
-**NOTE** - The pip installation does not install all of the pre-requisites; it is assumed that the environment has already been set up according to the [setup guide](../SETUP.md), for the utilities to be used.
-
 
 # Contents
 
