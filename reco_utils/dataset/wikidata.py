@@ -40,7 +40,8 @@ def find_wikidata_id(name, limit=1, session=None):
         session (requests.Session): requests session to reuse connections
 
     Returns:
-        str: Wikidata entityID corresponding to the title string. 'entityNotFound' will be returned if no page is found.
+        (str): wikidata entityID corresponding to the title string. 
+                  'entityNotFound' will be returned if no page is found
     """
 
     session = get_session(session=session)
@@ -91,7 +92,7 @@ def query_entity_links(entity_id, session=None):
         session (requests.Session): requests session to reuse connections
 
     Returns:
-        json: A dictionary with linked pages.
+        (json): dictionary with linked pages.
     """
     query = (
         """
@@ -147,9 +148,8 @@ def read_linked_entities(data):
         data (json): dictionary with linked pages
 
     Returns:
-        list, list: 
-        - List of liked entityIDs
-        - List of liked entity names
+        (list): List of liked entityIDs
+        (list): List of liked entity names
     """
 
     return [
@@ -169,7 +169,9 @@ def query_entity_description(entity_id, session=None):
         session (requests.Session): requests session to reuse connections
 
     Returns:
-        str: Wikidata short description of the entityID. 'descriptionNotFound' will be returned if no description is found.
+        (str): Wikidata short description of the entityID
+               descriptionNotFound' will be returned if no 
+               description is found
     """
     query = (
         """
@@ -209,7 +211,7 @@ def search_wikidata(names, extras=None, describe=True, verbose=False):
         verbose (bool): optional flag to print out intermediate data
 
     Returns:
-        pd.DataFrame: Wikipedia results for all names with found entities.
+        pd.DataFrame: wikipedia results for all names with found entities
 
     """
 
