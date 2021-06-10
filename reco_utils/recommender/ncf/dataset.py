@@ -282,8 +282,10 @@ class Dataset(object):
             batch_size (int): Batch size.
             shuffle (bool): Ff true, train data will be shuffled.
         
-        Yields:
-            list: A list of userID list, itemID list, and rating list. Public data loader returns the userID, itemID consistent with raw data.
+        Returns:
+            list: userID list, itemID list, rating list.
+            public data loader return the userID, itemID consistent with raw data
+
         """
         # yield batch of training data with `shuffle`
         indices = np.arange(len(self.users))
