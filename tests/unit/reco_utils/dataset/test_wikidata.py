@@ -2,8 +2,6 @@
 # Licensed under the MIT License.
 
 import pytest
-
-
 from reco_utils.dataset.wikidata import (
     search_wikidata,
     find_wikidata_id,
