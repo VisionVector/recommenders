@@ -73,7 +73,7 @@ class Metrics(Callback):
         Obtained probabilities are used as recommendation score.
 
         Args:
-            x (numpy.ndarray, int32): input click matrix.
+            x (numpy.array, int32): input click matrix.
             k (scalar, int32): the number of items to recommend.
 
         Returns:
