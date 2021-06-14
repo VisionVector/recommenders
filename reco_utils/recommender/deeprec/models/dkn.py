@@ -12,11 +12,9 @@ __all__ = ["DKN"]
 class DKN(BaseModel):
     """DKN model (Deep Knowledge-Aware Network)
 
-    :Citation:
-
-        H. Wang, F. Zhang, X. Xie and M. Guo, "DKN: Deep Knowledge-Aware Network for News
-        Recommendation", in Proceedings of the 2018 World Wide Web Conference on World
-        Wide Web, 2018.
+    H. Wang, F. Zhang, X. Xie and M. Guo, "DKN: Deep Knowledge-Aware Network for News 
+    Recommendation", in Proceedings of the 2018 World Wide Web Conference on World 
+    Wide Web, 2018.
     """
 
     def __init__(self, hparams, iterator_creator):
@@ -24,7 +22,7 @@ class DKN(BaseModel):
         Compared with the BaseModel, DKN requires two different pre-computed embeddings,
         i.e. word embedding and entity embedding.
         After creating these two embedding variables, BaseModel's __init__ method will be called.
-
+        
         Args:
             hparams (obj): Global hyper-parameters.
             iterator_creator (obj): DKN data loader class.
@@ -83,7 +81,7 @@ class DKN(BaseModel):
 
     def _init_embedding(self, file_path):
         """Load pre-trained embeddings as a constant tensor.
-
+        
         Args:
             file_path (str): the pre-trained embeddings filename.
 
@@ -150,7 +148,7 @@ class DKN(BaseModel):
 
     def _build_dkn(self):
         """The main function to create DKN's logic.
-
+        
         Returns:
             obj: Prediction score made by the DKN model.
         """
@@ -444,7 +442,7 @@ class DKN(BaseModel):
             feed_dict (dict): Feed values for evaluation. This is a dictionary that maps graph elements to values.
 
         Returns:
-            list: News embedding in a batch.
+            list: news embedding in a batch
         """
         feed_dict[self.layer_keeps] = self.keep_prob_test
         feed_dict[self.is_train_stage] = False
