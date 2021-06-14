@@ -119,7 +119,7 @@ class SARSingleNode:
         formats to de-duplicate user-item pairs, otherwise they will get added up.
 
         Args:
-            df (pandas.DataFrame): Indexed df of users and items
+            df (pd.DataFrame): Indexed df of users and items
             rating_col (str): Name of column to use for ratings
 
         Returns:
@@ -135,11 +135,11 @@ class SARSingleNode:
         """Compute time decay on provided column.
 
         Args:
-            df (pandas.DataFrame): DataFrame of users and items
+            df (pd.DataFrame): DataFrame of users and items
             decay_column (str): column to decay
 
         Returns:
-            pandas.DataFrame: with column decayed
+            DataFrame: with column decayed
         """
 
         # if time_now is None use the latest time
@@ -164,10 +164,10 @@ class SARSingleNode:
         where U is the user_affinity matrix with 1's as values (instead of ratings).
 
         Args:
-            df (pandas.DataFrame): DataFrame of users and items
+            df (pd.DataFrame): DataFrame of users and items
 
         Returns:
-            numpy.ndarray: Co-occurrence matrix
+            np.array: Co-occurrence matrix
         """
 
         user_item_hits = sparse.coo_matrix(
@@ -186,7 +186,7 @@ class SARSingleNode:
         """Generate continuous indices for users and items to reduce memory usage.
 
         Args:
-            df (pandas.DataFrame): dataframe with user and item ids
+            df (pd.DataFrame): dataframe with user and item ids
         """
 
         # generate a map of continuous index values to items
@@ -206,7 +206,7 @@ class SARSingleNode:
         """Main fit method for SAR.
 
         Args:
-            df (pandas.DataFrame): User item rating dataframe
+            df (pd.DataFrame): User item rating dataframe
         """
 
         # generate continuous indices if this hasn't been done
@@ -296,11 +296,11 @@ class SARSingleNode:
         """Score all items for test users.
 
         Args:
-            test (pandas.DataFrame): user to test
+            test (pd.DataFrame): user to test
             remove_seen (bool): flag to remove items seen in training from recommendation
 
         Returns:
-            numpy.ndarray: Value of interest of all items for the users.
+            np.ndarray: Value of interest of all items for the users.
         """
 
         # get user / item indices from test set
@@ -354,7 +354,7 @@ class SARSingleNode:
             sort_top_k (bool): flag to sort top k results.
 
         Returns:
-            pandas.DataFrame: top k most popular items.
+            pd.DataFrame: top k most popular items.
         """
 
         test_scores = np.array([self.item_frequencies])
@@ -384,12 +384,12 @@ class SARSingleNode:
         4. Separate users or seeds of items with ratings: item, user and rating columns provided
 
         Args:
-            items (pandas.DataFrame): DataFrame with item, user (optional), and rating (optional) columns
+            items (pd.DataFrame): DataFrame with item, user (optional), and rating (optional) columns
             top_k (int): number of top items to recommend
             sort_top_k (bool): flag to sort top k results
 
         Returns:
-            pandas.DataFrame: sorted top k recommendation items
+            pd.DataFrame: sorted top k recommendation items
         """
 
         # convert item ids to indices
@@ -451,13 +451,13 @@ class SARSingleNode:
         """Recommend top K items for all users which are in the test set
 
         Args:
-            test (pandas.DataFrame): users to test
+            test (pd.DataFrame): users to test
             top_k (int): number of top items to recommend
             sort_top_k (bool): flag to sort top k results
             remove_seen (bool): flag to remove items seen in training from recommendation
 
         Returns:
-            pandas.DataFrame: top k recommendation items for each user
+            pd.DataFrame: top k recommendation items for each user
         """
 
         test_scores = self.score(test, remove_seen=remove_seen)
@@ -483,10 +483,10 @@ class SARSingleNode:
         """Output SAR scores for only the users-items pairs which are in the test set
 
         Args:
-            test (pandas.DataFrame): DataFrame that contains users and items to test
+            test (pd.DataFrame): DataFrame that contains users and items to test
 
         Returns:
-            pandas.DataFrame: DataFrame contains the prediction results
+            pd.DataFrame: DataFrame contains the prediction results
         """
 
         test_scores = self.score(test)

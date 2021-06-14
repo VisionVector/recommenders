@@ -14,7 +14,7 @@ def model_perf_plots(df):
     """Function to plot model performance metrics.
 
     Args:
-        df (pandas.DataFrame): Dataframe in tidy format, with ['epoch','level','value'] columns
+        df (pd.DataFrame): Dataframe in tidy format, with ['epoch','level','value'] columns
     
     Returns:
         obj: matplotlib axes
@@ -32,7 +32,7 @@ def compare_metric(df_list, metric="prec", stage="test"):
         stage (str): name of model fitting stage to be extracted, optional
     
     Returns:
-        pandas.DataFrame: Metrics
+        pd.DataFrame: Metrics
     """
     colnames = ["model" + str(x) for x in list(range(1, len(df_list) + 1))]
     models = [
@@ -70,10 +70,9 @@ def track_model_metrics(
         **kwargs: other keyword arguments to be passed down
     
     Returns:
-        pandas.DataFrame, LightFM model, matplotlib axes: 
-        - Performance traces of the fitted model
-        - Fitted model
-        - Side effect of the method
+        pd.DataFrame: performance traces of the fitted model
+        LightFM model: fitted model
+        matplotlib axes: side effect of the method
     """
     # initialising temp data storage
     model_prec_train = [0] * no_epochs
@@ -137,7 +136,7 @@ def similar_users(user_id, user_features, model, N=10):
         N (int): Number of top similar users to return
     
     Returns:
-        pandas.DataFrame: top N most similar users with score
+        pd.DataFrame: top N most similar users with score
     """
     _, user_representations = model.get_user_representations(features=user_features)
 
@@ -165,7 +164,7 @@ def similar_items(item_id, item_features, model, N=10):
         N (int): Number of top similar items to return
     
     Returns:
-        pandas.DataFrame: top N most similar items with score
+        pd.DataFrame: top N most similar items with score
     """
     _, item_representations = model.get_item_representations(features=item_features)
 
@@ -187,14 +186,14 @@ def prepare_test_df(test_idx, uids, iids, uid_map, iid_map, weights):
 
     Args:
         test_idx (slice): slice of test indices
-        uids (numpy.ndarray): Array of internal user indices
-        iids (numpy.ndarray): Array of internal item indices
+        uids (np.array): Array of internal user indices
+        iids (np.array): Array of internal item indices
         uid_map (dict): Keys to map internal user indices to external ids.
         iid_map (dict): Keys to map internal item indices to external ids.
-        weights (numpy.float32 coo_matrix): user-item interaction
+        weights (np.float32 coo_matrix): user-item interaction
 
     Returns:
-        pandas.DataFrame: user-item selected for testing
+        pd.DataFrame: user-item selected for testing
     """
     test_df = pd.DataFrame(
         zip(
@@ -235,7 +234,7 @@ def prepare_all_predictions(
         item_features (np.float32 csr_matrix):  Item weights over features
 
     Returns:
-        pandas.DataFrame: all predictions
+        pd.DataFrame of all predictions
     """
     users, items, preds = [], [], []
     item = list(data.itemID.unique())
