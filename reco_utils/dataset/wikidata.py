@@ -44,8 +44,7 @@ def find_wikidata_id(name, limit=1, session=None):
         session (requests.Session): requests session to reuse connections
 
     Returns:
-        str: wikidata entityID corresponding to the title string.
-                  'entityNotFound' will be returned if no page is found
+        str: wikidata entityID corresponding to the title string. 'entityNotFound' will be returned if no page is found
     """
 
     session = get_session(session=session)
@@ -217,7 +216,7 @@ def search_wikidata(names, extras=None, describe=True, verbose=False):
         verbose (bool): optional flag to print out intermediate data
 
     Returns:
-        pd.DataFrame: wikipedia results for all names with found entities
+        pandas.DataFrame: wikipedia results for all names with found entities
 
     """
 

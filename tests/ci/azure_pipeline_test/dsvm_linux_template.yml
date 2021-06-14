@@ -133,7 +133,7 @@ jobs:
     condition: and(succeeded(), eq('${{ parameters.install }}', 'release'), eq('${{ parameters.package }}', 'publish'))
     inputs:
       targetPath: $(System.DefaultWorkingDirectory)/dist
-      patterns: 'ms_recommenders*'
+      patterns: 'ms_recommenders*.whl'
       artifactName: PackageAssets
 
   - script: |
