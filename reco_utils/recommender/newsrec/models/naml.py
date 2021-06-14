@@ -60,7 +60,7 @@ class NAMLModel(BaseModel):
             batch_data: input batch data from user iterator
         
         Returns:
-            numpy.array: input user feature (clicked title batch)
+            array: input user feature (clicked title batch)
         """
         input_feature = [
             batch_data["clicked_title_batch"],
@@ -77,7 +77,7 @@ class NAMLModel(BaseModel):
             batch_data: input batch data from news iterator
         
         Returns:
-            numpy.array: input news feature (candidate title batch)
+            array: input news feature (candidate title batch)
         """
         input_feature = [
             batch_data["candidate_title_batch"],
