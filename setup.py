@@ -75,6 +75,7 @@ extras_require = {
         "cmake>=3.18.4.post1",
         "xlearn==0.40a1",
     ],
+    "dev": ["black>=18.6b4,<21", "pytest>=3.6.4"],
 }
 # for the brave of heart
 extras_require["all"] = list(set(sum([*extras_require.values()], [])))
@@ -89,7 +90,7 @@ extras_require["experimental"] = [
 setup(
     name=name,
     version=version,
-    description="Microsoft Recommenders - Python utilities for building recommender systems",
+    description="Microsoft Recommenders, a library of best practices and utilities for building recommendation systems",
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     url="https://github.com/microsoft/recommenders",
