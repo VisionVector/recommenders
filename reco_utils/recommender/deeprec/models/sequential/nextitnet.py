@@ -12,20 +12,17 @@ __all__ = ["NextItNetModel"]
 class NextItNetModel(SequentialBaseModel):
     """NextItNet Model
 
-    :Citation:
-        Yuan, Fajie, et al. "A Simple Convolutional Generative Network
-        for Next Item Recommendation", in Web Search and Data Mining, 2019.
+    Yuan, Fajie, et al. "A Simple Convolutional Generative Network
+    for Next Item Recommendation." web search and data mining (2019): 582-590.
 
-    .. note::
-
-        It requires strong sequence with dataset.
+    It requires strong sequence with dataset.
     """
 
     def _build_seq_graph(self):
         """The main function to create nextitnet model.
-
+        
         Returns:
-            object: The output of nextitnet section.
+            obj:the output of nextitnet section.
         """
         hparams = self.hparams
         is_training = tf.equal(self.is_train_stage, True)
@@ -114,7 +111,7 @@ class NextItNetModel(SequentialBaseModel):
         """The main function to use dilated CNN and residual network at sequence data
 
         Args:
-            input_ (object): The output of history sequential embeddings
+            input_ (obj): The output of history sequential embeddings
             dilation (int): The dilation number of CNN layer
             layer_id (str): String value of layer ID, 0, 1, 2...
             residual_channels (int): Embedding size of input sequence
@@ -123,7 +120,7 @@ class NextItNetModel(SequentialBaseModel):
             train (bool): is in training stage
 
         Returns:
-            object: The output of residual layers.
+            obj:the output of residual layers.
         """
         resblock_type = "decoder"
         resblock_name = "nextitnet_residual_block_one_{}_layer_{}_{}".format(
@@ -166,7 +163,7 @@ class NextItNetModel(SequentialBaseModel):
         """Call a dilated CNN layer
 
         Returns:
-            object: The output of dilated CNN layers.
+            obj:the output of dilated CNN layers.
         """
         with tf.variable_scope(name):
             weight = tf.get_variable(
@@ -204,7 +201,7 @@ class NextItNetModel(SequentialBaseModel):
         """Call a layer normalization
 
         Returns:
-            object: Normalized data
+            obj: Normalized data
         """
         with tf.variable_scope(name):
             shape = x.get_shape()

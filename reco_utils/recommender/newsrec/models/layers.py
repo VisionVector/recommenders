@@ -30,7 +30,7 @@ class AttLayer2(layers.Layer):
         There are there variables in AttLayer2, i.e. W, b and q.
 
         Args:
-            input_shape (object): shape of input tensor.
+            input_shape (obj): shape of input tensor.
         """
 
         assert len(input_shape) == 3
@@ -59,10 +59,10 @@ class AttLayer2(layers.Layer):
         """Core implemention of soft attention
 
         Args:
-            inputs (object): input tensor.
+            inputs (obj): input tensor.
 
         Returns:
-            object: weighted sum of input tensors.
+            obj: weighted sum of input tensors.
         """
 
         attention = K.tanh(K.dot(inputs, self.W) + self.b)
@@ -87,11 +87,11 @@ class AttLayer2(layers.Layer):
         """Compte output mask value
 
         Args: 
-            input (object): input tensor.
+            input (obj): input tensor.
             input_mask: input mask
         
         Returns:
-            object: output mask.
+            obj: output mask.
         """
         return None
 
@@ -112,11 +112,11 @@ class SelfAttention(layers.Layer):
 
     Args:
         multiheads (int): The number of heads.
-        head_dim (object): Dimention of each head.
-        mask_right (boolean): whether to mask right words.
+        head_dim(obj): Dimention of each head.
+        mask_right(boolean): whether to mask right words.
 
     Returns:
-        object: Weighted sum after attention.
+        obj: Weighted sum after attention.
     """
 
     def __init__(self, multiheads, head_dim, seed=0, mask_right=False, **kwargs):
@@ -124,8 +124,8 @@ class SelfAttention(layers.Layer):
         
         Args:
             multiheads (int): The number of heads.
-            head_dim (object): Dimention of each head.
-            mask_right (boolean): whether to mask right words.
+            head_dim(obj): Dimention of each head.
+            mask_right(boolean): whether to mask right words.
         """
 
         self.multiheads = multiheads
@@ -152,7 +152,7 @@ class SelfAttention(layers.Layer):
         WV is used for linear transformation of value.
 
         Args:
-            input_shape (object): shape of input tensor.
+            input_shape (obj): shape of input tensor.
         """
 
         self.WQ = self.add_weight(
@@ -179,11 +179,11 @@ class SelfAttention(layers.Layer):
         """Mask operation used in multi-head self attention
 
         Args:
-            seq_len (object): sequence length of inputs.
+            seq_len (obj): sequence length of inputs.
             mode (str): mode of mask.
         
         Returns:
-            object: tensors after masking.
+            obj: tensors after masking.
         """
 
         if seq_len == None:
@@ -207,7 +207,7 @@ class SelfAttention(layers.Layer):
             QKVs (list): inputs of multi-head self attention i.e. qeury, key and value.
 
         Returns:
-            object: ouput tensors.
+            obj: ouput tensors.
         """
         if len(QKVs) == 3:
             Q_seq, K_seq, V_seq = QKVs
@@ -282,7 +282,7 @@ def PersonalizedAttentivePooling(dim1, dim2, dim3, seed=0):
         dim3 (int): shape of query
     
     Returns:
-        object: weighted summary of inputs value.
+        weighted summary of inputs value.
     """
     vecs_input = keras.Input(shape=(dim1, dim2), dtype="float32")
     query_input = keras.Input(shape=(dim3,), dtype="float32")
@@ -327,7 +327,7 @@ class OverwriteMasking(layers.Layer):
         inputs (list): value tensor and mask tensor.
     
     Returns:
-        object: tensor after setting values to zero.
+        obj: tensor after setting values to zero.
     """
 
     def __init__(self, **kwargs):
