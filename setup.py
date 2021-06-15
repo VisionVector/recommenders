@@ -75,7 +75,6 @@ extras_require = {
         "cmake>=3.18.4.post1",
         "xlearn==0.40a1",
     ],
-    "dev": ["black>=18.6b4,<21", "pytest>=3.6.4"],
 }
 # for the brave of heart
 extras_require["all"] = list(set(sum([*extras_require.values()], [])))
@@ -120,5 +119,5 @@ setup(
     install_requires=install_requires,
     package_dir={"reco_utils": "reco_utils"},
     packages=find_packages(where=".", exclude=["tests", "tools", "examples"]),
-    python_requires=">=3.6, <=3.7",
+    python_requires=">=3.6, <=3.7.10",
 )
