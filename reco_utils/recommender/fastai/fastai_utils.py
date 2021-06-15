@@ -15,10 +15,10 @@ def cartesian_product(*arrays):
     """Compute the Cartesian product in fastai algo. This is a helper function.
 
     Args:
-        arrays (tuple of numpy.ndarray): Input arrays
+        arrays (tuple of np.array): Input arrays
 
     Returns:
-        numpy.ndarray: product
+        np.array: product
 
     """
     la = len(arrays)
@@ -40,15 +40,15 @@ def score(
     """Score all users+items provided and reduce to top_k items per user if top_k>0
     
     Args:
-        learner (object): Model.
-        test_df (pandas.DataFrame): Test dataframe.
+        learner (obj): Model.
+        test_df (pd.DataFrame): Test dataframe.
         user_col (str): User column name.
         item_col (str): Item column name.
         prediction_col (str): Prediction column name.
         top_k (int): Number of top items to recommend.
 
     Returns:
-        pandas.DataFrame: Result of recommendation 
+        pd.DataFrame: Result of recommendation 
     """
     # replace values not known to the model with NaN
     total_users, total_items = learner.data.train_ds.x.classes.values()

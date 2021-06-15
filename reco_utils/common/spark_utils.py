@@ -32,7 +32,7 @@ def start_or_get_spark(
         repository (str): The maven repository
 
     Returns:
-        object: Spark context.
+        obj: Spark context.
     """
 
     submit_args = ""

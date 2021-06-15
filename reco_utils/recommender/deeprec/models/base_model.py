@@ -15,16 +15,14 @@ __all__ = ["BaseModel"]
 
 
 class BaseModel:
-    """Base class for models"""
-
     def __init__(self, hparams, iterator_creator, graph=None, seed=None):
         """Initializing the model. Create common logics which are needed by all deeprec models, such as loss function,
         parameter set.
 
         Args:
-            hparams (object): A `tf.contrib.training.HParams` object, hold the entire set of hyperparameters.
-            iterator_creator (object): An iterator to load the data.
-            graph (object): An optional graph.
+            hparams (obj): A tf.contrib.training.HParams object, hold the entire set of hyperparameters.
+            iterator_creator (obj): An iterator to load the data.
+            graph (obj): An optional graph.
             seed (int): Random seed.
         """
         self.seed = seed
@@ -81,7 +79,7 @@ class BaseModel:
         """Make loss function, consists of data loss and regularization loss
 
         Returns:
-            object: Loss value.
+            obj: Loss value
         """
         self.data_loss = self._compute_data_loss()
         self.regular_loss = self._compute_regular_loss()
@@ -92,11 +90,11 @@ class BaseModel:
         """Make final output as prediction score, according to different tasks.
 
         Args:
-            logit (object): Base prediction value.
+            logit (obj): Base prediction value.
             task (str): A task (values: regression/classification)
 
         Returns:
-            object: Transformed score.
+            obj: Transformed score
         """
         if task == "regression":
             pred = tf.identity(logit)
@@ -108,7 +106,7 @@ class BaseModel:
                     task
                 )
             )
-        pred = tf.identity(pred, name="pred")
+        pred = tf.identity(pred, name='pred')
         return pred
 
     def _add_summaries(self):
@@ -148,9 +146,8 @@ class BaseModel:
 
     def _cross_l_loss(self):
         """Construct L1-norm and L2-norm on cross network parameters for loss function.
-
         Returns:
-            object: Regular loss value on cross network parameters.
+            obj: Regular loss value on cross network parameters.
         """
         cross_l_loss = tf.zeros([1], dtype=tf.float32)
         for param in self.cross_params:
@@ -244,18 +241,16 @@ class BaseModel:
     def _compute_regular_loss(self):
         """Construct regular loss. Usually it's comprised of l1 and l2 norm.
         Users can designate which norm to be included via config file.
-
         Returns:
-            object: Regular loss.
+            obj: Regular loss.
         """
         regular_loss = self._l2_loss() + self._l1_loss() + self._cross_l_loss()
         return tf.reduce_sum(regular_loss)
 
     def _train_opt(self):
         """Get the optimizer according to configuration. Usually we will use Adam.
-
         Returns:
-            object: An optimizer.
+            obj: An optimizer.
         """
         lr = self.hparams.learning_rate
         optimizer = self.hparams.optimizer
@@ -288,9 +283,8 @@ class BaseModel:
         """Construct gradient descent based optimization step
         In this step, we provide gradient clipping option. Sometimes we what to clip the gradients
         when their absolute values are too large to avoid gradient explosion.
-
         Returns:
-            object: An operation that applies the specified optimization step.
+            obj: An operation that applies the specified optimization step.
         """
         train_step = self._train_opt()
         gradients, variables = zip(*train_step.compute_gradients(self.loss))
@@ -307,12 +301,12 @@ class BaseModel:
         """Transform the input value with an activation. May use dropout.
 
         Args:
-            logit (object): Input value.
+            logit (obj): Input value.
             activation (str): A string indicating the type of activation function.
             layer_idx (int): Index of current layer. Used to retrieve corresponding parameters
 
         Returns:
-            object: A tensor after applying activation function on logit.
+            obj: A tensor after applying activation function on logit.
         """
         if layer_idx >= 0 and self.hparams.user_dropout:
             logit = self._dropout(logit, self.layer_keeps[layer_idx])
@@ -336,21 +330,20 @@ class BaseModel:
 
     def _dropout(self, logit, keep_prob):
         """Apply drops upon the input value.
-
         Args:
-            logit (object): The input value.
+            logit (obj): The input value.
             keep_prob (float): The probability of keeping each element.
 
         Returns:
-            object: A tensor of the same shape of logit.
+            obj: A tensor of the same shape of logit.
         """
         return tf.nn.dropout(x=logit, keep_prob=keep_prob)
 
     def train(self, sess, feed_dict):
-        """Go through the optimization step once with training data in `feed_dict`.
+        """Go through the optimization step once with training data in feed_dict.
 
         Args:
-            sess (object): The model session object.
+            sess (obj): The model session object.
             feed_dict (dict): Feed values to train the model. This is a dictionary that maps graph elements to values.
 
         Returns:
@@ -370,24 +363,24 @@ class BaseModel:
         )
 
     def eval(self, sess, feed_dict):
-        """Evaluate the data in `feed_dict` with current model.
+        """Evaluate the data in feed_dict with current model.
 
         Args:
-            sess (object): The model session object.
+            sess (obj): The model session object.
             feed_dict (dict): Feed values for evaluation. This is a dictionary that maps graph elements to values.
 
         Returns:
-            list: A list of evaluated results, including total loss value, data loss value, predicted scores, and ground-truth labels.
+            list: A list of evaluated results, including total loss value, data loss value,
+                predicted scores, and ground-truth labels.
         """
         feed_dict[self.layer_keeps] = self.keep_prob_test
         feed_dict[self.is_train_stage] = False
         return sess.run([self.pred, self.iterator.labels], feed_dict=feed_dict)
 
     def infer(self, sess, feed_dict):
-        """Given feature data (in `feed_dict`), get predicted scores with current model.
-
+        """Given feature data (in feed_dict), get predicted scores with current model.
         Args:
-            sess (object): The model session object.
+            sess (obj): The model session object.
             feed_dict (dict): Instances to predict. This is a dictionary that maps graph elements to values.
 
         Returns:
@@ -416,8 +409,8 @@ class BaseModel:
             raise IOError("Failed to find any matching files for {0}".format(act_path))
 
     def fit(self, train_file, valid_file, test_file=None):
-        """Fit the model with `train_file`. Evaluate the model on valid_file per epoch to observe the training status.
-        If `test_file` is not None, evaluate it too.
+        """Fit the model with train_file. Evaluate the model on valid_file per epoch to observe the training status.
+        If test_file is not None, evaluate it too.
 
         Args:
             train_file (str): training data set.
@@ -425,7 +418,7 @@ class BaseModel:
             test_file (str): test set.
 
         Returns:
-            object: An instance of self.
+            obj: An instance of self.
         """
         if self.hparams.write_tfevents:
             self.writer = tf.summary.FileWriter(
@@ -524,17 +517,14 @@ class BaseModel:
         return self
 
     def group_labels(self, labels, preds, group_keys):
-        """Devide `labels` and `preds` into several group according to values in group keys.
-
+        """Devide labels and preds into several group according to values in group keys.
         Args:
             labels (list): ground truth label list.
             preds (list): prediction score list.
             group_keys (list): group key list.
-
         Returns:
-            list, list: 
-            - Labels after group. 
-            - Predictions after group.
+            all_labels: labels after group.
+            all_preds: preds after group.
         """
         all_keys = list(set(group_keys))
         group_labels = {k: [] for k in all_keys}
@@ -556,7 +546,7 @@ class BaseModel:
             filename (str): A file name that will be evaluated.
 
         Returns:
-            dict: A dictionary that contains evaluation metrics.
+            dict: A dictionary contains evaluation metrics.
         """
         load_sess = self.sess
         preds = []
@@ -586,7 +576,7 @@ class BaseModel:
             outfile_name (str): Output file name, each line is the predict score.
 
         Returns:
-            object: An instance of self.
+            obj: An instance of self.
         """
         load_sess = self.sess
         with tf.gfile.GFile(outfile_name, "w") as wt:
@@ -605,11 +595,11 @@ class BaseModel:
         """Soft alignment attention implement.
 
         Args:
-            inputs (object): Sequences ready to apply attention.
+            inputs (obj): Sequences ready to apply attention.
             attention_size (int): The dimension of attention operation.
 
         Returns:
-            object: Weighted sum after attention.
+            obj: Weighted sum after attention.
         """
         hidden_size = inputs.shape[2].value
         if not attention_size:
@@ -637,12 +627,12 @@ class BaseModel:
         """Construct the MLP part for the model.
 
         Args:
-            model_output (object): The output of upper layers, input of MLP part
+            model_output (obj): The output of upper layers, input of MLP part
             layer_sizes (list): The shape of each layer of MLP part
-            scope (object): The scope of MLP part
+            scope (obj): The scope of MLP part
 
-        Returns:
-            object: Prediction logit after fully connected layer.
+        Returns:s
+            obj: prediction logit after fully connected layer
         """
         hparams = self.hparams
         with tf.variable_scope(scope):
