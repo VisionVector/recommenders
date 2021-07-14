@@ -44,7 +44,7 @@ install_requires = [
     "jinja2>=2,<3",
     "pyyaml>=5.4.1,<6",
     "requests>=2.0.0,<3",
-    "cornac>=1.1.2,<1.13",  # Cornac 1.13 requires GLIBC 2.29
+    "cornac>=1.1.2,<2",
     "scikit-surprise>=0.19.1,<=1.1.1",
     "retrying>=1.3.3",
 ]
@@ -120,5 +120,5 @@ setup(
     install_requires=install_requires,
     package_dir={"reco_utils": "reco_utils"},
     packages=find_packages(where=".", exclude=["tests", "tools", "examples"]),
-    python_requires=">=3.6, <=3.7.10",
+    python_requires=">=3.6, <3.8",
 )
