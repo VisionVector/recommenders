@@ -50,7 +50,6 @@ You will need CUDA Toolkit v10.0 and CuDNN >= 7.6 to enable both Tensorflow and 
 ```bash
 conda install cudatoolkit=10.0 "cudnn>=7.6"
 ```
-For a virtual environment, you may use a [docker container by Nvidia](../SETUP.md#using-a-virtual-environment). 
 
 For manual installation of the necessary requirements see [TensorFlow](https://www.tensorflow.org/install/gpu#software_requirements) and [PyTorch](https://pytorch.org/get-started/locally/) installation pages.
 
@@ -85,7 +84,7 @@ It is also possible to install directly from GitHub. Or from a specific branch a
 
 # Contents
 
-## [Common](common)
+## [Utils](utils)
 
 This submodule contains high-level utilities for defining constants used in most algorithms as well as helper functions for managing aspects of different frameworks: GPU, Spark, Jupyter notebook.
 
