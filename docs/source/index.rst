@@ -11,10 +11,10 @@ evaluating recommender systems.
    :maxdepth: 1
    :caption: Contents:
 
-    Utils <utils>
-    Datasets <datasets>
+    Common <common>
+    Dataset <dataset>
     Evaluation <evaluation>
-    Recommender algorithms <models>
+    Recommender algorithms <recommender>
     Hyperparameter tuning <tuning>
 
 
