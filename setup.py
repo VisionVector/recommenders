@@ -21,6 +21,8 @@ HASH = environ.get("HASH", None)
 if HASH is not None:
     version += ".post" + str(int(time.time()))
 
+name = environ.get("LIBRARY_NAME", "ms_recommenders")
+
 install_requires = [
     "numpy>=1.14",
     "pandas>1.0.3,<2",
@@ -86,7 +88,7 @@ extras_require["experimental"] = [
 
 
 setup(
-    name="recommenders",
+    name=name,
     version=version,
     description="Microsoft Recommenders - Python utilities for building recommender systems",
     long_description=LONG_DESCRIPTION,
@@ -118,5 +120,5 @@ setup(
     install_requires=install_requires,
     package_dir={"reco_utils": "reco_utils"},
     packages=find_packages(where=".", exclude=["tests", "tools", "examples"]),
-    python_requires=">=3.6, <3.8",
+    python_requires=">=3.6, <=3.7.10",
 )
