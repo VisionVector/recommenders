@@ -19,12 +19,12 @@ For more details about the software requirements that must be pre-installed on e
 To install core utilities, CPU-based algorithms, and dependencies
 ```bash
 pip install --upgrade pip
-pip install ms-recommenders
+pip install recommenders
 ```
 
 ## Optional Dependencies
 
-By default `ms-recommenders` does not install all dependencies used throughout the code and the notebook examples in this repo. Instead we require a bare minimum set of dependencies needed to execute functionality in the `ms-recommenders` package (excluding Spark and GPU functionality). We also allow the user to specify which groups of dependencies are needed at installation time (or later if updating the pip installation). The following groups are provided:
+By default `recommenders` does not install all dependencies used throughout the code and the notebook examples in this repo. Instead we require a bare minimum set of dependencies needed to execute functionality in the `recommenders` package (excluding Spark and GPU functionality). We also allow the user to specify which groups of dependencies are needed at installation time (or later if updating the pip installation). The following groups are provided:
 
 - examples: dependencies needed to run [example notebooks](https://github.com/microsoft/recommenders/tree/main/examples)
 - gpu: dependencies to enable GPU functionality (PyTorch & TensorFlow)
@@ -38,10 +38,10 @@ Note that, currently, NNI and Vowpal Wabbit are in the experimental group.
 These groups can be installed alone or in combination:
 ```bash
 # install recommenders with core requirements and support for CPU-based recommender algorithms and notebooks
-pip install ms-recommenders[examples]
+pip install recommenders[examples]
 
 # add support for running example notebooks and GPU functionality
-pip install ms-recommenders[examples,gpu]
+pip install recommenders[examples,gpu]
 ```
 
 ## GPU Support
@@ -50,12 +50,13 @@ You will need CUDA Toolkit v10.0 and CuDNN >= 7.6 to enable both Tensorflow and 
 ```bash
 conda install cudatoolkit=10.0 "cudnn>=7.6"
 ```
+For a virtual environment, you may use a [docker container by Nvidia](../SETUP.md#using-a-virtual-environment). 
 
 For manual installation of the necessary requirements see [TensorFlow](https://www.tensorflow.org/install/gpu#software_requirements) and [PyTorch](https://pytorch.org/get-started/locally/) installation pages.
 
 When installing with GPU support you will need to point to the PyTorch index to ensure you are downloading a version of PyTorch compiled with CUDA support. This can be done using the --find-links or -f option below.
 
-`pip install ms-recommenders[gpu] -f https://download.pytorch.org/whl/cu100/torch_stable.html`
+`pip install recommenders[gpu] -f https://download.pytorch.org/whl/cu100/torch_stable.html`
 
 ## Experimental dependencies
 
@@ -84,7 +85,7 @@ It is also possible to install directly from GitHub. Or from a specific branch a
 
 # Contents
 
-## [Common](common)
+## [Utils](utils)
 
 This submodule contains high-level utilities for defining constants used in most algorithms as well as helper functions for managing aspects of different frameworks: GPU, Spark, Jupyter notebook.
 
