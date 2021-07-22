@@ -1,13 +1,10 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-
 import pytest
-import scipy
-import pandas as pd
-
 from recommenders.models.tfidf.tfidf_utils import TfidfRecommender
-
+import pandas as pd
+import scipy
 
 CLEAN_COL = "cleaned_text"
 K = 2
@@ -54,20 +51,6 @@ def model():
     return TfidfRecommender(id_col="cord_uid", tokenization_method="scibert")
 
 
-@pytest.fixture(scope="module")
-def df_clean(model, df):
-    return model.clean_dataframe(df, ["abstract", "full_text"], new_col_name=CLEAN_COL)
-
-
-@pytest.fixture(scope="module")
-def model_fit(model, df_clean):
-    model_fit = TfidfRecommender(id_col="cord_uid", tokenization_method="scibert")
-    tf, vectors_tokenized = model_fit.tokenize_text(df_clean)
-    model_fit.fit(tf, vectors_tokenized)
-
-    return model_fit
-
-
 def test_init(model):
     assert model.id_col == "cord_uid"
     assert model.tokenization_method == "scibert"
@@ -86,6 +69,11 @@ def test_clean_dataframe(model, df):
     assert False not in isalphanumeric
 
 
+@pytest.fixture(scope="module")
+def df_clean(model, df):
+    return model.clean_dataframe(df, ["abstract", "full_text"], new_col_name=CLEAN_COL)
+
+
 def test_tokenize_text(model, df_clean):
     _, vectors_tokenized = model.tokenize_text(df_clean)
     assert True not in list(df_clean[CLEAN_COL] == vectors_tokenized)
@@ -95,6 +83,15 @@ def test_fit(model, df_clean):
     tf, vectors_tokenized = model.tokenize_text(df_clean)
     model.fit(tf, vectors_tokenized)
     assert type(model.tfidf_matrix) == scipy.sparse.csr.csr_matrix
+
+
+@pytest.fixture(scope="module")
+def model_fit(model, df_clean):
+    model_fit = TfidfRecommender(id_col="cord_uid", tokenization_method="scibert")
+    tf, vectors_tokenized = model_fit.tokenize_text(df_clean)
+    model_fit.fit(tf, vectors_tokenized)
+
+    return model_fit
 
 
 def test_get_tokens(model_fit):

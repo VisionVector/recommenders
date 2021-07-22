@@ -1,12 +1,10 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
-
 
 import os
 import shutil
-import pytest
 import numpy as np
-import pandas as pd
+import pytest
 
 try:
     from recommenders.models.ncf.ncf_singlenode import NCF
@@ -147,11 +145,9 @@ def test_neumf_save_load(n_users, n_items):
 
 @pytest.mark.gpu
 @pytest.mark.parametrize("model_type", ["NeuMF", "GMF", "MLP"])
-def test_fit(dataset_ncf_files_sorted, model_type):
-    train_path, test_path, _ = dataset_ncf_files_sorted
-    data = Dataset(
-        train_file=train_path, test_file=test_path, n_neg=N_NEG, n_neg_test=N_NEG_TEST
-    )
+def test_fit(python_dataset_ncf, model_type):
+    train, test = python_dataset_ncf
+    data = Dataset(train=train, test=test, n_neg=N_NEG, n_neg_test=N_NEG_TEST)
     model = NCF(
         n_users=data.n_users, n_items=data.n_items, model_type=model_type, n_epochs=1
     )
@@ -160,13 +156,10 @@ def test_fit(dataset_ncf_files_sorted, model_type):
 
 @pytest.mark.gpu
 @pytest.mark.parametrize("model_type", ["NeuMF", "GMF", "MLP"])
-def test_predict(dataset_ncf_files_sorted, model_type):
+def test_predict(python_dataset_ncf, model_type):
     # test data format
-    train_path, test_path, _ = dataset_ncf_files_sorted
-    test = pd.read_csv(test_path)
-    data = Dataset(
-        train_file=train_path, test_file=test_path, n_neg=N_NEG, n_neg_test=N_NEG_TEST
-    )
+    train, test = python_dataset_ncf
+    data = Dataset(train=train, test=test, n_neg=N_NEG, n_neg_test=N_NEG_TEST)
     model = NCF(
         n_users=data.n_users, n_items=data.n_items, model_type=model_type, n_epochs=1
     )

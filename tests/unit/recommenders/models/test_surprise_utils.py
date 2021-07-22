@@ -1,9 +1,9 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 
-import pytest
 import pandas as pd
+import pytest
 import surprise
 
 from recommenders.utils.constants import (

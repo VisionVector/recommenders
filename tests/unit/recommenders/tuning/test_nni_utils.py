@@ -1,13 +1,12 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-
+import json
 import os
 import sys
-import json
-import pytest
-from unittest.mock import patch
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
+import pytest
 
 from recommenders.tuning.nni.nni_utils import (
     get_experiment_status,
@@ -53,7 +52,6 @@ def mock_exception():
     raise Exception()
 
 
-@pytest.mark.experimental
 @pytest.mark.skipif(sys.platform == "win32", reason="nni not installable on windows")
 def test_get_experiment_status():
     content = "some_status"
@@ -66,7 +64,6 @@ def test_get_experiment_status():
         assert nni_status["errors"] == [""]
 
 
-@pytest.mark.experimental
 @pytest.mark.skipif(sys.platform == "win32", reason="nni not installable on windows")
 def test_check_experiment_status_done():
     content = "DONE"
@@ -77,7 +74,6 @@ def test_check_experiment_status_done():
         check_experiment_status(wait=0.1, max_retries=1)
 
 
-@pytest.mark.experimental
 @pytest.mark.skipif(sys.platform == "win32", reason="nni not installable on windows")
 def test_check_experiment_status_tuner_no_more_trial():
     content = "TUNER_NO_MORE_TRIAL"
@@ -88,7 +84,6 @@ def test_check_experiment_status_tuner_no_more_trial():
         check_experiment_status(wait=0.1, max_retries=1)
 
 
-@pytest.mark.experimental
 @pytest.mark.skipif(sys.platform == "win32", reason="nni not installable on windows")
 def test_check_experiment_status_running():
     content = "RUNNING"
@@ -102,7 +97,6 @@ def test_check_experiment_status_running():
     assert "check_experiment_status() timed out" == str(excinfo.value)
 
 
-@pytest.mark.experimental
 @pytest.mark.skipif(sys.platform == "win32", reason="nni not installable on windows")
 def test_check_experiment_status_no_more_trial():
     content = "NO_MORE_TRIAL"
@@ -116,7 +110,6 @@ def test_check_experiment_status_no_more_trial():
     assert "check_experiment_status() timed out" == str(excinfo.value)
 
 
-@pytest.mark.experimental
 @pytest.mark.skipif(sys.platform == "win32", reason="nni not installable on windows")
 def test_check_experiment_status_failed():
     content = "some_failed_status"
@@ -133,7 +126,6 @@ def test_check_experiment_status_failed():
     )
 
 
-@pytest.mark.experimental
 @pytest.mark.skipif(sys.platform == "win32", reason="nni not installable on windows")
 def test_check_stopped_timeout():
     content = "some_status"
@@ -147,14 +139,12 @@ def test_check_stopped_timeout():
     assert "check_stopped() timed out" == str(excinfo.value)
 
 
-@pytest.mark.experimental
 @pytest.mark.skipif(sys.platform == "win32", reason="nni not installable on windows")
 def test_check_stopped():
     with patch("requests.get", side_effect=mock_exception):
         check_stopped(wait=0.1, max_retries=1)
 
 
-@pytest.mark.experimental
 @pytest.mark.skipif(sys.platform == "win32", reason="nni not installable on windows")
 def test_check_metrics_written():
     content = [{"finalMetricData": None}, {"finalMetricData": None}]
@@ -162,7 +152,6 @@ def test_check_metrics_written():
         check_metrics_written(wait=0.1, max_retries=1)
 
 
-@pytest.mark.experimental
 @pytest.mark.skipif(sys.platform == "win32", reason="nni not installable on windows")
 def test_check_metrics_written_timeout():
     content = [{"logPath": "/p"}, {"logPath": "/q"}]
@@ -174,7 +163,6 @@ def test_check_metrics_written_timeout():
     assert "check_metrics_written() timed out" == str(excinfo.value)
 
 
-@pytest.mark.experimental
 @pytest.mark.skipif(sys.platform == "win32", reason="nni not installable on windows")
 def test_get_trials():
     with TemporaryDirectory() as tmp_dir1, TemporaryDirectory() as tmp_dir2:

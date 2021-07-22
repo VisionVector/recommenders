@@ -1,13 +1,14 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-import os
 import numpy as np
 import pandas as pd
 import pytest
 from tempfile import TemporaryDirectory
+import os
 
 from recommenders.datasets.pandas_df_utils import (
+    user_item_pairs,
     filter_by,
     LibffmConverter,
     has_same_base_dtype,
@@ -235,10 +236,10 @@ def test_has_columns():
     df_1 = pd.DataFrame(dict(a=[1, 2, 3]))
     df_2 = pd.DataFrame(dict(b=[7, 8, 9], a=[1, 2, 3]))
 
-    assert has_columns(df_1, ["a"]) is True
-    assert has_columns(df_2, ["a"]) is True
-    assert has_columns(df_2, ["a", "b"]) is True
-    assert has_columns(df_2, ["a", "b", "c"]) is False
+    assert has_columns(df_1, ["a"])
+    assert has_columns(df_2, ["a"])
+    assert has_columns(df_2, ["a", "b"])
+    assert not has_columns(df_2, ["a", "b", "c"])
 
 
 def test_has_same_base_dtype():
@@ -256,19 +257,19 @@ def test_has_same_base_dtype():
     df_6 = pd.DataFrame(dict(a=arr_str))
 
     # all columns match
-    assert has_same_base_dtype(df_1, df_2) is True
+    assert has_same_base_dtype(df_1, df_2)
     # specific column matches
-    assert has_same_base_dtype(df_3, df_4, columns=["a"]) is True
+    assert has_same_base_dtype(df_3, df_4, columns=["a"])
     # some column types do not match
-    assert has_same_base_dtype(df_3, df_4) is False
+    assert not has_same_base_dtype(df_3, df_4)
     # column types do not match
-    assert has_same_base_dtype(df_1, df_3, columns=["a"]) is False
+    assert not has_same_base_dtype(df_1, df_3, columns=["a"])
     # all columns are not shared
-    assert has_same_base_dtype(df_4, df_5) is False
+    assert not has_same_base_dtype(df_4, df_5)
     # column types do not match
-    assert has_same_base_dtype(df_5, df_6, columns=["a"]) is False
+    assert not has_same_base_dtype(df_5, df_6, columns=["a"])
     # assert string columns match
-    assert has_same_base_dtype(df_6, df_6) is True
+    assert has_same_base_dtype(df_6, df_6)
 
 
 def test_lru_cache_df():

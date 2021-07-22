@@ -1,10 +1,9 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 
-import time
 import pytest
-
+import time
 from recommenders.utils.timer import Timer
 
 

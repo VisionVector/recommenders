@@ -1,4 +1,4 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 import pandas as pd
@@ -80,7 +80,7 @@ def python_dataset(test_specs):
     return results
 
 
-def test_df_to_sparse(python_dataset):
+def test_df_to_sparse(test_specs, python_dataset):
     # initialize the splitter
     header = {
         "col_user": DEFAULT_USER_COL,
@@ -100,7 +100,7 @@ def test_df_to_sparse(python_dataset):
     )
 
 
-def test_sparse_to_df(python_dataset):
+def test_sparse_to_df(test_specs, python_dataset):
     # initialize the splitter
     header = {
         "col_user": DEFAULT_USER_COL,
@@ -115,20 +115,20 @@ def test_sparse_to_df(python_dataset):
     X, _, _ = am.gen_affinity_matrix()
 
     # use the inverse function to generate a pandas df from a sparse matrix ordered by userID
-    df = am.map_back_sparse(X, kind="ratings")
+    DF = am.map_back_sparse(X, kind="ratings")
 
     # tests: check that the two dataframes have the same elements in the same positions.
     assert (
-        df.userID.values.all()
+        DF.userID.values.all()
         == python_dataset.sort_values(by=["userID"]).userID.values.all()
     )
 
     assert (
-        df.itemID.values.all()
+        DF.itemID.values.all()
         == python_dataset.sort_values(by=["userID"]).itemID.values.all()
     )
 
     assert (
-        df.rating.values.all()
+        DF.rating.values.all()
         == python_dataset.sort_values(by=["userID"]).rating.values.all()
     )

@@ -1,9 +1,9 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 
-import pytest
 import numpy as np
+import pytest
 
 from recommenders.utils.python_utils import (
     exponential_decay,
@@ -13,7 +13,6 @@ from recommenders.utils.python_utils import (
     binarize,
     rescale,
 )
-
 
 TOL = 0.0001
 

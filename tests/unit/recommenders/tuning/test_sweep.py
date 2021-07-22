@@ -1,4 +1,4 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 
@@ -9,7 +9,9 @@ from recommenders.tuning.parameter_sweep import generate_param_grid
 
 @pytest.fixture(scope="module")
 def parameter_dictionary():
-    return {"param1": [1, 2, 3], "param2": [4, 5, 6], "param3": 1}
+    params = {"param1": [1, 2, 3], "param2": [4, 5, 6], "param3": 1}
+
+    return params
 
 
 def test_param_sweep(parameter_dictionary):
