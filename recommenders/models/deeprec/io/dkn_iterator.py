@@ -1,10 +1,10 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 import tensorflow as tf
 import numpy as np
 
-from recommenders.models.deeprec.io.iterator import BaseIterator
+from reco_utils.models.deeprec.io.iterator import BaseIterator
 
 
 __all__ = ["DKNTextIterator"]

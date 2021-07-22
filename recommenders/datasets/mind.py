@@ -1,4 +1,4 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 import os
@@ -10,13 +10,21 @@ import re
 from tqdm import tqdm
 from nltk.tokenize import RegexpTokenizer
 
-from recommenders.datasets.download_utils import (
-    maybe_download,
-    download_path,
-    unzip_file,
+from reco_utils.datasets.download_utils import maybe_download, download_path, unzip_file
+
+
+URL_MIND_LARGE_TRAIN = (
+    "https://mind201910small.blob.core.windows.net/release/MINDlarge_train.zip"
 )
-
-
+URL_MIND_LARGE_VALID = (
+    "https://mind201910small.blob.core.windows.net/release/MINDlarge_dev.zip"
+)
+URL_MIND_SMALL_TRAIN = (
+    "https://mind201910small.blob.core.windows.net/release/MINDsmall_train.zip"
+)
+URL_MIND_SMALL_VALID = (
+    "https://mind201910small.blob.core.windows.net/release/MINDsmall_dev.zip"
+)
 URL_MIND_DEMO_TRAIN = (
     "https://recodatasets.z20.web.core.windows.net/newsrec/MINDdemo_train.zip"
 )
@@ -25,29 +33,6 @@ URL_MIND_DEMO_VALID = (
 )
 URL_MIND_DEMO_UTILS = (
     "https://recodatasets.z20.web.core.windows.net/newsrec/MINDdemo_utils.zip"
-)
-
-URL_MIND_SMALL_TRAIN = (
-    "https://recodatasets.z20.web.core.windows.net/newsrec/MINDsmall_train.zip"
-)
-URL_MIND_SMALL_VALID = (
-    "https://recodatasets.z20.web.core.windows.net/newsrec/MINDsmall_dev.zip"
-)
-URL_MIND_SMALL_UTILS = (
-    "https://recodatasets.z20.web.core.windows.net/newsrec/MINDsmall_utils.zip"
-)
-
-URL_MIND_LARGE_TRAIN = (
-    "https://recodatasets.z20.web.core.windows.net/newsrec/MINDlarge_train.zip"
-)
-URL_MIND_LARGE_VALID = (
-    "https://recodatasets.z20.web.core.windows.net/newsrec/MINDlarge_dev.zip"
-)
-URL_MIND_LARGE_TEST = (
-    "https://recodatasets.z20.web.core.windows.net/newsrec/MINDlarge_test.zip"
-)
-URL_MIND_LARGE_UTILS = (
-    "https://recodatasets.z20.web.core.windows.net/newsrec/MINDlarge_utils.zip"
 )
 
 URL_MIND = {
@@ -263,8 +248,7 @@ def download_and_extract_glove(dest_path):
     Returns:
         str: File path where Glove was extracted.
     """
-    # url = "http://nlp.stanford.edu/data/glove.6B.zip"
-    url = "https://huggingface.co/stanfordnlp/glove/resolve/main/glove.6B.zip"
+    url = "http://nlp.stanford.edu/data/glove.6B.zip"
     filepath = maybe_download(url=url, work_directory=dest_path)
     glove_path = os.path.join(dest_path, "glove")
     unzip_file(filepath, glove_path, clean_zip_file=False)
@@ -422,8 +406,8 @@ def load_glove_matrix(path_emb, word_dict, word_embedding_dim):
     exist_word = []
 
     with open(os.path.join(path_emb, f"glove.6B.{word_embedding_dim}d.txt"), "rb") as f:
-        for l in tqdm(f):  # noqa: E741 ambiguous variable name 'l'
-            l = l.split()  # noqa: E741 ambiguous variable name 'l'
+        for l in tqdm(f):
+            l = l.split()
             word = l[0].decode()
             if len(word) != 0:
                 if word in word_dict:

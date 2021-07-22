@@ -1,11 +1,11 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 import numpy as np
 import pandas as pd
 from scipy.sparse import csr_matrix
 
-from recommenders.utils.constants import (
+from reco_utils.utils.constants import (
     DEFAULT_ITEM_COL,
     DEFAULT_USER_COL,
     DEFAULT_RATING_COL,
@@ -66,9 +66,10 @@ class RLRMCdataset(object):
             list: train and validation pandas.DataFrame Dataset, which have been reindexed.
 
         """
-        # Data processing and reindexing code is adopted from https://github.com/Microsoft/Recommenders/blob/main/recommenders/models/ncf/dataset.py
+        # Data processing and reindexing code is adopted from https://github.com/Microsoft/Recommenders/blob/main/reco_utils/models/ncf/dataset.py
         # If validation dataset is None
-        df = pd.concat([train, validation, test])
+        df = train if validation is None else train.append(validation)
+        df = df if test is None else df.append(test)
 
         # Reindex user and item index
         if self.user_idx is None:

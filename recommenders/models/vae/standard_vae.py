@@ -1,17 +1,18 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import tensorflow as tf
+from reco_utils.evaluation.python_evaluation import ndcg_at_k
+
+import bottleneck as bn
 from tensorflow.keras.layers import *
 from tensorflow.keras.models import Model
 from tensorflow.keras.losses import binary_crossentropy
 from tensorflow.keras import backend as K
-from tensorflow.keras.callbacks import ReduceLROnPlateau, Callback
-
-from recommenders.evaluation.python_evaluation import ndcg_at_k
+from tensorflow.keras.callbacks import ReduceLROnPlateau, ModelCheckpoint, Callback
 
 
 class LossHistory(Callback):
@@ -246,7 +247,7 @@ class StandardVAE:
         self.anneal_cap = anneal_cap
         self.annealing = annealing
 
-        if self.annealing:
+        if self.annealing == True:
             self.beta = K.variable(0.0)
         else:
             self.beta = beta
@@ -291,7 +292,7 @@ class StandardVAE:
         # Training
         self.model = Model(self.x, self.x_decoded)
         self.model.compile(
-            optimizer=tf.keras.optimizers.legacy.Adam(learning_rate=0.001),
+            optimizer=keras.optimizers.Adam(learning_rate=0.001),
             loss=self._get_vae_loss,
         )
 
@@ -380,7 +381,7 @@ class StandardVAE:
             monitor="val_loss", factor=0.2, patience=1, min_lr=0.0001
         )
 
-        if self.annealing:
+        if self.annealing == True:
             # initialise AnnealingCallback for annealing process
             anneal = AnnealingCallback(
                 self.beta, self.anneal_cap, self.total_anneal_steps

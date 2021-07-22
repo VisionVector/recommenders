@@ -1,12 +1,12 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 import tensorflow as tf
 import numpy as np
 import pickle
 
-from recommenders.models.deeprec.io.iterator import BaseIterator
-from recommenders.models.newsrec.newsrec_utils import word_tokenize, newsample
+from reco_utils.models.deeprec.io.iterator import BaseIterator
+from reco_utils.models.newsrec.newsrec_utils import word_tokenize, newsample
 
 __all__ = ["MINDAllIterator"]
 
@@ -146,7 +146,7 @@ class MINDAllIterator(BaseIterator):
 
                 history = [self.nid2index[i] for i in history.split()]
                 history = [0] * (self.his_size - len(history)) + history[
-                    -self.his_size :
+                    : self.his_size
                 ]
 
                 impr_news = [self.nid2index[i.split("-")[0]] for i in impr.split()]

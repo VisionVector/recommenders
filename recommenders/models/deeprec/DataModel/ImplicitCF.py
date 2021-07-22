@@ -1,12 +1,12 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 import random
 import numpy as np
 import pandas as pd
 import scipy.sparse as sp
-
-from recommenders.utils.constants import (
+import time
+from reco_utils.utils.constants import (
     DEFAULT_ITEM_COL,
     DEFAULT_USER_COL,
     DEFAULT_RATING_COL,
@@ -70,17 +70,12 @@ class ImplicitCF(object):
             list: train and test pandas.DataFrame Dataset, which have been reindexed and filtered.
 
         """
-        df = (
-            train
-            if test is None
-            else pd.concat([train, test], axis=0, ignore_index=True)
-        )
+        df = train if test is None else train.append(test)
 
         if self.user_idx is None:
             user_idx = df[[self.col_user]].drop_duplicates().reindex()
             user_idx[self.col_user + "_idx"] = np.arange(len(user_idx))
             self.n_users = len(user_idx)
-            self.n_users_in_train = train[self.col_user].nunique()
             self.user_idx = user_idx
 
             self.user2id = dict(
@@ -206,14 +201,12 @@ class ImplicitCF(object):
         """
 
         def sample_neg(x):
-            if len(x) >= self.n_items:
-                raise ValueError("A user has voted in every item. Can't find a negative sample.")
             while True:
                 neg_id = random.randint(0, self.n_items - 1)
                 if neg_id not in x:
                     return neg_id
 
-        indices = range(self.n_users_in_train)
+        indices = range(self.n_users)
         if self.n_users < batch_size:
             users = [random.choice(indices) for _ in range(batch_size)]
         else:

@@ -1,14 +1,15 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 from timeit import default_timer
+from datetime import timedelta
 
 
 class Timer(object):
     """Timer class.
 
     `Original code <https://github.com/miguelgfierro/pybase/blob/2298172a13fb4a243754acbc6029a4a2dcf72c20/log_base/timer.py>`_.
-
+    
     Examples:
         >>> import time
         >>> t = Timer()

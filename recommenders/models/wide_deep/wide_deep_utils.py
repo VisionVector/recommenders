@@ -1,10 +1,10 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 import tensorflow as tf
 
-from recommenders.utils.constants import DEFAULT_USER_COL, DEFAULT_ITEM_COL
-from recommenders.utils.tf_utils import MODEL_DIR
+from reco_utils.utils.constants import DEFAULT_USER_COL, DEFAULT_ITEM_COL
+from reco_utils.utils.tf_utils import MODEL_DIR
 
 
 def build_feature_columns(
@@ -109,11 +109,11 @@ def _build_deep_columns(
     deep_columns = [
         # User embedding
         tf.feature_column.embedding_column(
-            categorical_column=user_ids, dimension=user_dim, max_norm=user_dim**0.5
+            categorical_column=user_ids, dimension=user_dim, max_norm=user_dim ** 0.5
         ),
         # Item embedding
         tf.feature_column.embedding_column(
-            categorical_column=item_ids, dimension=item_dim, max_norm=item_dim**0.5
+            categorical_column=item_ids, dimension=item_dim, max_norm=item_dim ** 0.5
         ),
     ]
     # Item feature
@@ -161,26 +161,22 @@ def build_model(
     Returns:
         tf.estimator.Estimator: Model
     """
-    gpu_config = tf.compat.v1.ConfigProto()
-    gpu_config.gpu_options.allow_growth = True  # dynamic memory allocation
-
-    # TensorFlow training setup
+    # TensorFlow training log frequency setup
     config = tf.estimator.RunConfig(
         tf_random_seed=seed,
         log_step_count_steps=log_every_n_iter,
         save_checkpoints_steps=save_checkpoints_steps,
-        session_config=gpu_config,
     )
 
     if len(wide_columns) > 0 and len(deep_columns) == 0:
-        model = tf.compat.v1.estimator.LinearRegressor(
+        model = tf.estimator.LinearRegressor(
             model_dir=model_dir,
             config=config,
             feature_columns=wide_columns,
             optimizer=linear_optimizer,
         )
     elif len(wide_columns) == 0 and len(deep_columns) > 0:
-        model = tf.compat.v1.estimator.DNNRegressor(
+        model = tf.estimator.DNNRegressor(
             model_dir=model_dir,
             config=config,
             feature_columns=deep_columns,
@@ -190,7 +186,7 @@ def build_model(
             batch_norm=dnn_batch_norm,
         )
     elif len(wide_columns) > 0 and len(deep_columns) > 0:
-        model = tf.compat.v1.estimator.DNNLinearCombinedRegressor(
+        model = tf.estimator.DNNLinearCombinedRegressor(
             model_dir=model_dir,
             config=config,
             # wide settings

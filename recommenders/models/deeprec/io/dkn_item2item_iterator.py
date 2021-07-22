@@ -1,9 +1,9 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 
 import tensorflow as tf
-from recommenders.models.deeprec.io.dkn_iterator import DKNTextIterator
+from reco_utils.models.deeprec.io.dkn_iterator import DKNTextIterator
 
 
 class DKNItem2itemTextIterator(DKNTextIterator):
@@ -24,10 +24,10 @@ class DKNItem2itemTextIterator(DKNTextIterator):
         self.batch_size = hparams.batch_size * (self.neg_num + 2)
         self.doc_size = hparams.doc_size
         with self.graph.as_default():
-            self.candidate_news_index_batch = tf.compat.v1.placeholder(
+            self.candidate_news_index_batch = tf.placeholder(
                 tf.int64, [self.batch_size, self.doc_size], name="candidate_news_index"
             )
-            self.candidate_news_entity_index_batch = tf.compat.v1.placeholder(
+            self.candidate_news_entity_index_batch = tf.placeholder(
                 tf.int64,
                 [self.batch_size, self.doc_size],
                 name="candidate_news_entity_index",

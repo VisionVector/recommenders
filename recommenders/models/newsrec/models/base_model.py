@@ -1,17 +1,16 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
+from os.path import join
 import abc
 import time
 import numpy as np
 from tqdm import tqdm
 import tensorflow as tf
-from tensorflow.compat.v1 import keras
+from tensorflow import keras
 
-from recommenders.models.deeprec.deeprec_utils import cal_metric
+from reco_utils.models.deeprec.deeprec_utils import cal_metric
 
-tf.compat.v1.disable_eager_execution()
-tf.compat.v1.experimental.output_all_intermediates(True)
 __all__ = ["BaseModel"]
 
 
@@ -19,7 +18,7 @@ class BaseModel:
     """Basic class of models
 
     Attributes:
-        hparams (HParams): A HParams object, holds the entire set of hyperparameters.
+        hparams (object): A tf.contrib.training.HParams object, hold the entire set of hyperparameters.
         train_iterator (object): An iterator to load the data in training steps.
         test_iterator (object): An iterator to load the data in testing steps.
         graph (object): An optional graph.
@@ -36,7 +35,7 @@ class BaseModel:
         parameter set.
 
         Args:
-            hparams (HParams): A HParams object, holds the entire set of hyperparameters.
+            hparams (object): A tf.contrib.training.HParams object, hold the entire set of hyperparameters.
             iterator_creator (object): An iterator to load the data.
             graph (object): An optional graph.
             seed (int): Random seed.
@@ -186,8 +185,6 @@ class BaseModel:
         valid_behaviors_file,
         test_news_file=None,
         test_behaviors_file=None,
-        step_limit=None,
-
     ):
         """Fit the model with train_file. Evaluate the model on valid_file per epoch to observe the training status.
         If test_news_file is not None, evaluate it too.
@@ -214,8 +211,6 @@ class BaseModel:
             )
 
             for batch_data_input in tqdm_util:
-                if step_limit is not None and step>=step_limit:
-                    break
 
                 step_result = self.train(batch_data_input)
                 step_data_loss = step_result
@@ -306,8 +301,8 @@ class BaseModel:
         group_labels = {k: [] for k in all_keys}
         group_preds = {k: [] for k in all_keys}
 
-        for label, p, k in zip(labels, preds, group_keys):
-            group_labels[k].append(label)
+        for l, p, k in zip(labels, preds, group_keys):
+            group_labels[k].append(l)
             group_preds[k].append(p)
 
         all_labels = []

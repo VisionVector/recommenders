@@ -1,15 +1,16 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 import pandas as pd
 import numpy as np
+import pandas as pd
 
-from recommenders.utils.constants import (
+from reco_utils.utils.constants import (
     DEFAULT_USER_COL,
     DEFAULT_ITEM_COL,
     DEFAULT_PREDICTION_COL,
 )
-from recommenders.utils.general_utils import invert_dictionary
+from reco_utils.utils.general_utils import invert_dictionary
 
 
 def surprise_trainset_to_df(

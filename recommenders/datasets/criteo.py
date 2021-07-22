@@ -1,4 +1,4 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 
@@ -11,13 +11,13 @@ try:
 except ImportError:
     pass  # so the environment without spark doesn't break
 
-from recommenders.datasets.download_utils import maybe_download, download_path
-from recommenders.utils.notebook_utils import is_databricks
+from reco_utils.datasets.download_utils import maybe_download, download_path
+from reco_utils.utils.notebook_utils import is_databricks
 
 
 CRITEO_URL = {
     "full": "https://ndownloader.figshare.com/files/10082655",
-    "sample": "https://github.com/recommenders-team/datasets/raw/main/Criteo/dac_sample.tar.gz",
+    "sample": "http://labs.criteo.com/wp-content/uploads/2015/04/dac_sample.tar.gz",
 }
 DEFAULT_HEADER = (
     ["label"]
@@ -29,7 +29,7 @@ DEFAULT_HEADER = (
 def load_pandas_df(size="sample", local_cache_path=None, header=DEFAULT_HEADER):
     """Loads the Criteo DAC dataset as `pandas.DataFrame`. This function download, untar, and load the dataset.
 
-    The dataset consists of a portion of Criteo's traffic over a period
+    The dataset consists of a portion of Criteo’s traffic over a period
     of 24 days. Each row corresponds to a display ad served by Criteo and the first
     column indicates whether this ad has been clicked or not.
 
@@ -71,7 +71,7 @@ def load_spark_df(
 ):
     """Loads the Criteo DAC dataset as `pySpark.DataFrame`.
 
-    The dataset consists of a portion of Criteo's traffic over a period
+    The dataset consists of a portion of Criteo’s traffic over a period
     of 24 days. Each row corresponds to a display ad served by Criteo and the first
     column is indicates whether this ad has been clicked or not.
 
@@ -107,10 +107,10 @@ def load_spark_df(
             try:
                 # Driver node's file path
                 node_path = "file:" + filepath
-                # needs to be on dbfs to load
+                ## needs to be on dbfs to load
                 dbutils.fs.cp(node_path, dbfs_datapath, recurse=True)
                 path = dbfs_datapath
-            except Exception:
+            except:
                 raise ValueError(
                     "To use on a Databricks notebook, dbutils object should be passed as an argument"
                 )
@@ -157,26 +157,7 @@ def extract_criteo(size, compressed_file, path=None):
         extracted_dir = path
 
     with tarfile.open(compressed_file) as tar:
-
-        def is_within_directory(directory, target):
-
-            abs_directory = os.path.abspath(directory)
-            abs_target = os.path.abspath(target)
-
-            prefix = os.path.commonprefix([abs_directory, abs_target])
-
-            return prefix == abs_directory
-
-        def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
-
-            for member in tar.getmembers():
-                member_path = os.path.join(path, member.name)
-                if not is_within_directory(path, member_path):
-                    raise Exception("Attempted Path Traversal in Tar File")
-
-            tar.extractall(path, members, numeric_owner=numeric_owner)
-
-        safe_extract(tar, extracted_dir)
+        tar.extractall(extracted_dir)
 
     filename_selector = {"sample": "dac_sample.txt", "full": "train.txt"}
     return os.path.join(extracted_dir, filename_selector[size])
@@ -191,13 +172,13 @@ def get_spark_schema(header=DEFAULT_HEADER):
     Returns:
         pyspark.sql.types.StructType: Spark schema.
     """
-    # create schema
+    ## create schema
     schema = StructType()
-    # do label + ints
+    ## do label + ints
     n_ints = 14
     for i in range(n_ints):
         schema.add(StructField(header[i], IntegerType()))
-    # do categoricals
+    ## do categoricals
     for i in range(26):
         schema.add(StructField(header[i + n_ints], StringType()))
     return schema

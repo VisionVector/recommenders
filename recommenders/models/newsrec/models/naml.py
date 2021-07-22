@@ -1,13 +1,14 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 import numpy as np
+import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras import layers
 
 
-from recommenders.models.newsrec.models.base_model import BaseModel
-from recommenders.models.newsrec.models.layers import AttLayer2
+from reco_utils.models.newsrec.models.base_model import BaseModel
+from reco_utils.models.newsrec.models.layers import AttLayer2
 
 __all__ = ["NAMLModel"]
 

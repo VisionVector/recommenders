@@ -1,4 +1,4 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 import argparse
@@ -11,8 +11,8 @@ import nni
 import surprise
 
 
-import recommenders.evaluation.python_evaluation as evaluation
-from recommenders.models.surprise.surprise_utils import (
+import reco_utils.evaluation.python_evaluation as evaluation
+from reco_utils.models.surprise.surprise_utils import (
     predict,
     compute_ranking_predictions,
 )

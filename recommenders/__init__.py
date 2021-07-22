@@ -1,11 +1,11 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-__title__ = "Recommenders"
-__version__ = "1.2.1"
-__author__ = "Recommenders contributors"
+__title__ = "Microsoft Recommenders"
+__version__ = "0.6.0"
+__author__ = "RecoDev Team at Microsoft"
 __license__ = "MIT"
-__copyright__ = "Copyright 2018-present Recommenders contributors."
+__copyright__ = "Copyright 2018-present Microsoft Corporation"
 
 # Synonyms
 TITLE = __title__

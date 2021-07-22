@@ -1,5 +1,6 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
+
 
 import numpy as np
 
@@ -7,22 +8,17 @@ try:
     from pyspark.mllib.evaluation import RegressionMetrics, RankingMetrics
     from pyspark.sql import Window, DataFrame
     from pyspark.sql.functions import col, row_number, expr
-    from pyspark.sql.functions import udf
     import pyspark.sql.functions as F
-    from pyspark.sql.types import IntegerType, DoubleType, StructType, StructField
-    from pyspark.ml.linalg import VectorUDT
+    from pyspark.sql.types import DoubleType
 except ImportError:
     pass  # skip this import if we are in pure python environment
 
-from recommenders.utils.constants import (
+from reco_utils.utils.constants import (
     DEFAULT_PREDICTION_COL,
     DEFAULT_USER_COL,
     DEFAULT_ITEM_COL,
     DEFAULT_RATING_COL,
     DEFAULT_RELEVANCE_COL,
-    DEFAULT_SIMILARITY_COL,
-    DEFAULT_ITEM_FEATURES_COL,
-    DEFAULT_ITEM_SIM_MEASURE,
     DEFAULT_TIMESTAMP_COL,
     DEFAULT_K,
     DEFAULT_THRESHOLD,
@@ -101,13 +97,13 @@ class SparkRatingEvaluation:
             raise ValueError("Schema of rating_pred not valid. Missing Prediction Col")
 
         self.rating_true = self.rating_true.select(
-            col(self.col_user),
-            col(self.col_item),
+            col(self.col_user).cast("double"),
+            col(self.col_item).cast("double"),
             col(self.col_rating).cast("double").alias("label"),
         )
         self.rating_pred = self.rating_pred.select(
-            col(self.col_user),
-            col(self.col_item),
+            col(self.col_user).cast("double"),
+            col(self.col_item).cast("double"),
             col(self.col_prediction).cast("double").alias("prediction"),
         )
 
@@ -150,24 +146,21 @@ class SparkRatingEvaluation:
     def exp_var(self):
         """Calculate explained variance.
 
-        Note:
+        .. note::
            Spark MLLib's implementation is buggy (can lead to values > 1), hence we use var().
 
         Returns:
             float: Explained variance (min=0, max=1).
         """
-        var1 = self.y_pred_true.selectExpr("variance(label-prediction)").collect()[0][0]
+        var1 = self.y_pred_true.selectExpr("variance(label - prediction)").collect()[0][
+            0
+        ]
         var2 = self.y_pred_true.selectExpr("variance(label)").collect()[0][0]
-
-        if var1 is None or var2 is None:
-            return -np.inf
-        else:
-            # numpy divide is more tolerant to var2 being zero
-            return 1 - np.divide(var1, var2)
+        return 1 - var1 / var2
 
 
 class SparkRankingEvaluation:
-    """Spark Ranking Evaluator"""
+    """SparkRankingEvaluation"""
 
     def __init__(
         self,
@@ -187,7 +180,7 @@ class SparkRankingEvaluation:
         precision.
 
         The implementations of precision@k, ndcg@k, and mean average precision are referenced from Spark MLlib, which
-        can be found at `the link <https://spark.apache.org/docs/2.3.0/mllib-evaluation-metrics.html#ranking-systems>`_.
+        can be found at `here <https://spark.apache.org/docs/2.3.0/mllib-evaluation-metrics.html#ranking-systems>`_.
 
         Args:
             rating_true (pyspark.sql.DataFrame): DataFrame of true rating data (in the
@@ -203,7 +196,7 @@ class SparkRankingEvaluation:
                 values are "top_k", "by_time_stamp", and "by_threshold".
             threshold (float): threshold for determining the relevant recommended items.
                 This is used for the case that predicted ratings follow a known
-                distribution. NOTE: this option is only activated if `relevancy_method` is
+                distribution. NOTE: this option is only activated if relevancy_method is
                 set to "by_threshold".
         """
         self.rating_true = rating_true
@@ -304,57 +297,60 @@ class SparkRankingEvaluation:
     def precision_at_k(self):
         """Get precision@k.
 
-        Note:
+        .. note::
             More details can be found
-            `on the precisionAt PySpark documentation <http://spark.apache.org/docs/3.0.0/api/python/pyspark.mllib.html#pyspark.mllib.evaluation.RankingMetrics.precisionAt>`_.
+            `here <http://spark.apache.org/docs/2.1.1/api/python/pyspark.mllib.html#pyspark.mllib.evaluation.RankingMetrics.precisionAt>`_.
 
         Return:
             float: precision at k (min=0, max=1)
         """
-        return self._metrics.precisionAt(self.k)
+        precision = self._metrics.precisionAt(self.k)
+
+        return precision
 
     def recall_at_k(self):
         """Get recall@K.
 
-        Note:
+        .. note::
             More details can be found
-            `on the recallAt PySpark documentation <http://spark.apache.org/docs/3.0.0/api/python/pyspark.mllib.html#pyspark.mllib.evaluation.RankingMetrics.recallAt>`_.
+            `here <http://spark.apache.org/docs/2.1.1/api/python/pyspark.mllib.html#pyspark.mllib.evaluation.RankingMetrics.meanAveragePrecision>`_.
 
         Return:
             float: recall at k (min=0, max=1).
         """
-        return self._metrics.recallAt(self.k)
+        recall = self._items_for_user_all.rdd.map(
+            lambda x: float(len(set(x[0]).intersection(set(x[1])))) / float(len(x[1]))
+        ).mean()
+
+        return recall
 
     def ndcg_at_k(self):
         """Get Normalized Discounted Cumulative Gain (NDCG)
 
-        Note:
+        .. note::
             More details can be found
-            `on the ndcgAt PySpark documentation <http://spark.apache.org/docs/3.0.0/api/python/pyspark.mllib.html#pyspark.mllib.evaluation.RankingMetrics.ndcgAt>`_.
+            `here <http://spark.apache.org/docs/2.1.1/api/python/pyspark.mllib.html#pyspark.mllib.evaluation.RankingMetrics.ndcgAt>`_.
 
         Return:
             float: nDCG at k (min=0, max=1).
         """
-        return self._metrics.ndcgAt(self.k)
+        ndcg = self._metrics.ndcgAt(self.k)
 
-    def map(self):
-        """Get mean average precision.
-
-        Return:
-            float: MAP (min=0, max=1).
-        """
-        return self._metrics.meanAveragePrecision
+        return ndcg
 
     def map_at_k(self):
         """Get mean average precision at k.
 
-        Note:
-            More details `on the meanAveragePrecision PySpark documentation <http://spark.apache.org/docs/3.0.0/api/python/pyspark.mllib.html#pyspark.mllib.evaluation.RankingMetrics.meanAveragePrecision>`_.
+        .. note::
+            More details can be found
+            `here <http://spark.apache.org/docs/2.1.1/api/python/pyspark.mllib.html#pyspark.mllib.evaluation.RankingMetrics.meanAveragePrecision>`_.
 
         Return:
             float: MAP at k (min=0, max=1).
         """
-        return self._metrics.meanAveragePrecisionAt(self.k)
+        maprecision = self._metrics.meanAveragePrecision
+
+        return maprecision
 
 
 def _get_top_k_items(
@@ -369,7 +365,7 @@ def _get_top_k_items(
     DataFrame, output a Spark DataFrame in the dense format of top k items
     for each user.
 
-    Note:
+    .. note::
         if it is implicit rating, just append a column of constants to be ratings.
 
     Args:
@@ -463,7 +459,7 @@ def _get_relevant_items_by_timestamp(
         col_rating (str): column name for rating.
         col_timestamp (str): column name for timestamp.
         col_prediction (str): column name for prediction.
-        k: number of relevant items to be filtered by the function.
+        k: number of relevent items to be filtered by the function.
 
     Return:
         pyspark.sql.DataFrame: DataFrame of customerID-itemID-rating tuples with only relevant items.
@@ -486,14 +482,12 @@ def _get_relevant_items_by_timestamp(
 
 
 class SparkDiversityEvaluation:
-    """Spark Evaluator for diversity, coverage, novelty, serendipity"""
+    """Spark Diversity Evaluator"""
 
     def __init__(
         self,
         train_df,
         reco_df,
-        item_feature_df=None,
-        item_sim_measure=DEFAULT_ITEM_SIM_MEASURE,
         col_user=DEFAULT_USER_COL,
         col_item=DEFAULT_ITEM_COL,
         col_relevance=None,
@@ -503,14 +497,15 @@ class SparkDiversityEvaluation:
         This is the Spark version of diversity metrics evaluator.
         The methods of this class calculate the following diversity metrics:
 
-        * Coverage - it includes two metrics:
+        * Coverage - The proportion of items that can be recommended. It includes two metrics:
+
             1. catalog_coverage, which measures the proportion of items that get recommended from the item catalog;
             2. distributional_coverage, which measures how unequally different items are recommended in the
                recommendations to all users.
+
         * Novelty - A more novel item indicates it is less popular, i.e. it gets recommended less frequently.
         * Diversity - The dissimilarity of items being recommended.
-        * Serendipity - The "unusualness" or "surprise" of recommendations to a user. When 'col_relevance' is used,
-            it indicates how "pleasant surprise" of recommendations is to a user.
+        * Serendipity - The "unusualness" or "surprise" of recommendations to a user. When 'col_relevance' is used, it indicates how "pleasant surprise" of recommendations is to a user.
 
         The metric definitions/formulations are based on the following references with modification:
 
@@ -525,7 +520,7 @@ class SparkDiversityEvaluation:
             P. Castells, S. Vargas, and J. Wang, Novelty and diversity metrics for recommender systems:
             choice, discovery and relevance, ECIR 2011
 
-            Eugene Yan, Serendipity: Accuracy's unpopular best friend in Recommender Systems,
+            Eugene Yan, Serendipity: Accuracy’s unpopular best friend in Recommender Systems,
             eugeneyan.com, April 2020
 
         Args:
@@ -534,31 +529,25 @@ class SparkDiversityEvaluation:
                 Interaction here follows the *item choice model* from Castells et al.
             reco_df (pyspark.sql.DataFrame): Recommender's prediction output, containing col_user, col_item,
                 col_relevance (optional). Assumed to not contain any duplicate user-item pairs.
-            item_feature_df (pyspark.sql.DataFrame): (Optional) It is required only when item_sim_measure='item_feature_vector'.
-                It contains two columns: col_item and features (a feature vector).
-            item_sim_measure (str): (Optional) This column indicates which item similarity measure to be used.
-                Available measures include item_cooccurrence_count (default choice) and item_feature_vector.
             col_user (str): User id column name.
             col_item (str): Item id column name.
-            col_relevance (str): Optional. This column indicates whether the recommended item is actually
+            col_relevance (str): This column indicates whether the recommended item is actually
                 relevant to the user or not.
         """
 
         self.train_df = train_df.select(col_user, col_item)
         self.col_user = col_user
         self.col_item = col_item
-        self.sim_col = DEFAULT_SIMILARITY_COL
+        self.sim_col = "sim"
         self.df_cosine_similarity = None
         self.df_user_item_serendipity = None
         self.df_user_serendipity = None
-        self.avg_serendipity = None
+        self.df_serendipity = None
         self.df_item_novelty = None
-        self.avg_novelty = None
+        self.df_novelty = None
         self.df_intralist_similarity = None
         self.df_user_diversity = None
-        self.avg_diversity = None
-        self.item_feature_df = item_feature_df
-        self.item_sim_measure = item_sim_measure
+        self.df_diversity = None
 
         if col_relevance is None:
             self.col_relevance = DEFAULT_RELEVANCE_COL
@@ -571,27 +560,6 @@ class SparkDiversityEvaluation:
             self.reco_df = reco_df.select(
                 col_user, col_item, F.col(self.col_relevance).cast(DoubleType())
             )
-
-        if self.item_sim_measure == "item_feature_vector":
-            self.col_item_features = DEFAULT_ITEM_FEATURES_COL
-            required_schema = StructType(
-                (
-                    StructField(self.col_item, IntegerType()),
-                    StructField(self.col_item_features, VectorUDT()),
-                )
-            )
-            if self.item_feature_df is not None:
-                if str(required_schema) != str(item_feature_df.schema):
-                    raise Exception(
-                        "Incorrect schema! item_feature_df should have schema "
-                        f"{str(required_schema)} but have {str(item_feature_df.schema)}"
-                    )
-            else:
-                raise Exception(
-                    "item_feature_df not specified! item_feature_df must be provided "
-                    "if choosing to use item_feature_vector to calculate item similarity. "
-                    f"item_feature_df should have schema {str(required_schema)}"
-                )
 
         # check if reco_df contains any user_item pairs that are already shown in train_df
         count_intersection = (
@@ -620,19 +588,6 @@ class SparkDiversityEvaluation:
         )
 
     def _get_cosine_similarity(self, n_partitions=200):
-        if self.item_sim_measure == "item_cooccurrence_count":
-            # calculate item-item similarity based on item co-occurrence count
-            self._get_cooccurrence_similarity(n_partitions)
-        elif self.item_sim_measure == "item_feature_vector":
-            # calculate item-item similarity based on item feature vectors
-            self._get_item_feature_similarity(n_partitions)
-        else:
-            raise Exception(
-                "item_sim_measure not recognized! The available options include 'item_cooccurrence_count' and 'item_feature_vector'."
-            )
-        return self.df_cosine_similarity
-
-    def _get_cooccurrence_similarity(self, n_partitions):
         """Cosine similarity metric from
 
         :Citation:
@@ -671,36 +626,6 @@ class SparkDiversityEvaluation:
                         / (F.col("i1_sqrt_count") * F.col("i2_sqrt_count"))
                     ).alias(self.sim_col),
                 )
-                .repartition(n_partitions, "i1", "i2")
-            )
-        return self.df_cosine_similarity
-
-    @staticmethod
-    @udf(returnType=DoubleType())
-    def sim_cos(v1, v2):
-        p = 2
-        return float(v1.dot(v2)) / float(v1.norm(p) * v2.norm(p))
-
-    def _get_item_feature_similarity(self, n_partitions):
-        """Cosine similarity metric based on item feature vectors
-
-        The item indexes in the result are such that i1 <= i2.
-        """
-        if self.df_cosine_similarity is None:
-            self.df_cosine_similarity = (
-                self.item_feature_df.select(
-                    F.col(self.col_item).alias("i1"),
-                    F.col(self.col_item_features).alias("f1"),
-                )
-                .join(
-                    self.item_feature_df.select(
-                        F.col(self.col_item).alias("i2"),
-                        F.col(self.col_item_features).alias("f2"),
-                    ),
-                    (F.col("i1") <= F.col("i2")),
-                )
-                .select("i1", "i2", self.sim_cos("f1", "f2").alias("sim"))
-                .sort("i1", "i2")
                 .repartition(n_partitions, "i1", "i2")
             )
         return self.df_cosine_similarity
@@ -758,12 +683,12 @@ class SparkDiversityEvaluation:
         Returns:
             float: diversity.
         """
-        if self.avg_diversity is None:
+        if self.df_diversity is None:
             self.df_user_diversity = self.user_diversity()
-            self.avg_diversity = self.df_user_diversity.agg(
+            self.df_diversity = self.df_user_diversity.agg(
                 {"user_diversity": "mean"}
             ).first()[0]
-        return self.avg_diversity
+        return self.df_diversity
 
     # Novelty metrics
     def historical_item_novelty(self):
@@ -808,10 +733,10 @@ class SparkDiversityEvaluation:
         Returns:
             pyspark.sql.dataframe.DataFrame: A dataframe with following columns: novelty.
         """
-        if self.avg_novelty is None:
+        if self.df_novelty is None:
             self.df_item_novelty = self.historical_item_novelty()
             n_recommendations = self.reco_df.count()
-            self.avg_novelty = (
+            self.df_novelty = (
                 self.reco_df.groupBy(self.col_item)
                 .count()
                 .join(self.df_item_novelty, self.col_item)
@@ -819,7 +744,7 @@ class SparkDiversityEvaluation:
                 .first()[0]
                 / n_recommendations
             )
-        return self.avg_novelty
+        return self.df_novelty
 
     # Serendipity metrics
     def user_item_serendipity(self):
@@ -901,12 +826,12 @@ class SparkDiversityEvaluation:
         Returns:
             float: serendipity.
         """
-        if self.avg_serendipity is None:
+        if self.df_serendipity is None:
             self.df_user_serendipity = self.user_serendipity()
-            self.avg_serendipity = self.df_user_serendipity.agg(
+            self.df_serendipity = self.df_user_serendipity.agg(
                 {"user_serendipity": "mean"}
             ).first()[0]
-        return self.avg_serendipity
+        return self.df_serendipity
 
     # Coverage metrics
     def catalog_coverage(self):

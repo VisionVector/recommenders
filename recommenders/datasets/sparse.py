@@ -1,4 +1,4 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 import pandas as pd
@@ -9,10 +9,11 @@ from scipy.sparse import coo_matrix
 import logging
 
 # import default parameters
-from recommenders.utils.constants import (
+from reco_utils.utils.constants import (
     DEFAULT_USER_COL,
     DEFAULT_ITEM_COL,
     DEFAULT_RATING_COL,
+    DEFAULT_TIMESTAMP_COL,
     DEFAULT_PREDICTION_COL,
 )
 

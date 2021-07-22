@@ -1,10 +1,12 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 import numpy as np
 from scipy.linalg import sqrtm
+from numba import njit, jit, prange
 
-from recommenders.utils.python_utils import binarize as conv_binary
+from .geoimc_utils import length_normalize
+from reco_utils.utils.python_utils import binarize as conv_binary
 
 
 class PlainScalarProduct(object):

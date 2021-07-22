@@ -59,15 +59,16 @@ class Time4LSTMCell(RNNCell):
         activation=None,
         reuse=None,
     ):
+
         super(Time4LSTMCell, self).__init__(_reuse=reuse)
         if not state_is_tuple:
-            logging.warning(
+            logging.warn(
                 "%s: Using a concatenated state is slower and will soon be "
                 "deprecated.  Use state_is_tuple=True.",
                 self,
             )
         if num_unit_shards is not None or num_proj_shards is not None:
-            logging.warning(
+            logging.warn(
                 "%s: The num_unit_shards and proj_unit_shards parameters are "
                 "deprecated and will be removed in Jan 2017.  "
                 "Use a variable scope with a partitioner instead.",
@@ -126,17 +127,6 @@ class Time4LSTMCell(RNNCell):
         return self._output_size
 
     def call(self, inputs, state):
-        """Call method for the Time4LSTMCell.
-
-        Args:
-            inputs: A 2D Tensor of shape [batch_size, input_size].
-            state: A 2D Tensor of shape [batch_size, state_size].
-
-        Returns:
-            A tuple containing:
-            - A 2D Tensor of shape [batch_size, output_size].
-            - A 2D Tensor of shape [batch_size, state_size].
-        """
         time_now_score = tf.expand_dims(inputs[:, -1], -1)
         time_last_score = tf.expand_dims(inputs[:, -2], -1)
         inputs = inputs[:, :-2]
@@ -151,7 +141,7 @@ class Time4LSTMCell(RNNCell):
 
         dtype = inputs.dtype
         input_size = inputs.get_shape().with_rank(2)[1]
-        if input_size is None:
+        if input_size.value is None:
             raise ValueError("Could not infer input size from inputs.get_shape()[-1]")
 
         if self._time_kernel_w1 is None:
@@ -324,15 +314,16 @@ class Time4ALSTMCell(RNNCell):
         activation=None,
         reuse=None,
     ):
+
         super(Time4ALSTMCell, self).__init__(_reuse=reuse)
         if not state_is_tuple:
-            logging.warning(
+            logging.warn(
                 "%s: Using a concatenated state is slower and will soon be "
                 "deprecated.  Use state_is_tuple=True.",
                 self,
             )
         if num_unit_shards is not None or num_proj_shards is not None:
-            logging.warning(
+            logging.warn(
                 "%s: The num_unit_shards and proj_unit_shards parameters are "
                 "deprecated and will be removed in Jan 2017.  "
                 "Use a variable scope with a partitioner instead.",
@@ -391,17 +382,6 @@ class Time4ALSTMCell(RNNCell):
         return self._output_size
 
     def call(self, inputs, state):
-        """Call method for the Time4ALSTMCell.
-
-        Args:
-            inputs: A 2D Tensor of shape [batch_size, input_size].
-            state: A 2D Tensor of shape [batch_size, state_size].
-
-        Returns:
-            A tuple containing:
-            - A 2D Tensor of shape [batch_size, output_size].
-            - A 2D Tensor of shape [batch_size, state_size].
-        """
         att_score = tf.expand_dims(inputs[:, -1], -1)
         time_now_score = tf.expand_dims(inputs[:, -2], -1)
         time_last_score = tf.expand_dims(inputs[:, -3], -1)
@@ -417,7 +397,7 @@ class Time4ALSTMCell(RNNCell):
 
         dtype = inputs.dtype
         input_size = inputs.get_shape().with_rank(2)[1]
-        if input_size is None:
+        if input_size.value is None:
             raise ValueError("Could not infer input size from inputs.get_shape()[-1]")
 
         if self._time_kernel_w1 is None:
@@ -578,18 +558,18 @@ class Time4ALSTMCell(RNNCell):
 class _Linear(object):
     """Linear map: sum_i(args[i] * W[i]), where W[i] is a variable.
 
-    Args:
-      args: a 2D Tensor or a list of 2D, batch x n, Tensors.
-      output_size: int, second dimension of weight variable.
-      dtype: data type for variables.
-      build_bias: boolean, whether to build a bias variable.
-      bias_initializer: starting value to initialize the bias
-        (default is all zeros).
-      kernel_initializer: starting value to initialize the weight.
+  Args:
+    args: a 2D Tensor or a list of 2D, batch x n, Tensors.
+    output_size: int, second dimension of weight variable.
+    dtype: data type for variables.
+    build_bias: boolean, whether to build a bias variable.
+    bias_initializer: starting value to initialize the bias
+      (default is all zeros).
+    kernel_initializer: starting value to initialize the weight.
 
-    Raises:
-      ValueError: if inputs_shape is wrong.
-    """
+  Raises:
+    ValueError: if inputs_shape is wrong.
+  """
 
     def __init__(
         self,
@@ -601,9 +581,9 @@ class _Linear(object):
     ):
         self._build_bias = build_bias
 
-        if args is None or (nest.is_nested(args) and not args):
+        if args is None or (nest.is_sequence(args) and not args):
             raise ValueError("`args` must be specified")
-        if not nest.is_nested(args):
+        if not nest.is_sequence(args):
             args = [args]
             self._is_sequence = False
         else:
@@ -615,13 +595,13 @@ class _Linear(object):
         for shape in shapes:
             if shape.ndims != 2:
                 raise ValueError("linear is expecting 2D arguments: %s" % shapes)
-            if shape[1] is None:
+            if shape[1].value is None:
                 raise ValueError(
                     "linear expects shape[1] to be provided for shape %s, "
                     "but saw %s" % (shape, shape[1])
                 )
             else:
-                total_arg_size += shape[1]
+                total_arg_size += shape[1].value
 
         dtype = [a.dtype for a in args][0]
 

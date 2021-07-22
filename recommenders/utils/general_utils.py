@@ -1,4 +1,4 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 import os
@@ -7,9 +7,9 @@ import psutil
 
 def invert_dictionary(dictionary):
     """Invert a dictionary
-
-    Note:
-
+    
+    .. note::
+    
         If the dictionary has unique keys and unique values, the inversion would be perfect. However, if there are
         repeated values, the inversion can take different keys
 
