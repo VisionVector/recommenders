@@ -9,17 +9,19 @@ from os import environ
 # Version
 here = Path(__file__).absolute().parent
 version_data = {}
-with open(here.joinpath("recommenders", "__init__.py"), "r") as f:
+with open(here.joinpath("reco_utils", "__init__.py"), "r") as f:
     exec(f.read(), version_data)
 version = version_data.get("__version__", "0.0")
 
 # Get the long description from the README file
-with open(here.joinpath("recommenders", "README.md"), encoding="utf-8") as f:
+with open(here.joinpath("reco_utils", "README.md"), encoding="utf-8") as f:
     LONG_DESCRIPTION = f.read()
 
 HASH = environ.get("HASH", None)
 if HASH is not None:
     version += ".post" + str(int(time.time()))
+
+name = environ.get("LIBRARY_NAME", "ms_recommenders")
 
 install_requires = [
     "numpy>=1.14",
@@ -86,7 +88,7 @@ extras_require["experimental"] = [
 
 
 setup(
-    name="recommenders",
+    name=name,
     version=version,
     description="Microsoft Recommenders - Python utilities for building recommender systems",
     long_description=LONG_DESCRIPTION,
@@ -116,7 +118,7 @@ setup(
     keywords="recommendations recommendation recommenders recommender system engine "
     "machine learning python spark gpu",
     install_requires=install_requires,
-    package_dir={"recommenders": "recommenders"},
+    package_dir={"reco_utils": "reco_utils"},
     packages=find_packages(where=".", exclude=["tests", "tools", "examples"]),
-    python_requires=">=3.6, <3.8",
+    python_requires=">=3.6, <=3.7.10",
 )

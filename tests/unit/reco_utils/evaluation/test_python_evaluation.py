@@ -6,13 +6,13 @@ import pandas as pd
 import pytest
 from unittest.mock import Mock
 from sklearn.preprocessing import minmax_scale
-from recommenders.utils.constants import (
+from reco_utils.common.constants import (
     DEFAULT_USER_COL,
     DEFAULT_ITEM_COL,
     DEFAULT_RATING_COL,
     DEFAULT_PREDICTION_COL,
 )
-from recommenders.evaluation.python_evaluation import (
+from reco_utils.evaluation.python_evaluation import (
     check_column_dtypes,
     merge_rating_true_pred,
     merge_ranking_true_pred,
@@ -64,7 +64,6 @@ def rating_nohit():
         }
     )
 # fmt: on
-
 
 @pytest.fixture
 def rating_true_binary(rating_true):

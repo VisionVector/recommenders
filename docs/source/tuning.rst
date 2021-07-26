@@ -7,5 +7,5 @@ Hyperparameter tuning module from Recommenders utilities.
 Parameter sweep utils
 ===============================
 
-.. automodule:: recommenders.tuning.parameter_sweep
+.. automodule:: reco_utils.tuning.parameter_sweep
     :members:
