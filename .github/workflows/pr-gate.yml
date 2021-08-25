@@ -7,13 +7,9 @@ name: pr-gate
 on:
   pull_request:
     branches: [ staging, main ]
-
-  # enable manual trigger
-  workflow_dispatch:
-    input:
-      tags:
-        description: 'Test scenario tags'
-        default: 'Anything to describe this manual run (optional)'
+  # development triggers can be removed afterwards.
+  push:
+    branches: [ laserprec/gpu-ci, laserprec/ghaction-sandbox* ]
 
 # This file defines following CI workflow:
 #
@@ -69,7 +65,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python: [3.6]
-        # different kinds of tests are located in tests/<unit|integration|smoke> folders
+        # different kind of tests are located in tests/<unit|integration|smoke> folders
         test-kind: ['unit'] 
         # pytest markers configured in tox.ini. See https://docs.pytest.org/en/6.2.x/example/markers.html
         test-marker: ['not gpu and not spark and not notebooks', 'notebooks and not gpu and not spark']
@@ -110,7 +106,7 @@ jobs:
         os: [ubuntu-latest]
         java: [8]
         python: [3.6]
-        # different kinds of tests are located in tests/<unit|integration|smoke> folders
+        # different kind of tests are located in tests/<unit|integration|smoke> folders
         test-kind: ['unit'] 
         # pytest markers configured in tox.ini. See https://docs.pytest.org/en/6.2.x/example/markers.html
         test-marker: ['notebooks and spark and not gpu', 'spark and not notebooks and not gpu']
@@ -151,7 +147,7 @@ jobs:
     strategy:
       matrix:
         python: [3.6]
-        # different kinds of tests are located in tests/<unit|integration|smoke> folders
+        # different kind of tests are located in tests/<unit|integration|smoke> folders
         test-kind: ['unit'] 
         # pytest markers configured in tox.ini. See https://docs.pytest.org/en/6.2.x/example/markers.html
         test-marker: ['gpu and notebooks and not spark', 'gpu and not notebooks and not spark']
