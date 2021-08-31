@@ -7,9 +7,8 @@ This package contains functions to simplify common tasks used when developing an
 ## Pre-requisites
 Some dependencies require compilation during pip installation. On Linux this can be supported by adding build-essential dependencies:
 ```bash
-sudo apt-get install -y build-essential libpython<version>
-``` 
-where `<version>` should be `3.6` or `3.7` as appropriate.
+sudo apt-get install -y build-essential
+```
 
 On Windows you will need [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
 
@@ -22,11 +21,6 @@ To install core utilities, CPU-based algorithms, and dependencies
 pip install --upgrade pip
 pip install recommenders
 ```
-In the case of conda, you also need to 
-```bash
-conda install numpy-base
-```
-after the pip installation.
 
 ## Optional Dependencies
 
