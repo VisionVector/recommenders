@@ -2,9 +2,14 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 # ---------------------------------------------------------
+name: pr-gate
 
-# NOTE:
+on:
+  push:
+    branches: [ laserprec/ghaction-ci, laserprec/ghaction-sandbox* ]
+
 # This file defines following CI workflow:
+#
 #  ┌──────────┐   ┌─────────┐   ┌────────┐
 #  │  static  ├─┬─►  build* ├─┬─►  test  │
 #  │ analysis │ │ │  (cpu)  │ │ │ report │
@@ -15,30 +20,13 @@
 #               │ └─────────┘ │
 #               │ ┌─────────┐ │
 #               └─►  build* ├─┘
-#                 │  (gpu)  │
+#                 │  (gpu)  │   <-- TODO: Coming Soon
 #                 └─────────┘
 #                    ....
 # *each runs in PARALLEL the different combinations
 #  of python version, OS, test subsets, etc
 #
-# There are 3 compute environments our library is supporting: CPU, GPU and Spark
-# This pipeline's goal is to ensure we run and pass our tests in these supported compute envs
-# For all of the jobs in GPU build, we are using self-host VMs to run them.
-#
-# ASCII chart created via https://asciiflow.com/
-name: pr-gate
-
-on:
-  pull_request:
-    branches: [ staging, main ]
-
-  # enable manual trigger
-  workflow_dispatch:
-    input:
-      tags:
-        description: 'Test scenario tags'
-        default: 'Anything to describe this manual run (optional)'
-
+#  ASCII chart created via https://asciiflow.com/
 
 jobs:
 ###############################################
@@ -74,7 +62,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python: [3.6]
-        # different kinds of tests are located in tests/<unit|integration|smoke> folders
+        # different kind of tests are located in tests/<unit|integration|smoke> folders
         test-kind: ['unit'] 
         # pytest markers configured in tox.ini. See https://docs.pytest.org/en/6.2.x/example/markers.html
         test-marker: ['not gpu and not spark and not notebooks', 'notebooks and not gpu and not spark']
@@ -115,7 +103,7 @@ jobs:
         os: [ubuntu-latest]
         java: [8]
         python: [3.6]
-        # different kinds of tests are located in tests/<unit|integration|smoke> folders
+        # different kind of tests are located in tests/<unit|integration|smoke> folders
         test-kind: ['unit'] 
         # pytest markers configured in tox.ini. See https://docs.pytest.org/en/6.2.x/example/markers.html
         test-marker: ['notebooks and spark and not gpu', 'spark and not notebooks and not gpu']
@@ -148,46 +136,11 @@ jobs:
         path: .coverage*
 
 ###############################################
-################# GPU-BUILD #################
-###############################################
-  build-gpu:
-    runs-on: [self-hosted, Linux, gpu] # this is a union of labels to select specific self-hosted machine
-    needs: static-analysis
-    strategy:
-      matrix:
-        python: [3.6]
-        # different kinds of tests are located in tests/<unit|integration|smoke> folders
-        test-kind: ['unit'] 
-        # pytest markers configured in tox.ini. See https://docs.pytest.org/en/6.2.x/example/markers.html
-        test-marker: ['gpu and notebooks and not spark', 'gpu and not notebooks and not spark']
-
-    steps:
-    - uses: actions/checkout@v2
-
-    ################# Run Python tests #################
-    - name: Use Python ${{ matrix.python }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python }}
-
-    - name: Run ${{ matrix.test-kind }} tests ('${{ matrix.test-marker }}')
-      uses: ./.github/workflows/actions/run-tests
-      with:
-        test-kind: ${{ matrix.test-kind }}
-        test-marker: ${{ matrix.test-marker }}
-      
-    - name: Upload Code Coverage
-      uses: actions/upload-artifact@v2
-      with:
-        name: code-cov
-        path: .coverage*
-
-###############################################
 ############ TEST COVERAGE SUMMARY ############
 ###############################################
   collect-code-cov:
     runs-on: ubuntu-latest
-    needs: [build-cpu, build-spark, build-gpu]
+    needs: [build-cpu, build-spark]
     steps:
       - uses: actions/checkout@v2
       - name: Setup Python
