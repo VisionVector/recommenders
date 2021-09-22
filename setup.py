@@ -22,7 +22,7 @@ if HASH is not None:
     version += ".post" + str(int(time.time()))
 
 install_requires = [
-    "numpy>=1.20",
+    "numpy>=1.14",
     "pandas>1.0.3,<2",
     "scipy>=1.0.0,<2",
     "tqdm>=4.31.1,<5",
@@ -30,7 +30,7 @@ install_requires = [
     "scikit-learn>=0.22.1,<1",
     "numba>=0.38.1,<1",
     "lightfm>=1.15,<2",
-    "lightgbm>=2.2.1",
+    "lightgbm>=2.2.1,<3",
     "memory_profiler>=0.54.0,<1",
     "nltk>=3.4,<4",
     "pydocumentdb>=2.3.3<3",  # TODO: replace with azure-cosmos
@@ -60,7 +60,7 @@ extras_require = {
     ],
     "gpu": [
         "nvidia-ml-py3>=7.352.0",
-        "tensorflow>=2.6",  # compiled with CUDA 11.2, cudnn 8.1
+        "tensorflow-gpu>=1.15.0,<2",  # compiled with CUDA 10.0
         "torch==1.2.0",  # last os-common version with CUDA 10.0 support
         "fastai>=1.0.46,<2",
     ],
