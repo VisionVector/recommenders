@@ -30,7 +30,7 @@ install_requires = [
     "scikit-learn>=0.22.1,<1",
     "numba>=0.38.1,<1",
     "lightfm>=1.15,<2",
-    "lightgbm>=2.2.1",
+    "lightgbm>=2.2.1,<3",
     "memory_profiler>=0.54.0,<1",
     "nltk>=3.4,<4",
     "pydocumentdb>=2.3.3<3",  # TODO: replace with azure-cosmos
@@ -73,13 +73,7 @@ extras_require = {
         "cmake>=3.18.4.post1",
         "xlearn==0.40a1",
     ],
-    "dev": [
-        "black>=18.6b4,<21",
-        "pandera[strategies]>=0.6.5",  # For generating fake datasets
-        "pytest>=3.6.4",
-        "pytest-cov>=2.12.1",
-        "pytest-mock>=3.6.1",  # for access to mock fixtures in pytest
-    ],
+    "dev": ["black>=18.6b4,<21", "pytest>=3.6.4", "pytest-cov>=2.12.1"],
 }
 # for the brave of heart
 extras_require["all"] = list(set(sum([*extras_require.values()], [])))

@@ -3,7 +3,6 @@
 
 
 import numpy as np
-from pyspark.sql.types import LongType
 
 try:
     from pyspark.mllib.evaluation import RegressionMetrics, RankingMetrics
@@ -166,7 +165,7 @@ class SparkRatingEvaluation:
 
 
 class SparkRankingEvaluation:
-    """Spark Ranking Evaluator"""
+    """SparkRankingEvaluation"""
 
     def __init__(
         self,
@@ -488,7 +487,7 @@ def _get_relevant_items_by_timestamp(
 
 
 class SparkDiversityEvaluation:
-    """Spark Evaluator for diversity, coverage, novelty, serendipity"""
+    """Spark Diversity Evaluator"""
 
     def __init__(
         self,
@@ -509,6 +508,7 @@ class SparkDiversityEvaluation:
             1. catalog_coverage, which measures the proportion of items that get recommended from the item catalog;
             2. distributional_coverage, which measures how unequally different items are recommended in the
                recommendations to all users.
+
         * Novelty - A more novel item indicates it is less popular, i.e. it gets recommended less frequently.
         * Diversity - The dissimilarity of items being recommended.
         * Serendipity - The "unusualness" or "surprise" of recommendations to a user. When 'col_relevance' is used, it indicates how "pleasant surprise" of recommendations is to a user.
@@ -618,7 +618,7 @@ class SparkDiversityEvaluation:
             .select(self.col_user, "i1", "i2")
         )
 
-    def _get_cosine_similarity(self, n_partitions=10):
+    def _get_cosine_similarity(self, n_partitions=200):
 
         if self.item_sim_measure == "item_cooccurrence_count":
             # calculate item-item similarity based on item co-occurrence count
