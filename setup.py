@@ -67,13 +67,19 @@ extras_require = {
     "spark": [
         "databricks_cli>=0.8.6,<1",
         "pyarrow>=0.8.0,<1.0.0",
-        "pyspark>=2.4.5,<4.0.0",
+        "pyspark>=2.4.5,<3.0.0",
     ],
     "xlearn": [
         "cmake>=3.18.4.post1",
         "xlearn==0.40a1",
     ],
-    "dev": ["black>=18.6b4,<21", "pytest>=3.6.4", "pytest-cov>=2.12.1"],
+    "dev": [
+        "black>=18.6b4,<21",
+        "pandera[strategies]>=0.6.5",  # For generating fake datasets
+        "pytest>=3.6.4",
+        "pytest-cov>=2.12.1",
+        "pytest-mock>=3.6.1",  # for access to mock fixtures in pytest
+    ],
 }
 # for the brave of heart
 extras_require["all"] = list(set(sum([*extras_require.values()], [])))
