@@ -93,7 +93,6 @@ jobs:
     - name: Run ${{ matrix.test-kind }} tests ('${{ matrix.test-marker }}')
       uses: ./.github/workflows/actions/run-tests
       with:
-        tox-env: 'cpu' # run the cpu tests with the 'recommenders[dev,examples]' dependencies
         test-kind: ${{ matrix.test-kind }}
         test-marker: ${{ matrix.test-marker }}
     # Currently GitHub workflow cannot call an action from another action
@@ -139,7 +138,6 @@ jobs:
     - name: Run ${{ matrix.test-kind }} tests ('${{ matrix.test-marker }}')
       uses: ./.github/workflows/actions/run-tests
       with:
-        tox-env: 'spark' # run the spark tests with the 'recommenders[spark,examples,dev]' dependencies
         test-kind: ${{ matrix.test-kind }}
         test-marker: ${{ matrix.test-marker }}
       
@@ -175,7 +173,6 @@ jobs:
     - name: Run ${{ matrix.test-kind }} tests ('${{ matrix.test-marker }}')
       uses: ./.github/workflows/actions/run-tests
       with:
-        tox-env: 'gpu' # run the gpu tests with the 'recommenders[gpu,examples,dev]' dependencies
         test-kind: ${{ matrix.test-kind }}
         test-marker: ${{ matrix.test-marker }}
       
