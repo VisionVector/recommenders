@@ -1,7 +1,7 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
-
 import tensorflow as tf
+import numpy as np
 from recommenders.models.sasrec.model import SASREC, Encoder, LayerNormalization
 
 
@@ -15,25 +15,27 @@ class SSEPT(SASREC):
     Via Personalized Transformer, RecSys, 2020.
     TF 1.x codebase: https://github.com/SSE-PT/SSE-PT
     TF 2.x codebase (SASREc): https://github.com/nnkkmto/SASRec-tf2
+
+    Args:
+        basic arguments -
+        item_num: number of items in the dataset
+        seq_max_len: maximum number of items in user history
+        num_blocks: number of Transformer blocks to be used
+        embedding_dim: item embedding dimension
+        attention_dim: Transformer attention dimension
+        conv_dims: list of the dimensions of the Feedforward layer
+        dropout_rate: dropout rate
+        l2_reg: coefficient of the L2 regularization
+        num_neg_test: number of negative examples used in testing
+
+        additional arguments -
+        user_num: number of users in the dataset
+        user_embedding_dim: user embedding dimension
+        item_embedding_dim: item embedding dimension
+
     """
 
     def __init__(self, **kwargs):
-        """Model initialization.
-
-        Args:
-            item_num (int): Number of items in the dataset.
-            seq_max_len (int): Maximum number of items in user history.
-            num_blocks (int): Number of Transformer blocks to be used.
-            embedding_dim (int): Item embedding dimension.
-            attention_dim (int): Transformer attention dimension.
-            conv_dims (list): List of the dimensions of the Feedforward layer.
-            dropout_rate (float): Dropout rate.
-            l2_reg (float): Coefficient of the L2 regularization.
-            num_neg_test (int): Number of negative examples used in testing.
-            user_num (int): Number of users in the dataset.
-            user_embedding_dim (int): User embedding dimension.
-            item_embedding_dim (int): Item embedding dimension.
-        """
         super().__init__(**kwargs)
 
         self.user_num = kwargs.get("user_num", None)  # New
@@ -76,18 +78,6 @@ class SSEPT(SASREC):
         )
 
     def call(self, x, training):
-        """Model forward pass.
-
-        Args:
-            x (tf.Tensor): Input tensor.
-            training (tf.Tensor): Training tensor.
-
-        Returns:
-            tf.Tensor, tf.Tensor, tf.Tensor:
-            - Logits of the positive examples.
-            - Logits of the negative examples.
-            - Mask for nonzero targets
-        """
 
         users = x["users"]
         input_seq = x["input_seq"]
@@ -101,7 +91,7 @@ class SSEPT(SASREC):
         # u0_latent = self.user_embedding_layer(users[0])
         # u0_latent = u0_latent * (self.embedding_dim ** 0.5)
         u_latent = self.user_embedding_layer(users)
-        u_latent = u_latent * (self.user_embedding_dim**0.5)  # (b, 1, h)
+        u_latent = u_latent * (self.user_embedding_dim ** 0.5)  # (b, 1, h)
         # return users
 
         # replicate the user embedding for all the items
@@ -122,7 +112,7 @@ class SSEPT(SASREC):
         # --- ATTENTION BLOCKS ---
         seq_attention = seq_embeddings  # (b, s, h1 + h2)
 
-        seq_attention = self.encoder(seq_attention, training=training, mask=mask)
+        seq_attention = self.encoder(seq_attention, training, mask)
         seq_attention = self.layer_normalization(seq_attention)  # (b, s, h1+h2)
 
         # --- PREDICTION LAYER ---
@@ -168,10 +158,6 @@ class SSEPT(SASREC):
         return pos_logits, neg_logits, istarget
 
     def predict(self, inputs):
-        """
-        Model prediction for candidate (negative) items
-
-        """
         training = False
         user = inputs["user"]
         input_seq = inputs["input_seq"]
@@ -181,12 +167,12 @@ class SSEPT(SASREC):
         seq_embeddings, positional_embeddings = self.embedding(input_seq)  # (1, s, h)
 
         u0_latent = self.user_embedding_layer(user)
-        u0_latent = u0_latent * (self.user_embedding_dim**0.5)  # (1, 1, h)
+        u0_latent = u0_latent * (self.user_embedding_dim ** 0.5)  # (1, 1, h)
         u0_latent = tf.squeeze(u0_latent, axis=0)  # (1, h)
         test_user_emb = tf.tile(u0_latent, [1 + self.num_neg_test, 1])  # (101, h)
 
         u_latent = self.user_embedding_layer(user)
-        u_latent = u_latent * (self.user_embedding_dim**0.5)  # (b, 1, h)
+        u_latent = u_latent * (self.user_embedding_dim ** 0.5)  # (b, 1, h)
         u_latent = tf.tile(u_latent, [1, tf.shape(input_seq)[1], 1])  # (b, s, h)
 
         seq_embeddings = tf.reshape(
@@ -197,7 +183,7 @@ class SSEPT(SASREC):
 
         seq_embeddings *= mask
         seq_attention = seq_embeddings
-        seq_attention = self.encoder(seq_attention, training=training, mask=mask)
+        seq_attention = self.encoder(seq_attention, training, mask)
         seq_attention = self.layer_normalization(seq_attention)  # (b, s, h1+h2)
         seq_emb = tf.reshape(
             seq_attention,
@@ -221,17 +207,10 @@ class SSEPT(SASREC):
         return test_logits
 
     def loss_function(self, pos_logits, neg_logits, istarget):
-        """Losses are calculated separately for the positive and negative
+        """
+        Losses are calculated separately for the positive and negative
         items based on the corresponding logits. A mask is included to
         take care of the zero items (added for padding).
-
-        Args:
-            pos_logits (tf.Tensor): Logits of the positive examples.
-            neg_logits (tf.Tensor): Logits of the negative examples.
-            istarget (tf.Tensor): Mask for nonzero targets.
-
-        Returns:
-            float: Loss.
         """
 
         pos_logits = pos_logits[:, 0]
