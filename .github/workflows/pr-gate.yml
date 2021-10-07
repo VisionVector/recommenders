@@ -51,7 +51,7 @@ jobs:
     - name: Use Python 3.6
       uses: actions/setup-python@v2
       with:
-        python-version: 3.6
+        python-version: 3.7
     
     - name: Install dependencies (tox)
       run: |
@@ -73,7 +73,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python: [3.6]
+        python: [3.7]
         # different kinds of tests are located in tests/<unit|integration|smoke> folders
         test-kind: ['unit'] 
         # pytest markers configured in tox.ini. See https://docs.pytest.org/en/6.2.x/example/markers.html
@@ -93,6 +93,7 @@ jobs:
     - name: Run ${{ matrix.test-kind }} tests ('${{ matrix.test-marker }}')
       uses: ./.github/workflows/actions/run-tests
       with:
+        tox-env: 'cpu' # run the cpu tests with the 'recommenders[dev,examples]' dependencies
         test-kind: ${{ matrix.test-kind }}
         test-marker: ${{ matrix.test-marker }}
     # Currently GitHub workflow cannot call an action from another action
@@ -114,7 +115,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         java: [8]
-        python: [3.6]
+        python: [3.7]
         # different kinds of tests are located in tests/<unit|integration|smoke> folders
         test-kind: ['unit'] 
         # pytest markers configured in tox.ini. See https://docs.pytest.org/en/6.2.x/example/markers.html
@@ -138,6 +139,7 @@ jobs:
     - name: Run ${{ matrix.test-kind }} tests ('${{ matrix.test-marker }}')
       uses: ./.github/workflows/actions/run-tests
       with:
+        tox-env: 'spark' # run the spark tests with the 'recommenders[spark,examples,dev]' dependencies
         test-kind: ${{ matrix.test-kind }}
         test-marker: ${{ matrix.test-marker }}
       
@@ -155,7 +157,7 @@ jobs:
     needs: static-analysis
     strategy:
       matrix:
-        python: [3.6]
+        python: [3.7]
         # different kinds of tests are located in tests/<unit|integration|smoke> folders
         test-kind: ['unit'] 
         # pytest markers configured in tox.ini. See https://docs.pytest.org/en/6.2.x/example/markers.html
@@ -173,6 +175,7 @@ jobs:
     - name: Run ${{ matrix.test-kind }} tests ('${{ matrix.test-marker }}')
       uses: ./.github/workflows/actions/run-tests
       with:
+        tox-env: 'gpu' # run the gpu tests with the 'recommenders[gpu,examples,dev]' dependencies
         test-kind: ${{ matrix.test-kind }}
         test-marker: ${{ matrix.test-marker }}
       
@@ -193,7 +196,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2.2.2
         with:
-          python-version: '3.6'
+          python-version: 3.7
 
       - name: Download coverage reports from all previous jobs
         uses: actions/download-artifact@v2
