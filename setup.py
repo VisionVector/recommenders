@@ -67,19 +67,14 @@ extras_require = {
     ],
     "spark": [
         "databricks_cli>=0.8.6,<1",
-        "pyarrow>=0.8.0,<1.0.0",
-        "pyspark>=2.4.5,<3.0.0",
+        "pyarrow>=0.12.1,<6.0.0",
+        "pyspark>=2.4.5,<4.0.0",
     ],
     "xlearn": [
         "cmake>=3.18.4.post1",
         "xlearn==0.40a1",
     ],
-    "dev": [
-        "black>=18.6b4,<21",
-        "pytest>=3.6.4",
-        "pytest-cov>=2.12.1"
-        "pytest-rerunfailures>=10.2",  # to mark flaky tests
-    ],
+    "dev": ["black>=18.6b4,<21", "pytest>=3.6.4", "pytest-cov>=2.12.1"],
 }
 # for the brave of heart
 extras_require["all"] = list(set(sum([*extras_require.values()], [])))
@@ -124,5 +119,5 @@ setup(
     install_requires=install_requires,
     package_dir={"recommenders": "recommenders"},
     packages=find_packages(where=".", exclude=["tests", "tools", "examples"]),
-    python_requires=">=3.6, <3.8",
+    python_requires=">=3.6, <3.9",     # latest Databricks versions come with Python 3.8 installed
 )
