@@ -27,7 +27,7 @@ if HASH is not None:
     version += ".post" + str(int(time.time()))
 
 install_requires = [
-    "numpy>=1.19",  # 1.19 required by tensorflow 
+    "numpy>=1.19",
     "pandas>1.0.3,<2",
     "scipy>=1.0.0,<2",
     "tqdm>=4.31.1,<5",
@@ -66,14 +66,14 @@ extras_require = {
     ],
     "gpu": [
         "nvidia-ml-py3>=7.352.0",
-        "tensorflow>=2.6",  # compiled with CUDA 11.2, cudnn 8.1
+        "tensorflow-gpu>=1.15.0,<2",  # compiled with CUDA 10.0
         "torch==1.2.0",  # last os-common version with CUDA 10.0 support
         "fastai>=1.0.46,<2",
     ],
     "spark": [
         "databricks_cli>=0.8.6,<1",
-        "pyarrow>=0.8.0,<1.0.0",
-        "pyspark>=2.4.5,<3.0.0",
+        "pyarrow>=0.12.1,<6.0.0",
+        "pyspark>=2.4.5,<4.0.0",
     ],
     "xlearn": [
         "cmake>=3.18.4.post1",
@@ -129,6 +129,6 @@ setup(
     "machine learning python spark gpu",
     install_requires=install_requires,
     package_dir={"recommenders": "recommenders"},
+    python_requires=">=3.6, <3.9",     # latest Databricks versions come with Python 3.8 installed
     packages=find_packages(where=".", exclude=["contrib", "docs", "examples", "scenarios", "tests", "tools"]),
-    python_requires=">=3.6, <3.8",
 )
