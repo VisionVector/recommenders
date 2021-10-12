@@ -1,9 +1,6 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-
-import numpy as np
-
 try:
     from pyspark.mllib.evaluation import RegressionMetrics, RankingMetrics
     from pyspark.sql import Window, DataFrame
@@ -165,7 +162,7 @@ class SparkRatingEvaluation:
 
 
 class SparkRankingEvaluation:
-    """SparkRankingEvaluation"""
+    """Spark Ranking Evaluator"""
 
     def __init__(
         self,
@@ -487,7 +484,7 @@ def _get_relevant_items_by_timestamp(
 
 
 class SparkDiversityEvaluation:
-    """Spark Diversity Evaluator"""
+    """Spark Evaluator for diversity, coverage, novelty, serendipity"""
 
     def __init__(
         self,
@@ -508,7 +505,6 @@ class SparkDiversityEvaluation:
             1. catalog_coverage, which measures the proportion of items that get recommended from the item catalog;
             2. distributional_coverage, which measures how unequally different items are recommended in the
                recommendations to all users.
-
         * Novelty - A more novel item indicates it is less popular, i.e. it gets recommended less frequently.
         * Diversity - The dissimilarity of items being recommended.
         * Serendipity - The "unusualness" or "surprise" of recommendations to a user. When 'col_relevance' is used, it indicates how "pleasant surprise" of recommendations is to a user.
