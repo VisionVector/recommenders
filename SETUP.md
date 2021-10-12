@@ -157,7 +157,7 @@ In the following `3.6` should be replaced with the Python version you are using 
     sudo dockerd &
     # Pull the image from the Nvidia docker hub (https://hub.docker.com/r/nvidia/cuda) that is suitable for your system
     # E.g. for Ubuntu 18.04 do
-    sudo docker run --gpus all -it --rm nvidia/cuda:10.0-cudnn7-runtime-ubuntu18.04
+    sudo docker run --gpus all -it --rm nvidia/cuda:11.2-cudnn8.1-runtime-ubuntu18.04
 
     # Within the container: 
 
@@ -179,7 +179,7 @@ In the following `3.6` should be replaced with the Python version you are using 
     export PYSPARK_DRIVER_PYTHON=/venv/bin/python
     export PYSPARK_PYTHON=/venv/bin/python
 
-    pip install recommenders[all]
+    pip install --no-cache --no-binary scikit-surprise recommenders[all]
 
 If you prefer to use [virtualenv](https://virtualenv.pypa.io/en/latest/index.html#) instead of venv, you may follow the above steps, except you will need to replace the line
 
