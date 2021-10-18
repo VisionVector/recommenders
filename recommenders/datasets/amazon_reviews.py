@@ -2,7 +2,9 @@
 # Licensed under the MIT License.
 
 import os
+import re
 import shutil
+import warnings
 import pandas as pd
 import gzip
 import random
@@ -10,7 +12,7 @@ import logging
 import _pickle as cPickle
 
 from recommenders.utils.constants import SEED
-from recommenders.datasets.download_utils import maybe_download
+from recommenders.datasets.download_utils import maybe_download, download_path
 
 
 random.seed(SEED)

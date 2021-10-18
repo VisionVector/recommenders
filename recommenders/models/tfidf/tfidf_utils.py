@@ -5,8 +5,7 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 from transformers import BertTokenizer
-import re
-import unicodedata
+import re, string, unicodedata
 import pandas as pd
 import numpy as np
 
@@ -157,7 +156,7 @@ class TfidfRecommender:
 
         elif self.tokenization_method == "nltk":
             # NLTK Stemming
-            token_dict = {}  # noqa: F841
+            token_dict = {}
             stemmer = PorterStemmer()
 
             def stem_tokens(tokens, stemmer):
@@ -346,9 +345,7 @@ class TfidfRecommender:
         Args:
             metadata (pandas.DataFrame): Dataframe holding metadata for all public domain papers.
             query_id (str): ID of item of interest.
-            cols_to_keep (list of str): List of columns from the metadata dataframe to include
-                (e.g., ['title','authors','journal','publish_time','url']).
-                By default, all columns are kept.
+            cols_to_keep (list of str): List of columns from the metadata dataframe to include (e.g., ['title','authors','journal','publish_time','url']). By default, all columns are kept.
             verbose (boolean): Set to True if you want to print the table.
 
         Returns:
