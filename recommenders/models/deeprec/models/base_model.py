@@ -7,6 +7,7 @@ import time
 import os
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
 from recommenders.models.deeprec.deeprec_utils import cal_metric
 
 
@@ -464,7 +465,7 @@ class BaseModel:
                     os.makedirs(self.hparams.MODEL_DIR)
                 if epoch % self.hparams.save_epoch == 0:
                     save_path_str = join(self.hparams.MODEL_DIR, "epoch_" + str(epoch))
-                    self.saver.save(
+                    checkpoint_path = self.saver.save(
                         sess=train_sess, save_path=save_path_str
                     )
 

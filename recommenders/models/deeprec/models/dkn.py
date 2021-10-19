@@ -144,7 +144,7 @@ class DKN(BaseModel):
         hparams = self.hparams
         self.keep_prob_train = 1 - np.array(hparams.dropout)
         self.keep_prob_test = np.ones_like(hparams.dropout)
-        with tf.compat.v1.variable_scope("DKN"):
+        with tf.compat.v1.variable_scope("DKN") as scope:
             logit = self._build_dkn()
             return logit
 
@@ -175,7 +175,7 @@ class DKN(BaseModel):
         hidden_nn_layers.append(nn_input)
         with tf.compat.v1.variable_scope(
             "nn_part", initializer=self.initializer
-        ):
+        ) as scope:
             for idx, layer_size in enumerate(hparams.layer_sizes):
                 curr_w_nn_layer = tf.compat.v1.get_variable(
                     name="w_nn_layer" + str(layer_idx),
@@ -251,12 +251,12 @@ class DKN(BaseModel):
 
         with tf.compat.v1.variable_scope(
             "attention_net", initializer=self.initializer
-        ) as scope:  # noqa: F841
+        ) as scope:
 
             # use kims cnn to get conv embedding
             with tf.compat.v1.variable_scope(
                 "kcnn", initializer=self.initializer, reuse=tf.compat.v1.AUTO_REUSE
-            ) as cnn_scope:  # noqa: F841
+            ) as cnn_scope:
                 news_field_embed = self._kims_cnn(
                     candidate_word_batch, candidate_entity_batch, hparams
                 )

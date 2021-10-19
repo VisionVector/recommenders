@@ -13,6 +13,7 @@ from sklearn.metrics import (
 import numpy as np
 import yaml
 import zipfile
+import json
 import pickle as pkl
 import tensorflow as tf
 
@@ -299,7 +300,7 @@ def load_yaml(filename):
         return config
     except FileNotFoundError:  # for file not found
         raise
-    except Exception:  # for other exceptions
+    except Exception as e:  # for other exceptions
         raise IOError("load {0} error!".format(filename))
 
 
