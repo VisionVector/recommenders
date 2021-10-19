@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
+import numpy as np
+import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras import layers
 
@@ -91,7 +93,7 @@ class NRMSModel(BaseModel):
             object: a model used to train.
             object: a model used to evaluate and inference.
         """
-        hparams = self.hparams  # noqa: F841
+        hparams = self.hparams
         model, scorer = self._build_nrms()
         return model, scorer
 
