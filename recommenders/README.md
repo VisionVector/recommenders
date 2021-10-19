@@ -20,7 +20,7 @@ For more details about the software requirements that must be pre-installed on e
 To install core utilities, CPU-based algorithms, and dependencies
 ```bash
 pip install --upgrade pip
-pip install --no-cache --no-binary scikit-surprise recommenders
+pip install recommenders
 ```
 
 ## Optional Dependencies
@@ -39,17 +39,17 @@ Note that, currently, NNI and Vowpal Wabbit are in the experimental group.
 These groups can be installed alone or in combination:
 ```bash
 # install recommenders with core requirements and support for CPU-based recommender algorithms and notebooks
-pip install --no-cache --no-binary scikit-surprise recommenders[examples]
+pip install recommenders[examples]
 
 # add support for running example notebooks and GPU functionality
-pip install --no-cache --no-binary scikit-surprise recommenders[examples,gpu]
+pip install recommenders[examples,gpu]
 ```
 
 ## GPU Support
 
-You will need CUDA Toolkit v11.2 and CuDNN v8.1 to enable both Tensorflow and PyTorch to use the GPU. For example, if you are using a conda enviroment, this can be installed with
+You will need CUDA Toolkit v10.0 and CuDNN >= 7.6 to enable both Tensorflow and PyTorch to use the GPU. For example, if you are using a conda enviroment, this can be installed with
 ```bash
-conda install -c conda-forge cudatoolkit=11.2 cudnn=8.1
+conda install cudatoolkit=10.0 "cudnn>=7.6"
 ```
 For a virtual environment, you may use a [docker container by Nvidia](../SETUP.md#using-a-virtual-environment). 
 
@@ -57,7 +57,7 @@ For manual installation of the necessary requirements see [TensorFlow](https://w
 
 When installing with GPU support you will need to point to the PyTorch index to ensure you are downloading a version of PyTorch compiled with CUDA support. This can be done using the --find-links or -f option below.
 
-`pip install --no-cache --no-binary scikit-surprise recommenders[gpu] -f https://download.pytorch.org/whl/cu100/torch_stable.html`
+`pip install recommenders[gpu] -f https://download.pytorch.org/whl/cu100/torch_stable.html`
 
 ## Experimental dependencies
 
@@ -74,12 +74,12 @@ a [setup.py](../setup.py) file is provided in order to simplify the installation
 
 This still requires an environment to be installed as described in the [setup guide](../SETUP.md). Once the necessary dependencies are installed, you can use the following command to install `recommenders` as a python package.
 
-    pip install --no-cache --no-binary scikit-surprise -e .
+    pip install -e .
 
 It is also possible to install directly from GitHub. Or from a specific branch as well.
 
-    pip install --no-cache --no-binary scikit-surprise -e git+https://github.com/microsoft/recommenders/#egg=pkg
-    pip install --no-cache --no-binary scikit-surprise -e git+https://github.com/microsoft/recommenders/@staging#egg=pkg
+    pip install -e git+https://github.com/microsoft/recommenders/#egg=pkg
+    pip install -e git+https://github.com/microsoft/recommenders/@staging#egg=pkg
 
 **NOTE** - The pip installation does not install all of the pre-requisites; it is assumed that the environment has already been set up according to the [setup guide](../SETUP.md), for the utilities to be used.
 
