@@ -27,7 +27,7 @@ if HASH is not None:
     version += ".post" + str(int(time.time()))
 
 install_requires = [
-    "numpy>=1.19",
+    "numpy>=1.19",  # 1.19 required by tensorflow 
     "pandas>1.0.3,<2",
     "scipy>=1.0.0,<2",
     "tqdm>=4.31.1,<5",
@@ -66,14 +66,14 @@ extras_require = {
     ],
     "gpu": [
         "nvidia-ml-py3>=7.352.0",
-        "tensorflow-gpu>=1.15.0,<2",  # compiled with CUDA 10.0
-        "torch==1.2.0",  # last os-common version with CUDA 10.0 support
+        "tensorflow>=2.6",  # compiled with CUDA 11.2, cudnn 8.1
+        "torch>=1.8",  # for CUDA 11 support
         "fastai>=1.0.46,<2",
     ],
     "spark": [
         "databricks_cli>=0.8.6,<1",
         "pyarrow>=0.12.1,<6.0.0",
-        "pyspark>=2.4.5,<3.2.0",
+        "pyspark>=2.4.5,<4.0.0",
     ],
     "xlearn": [
         "cmake>=3.18.4.post1",
@@ -85,7 +85,6 @@ extras_require = {
         "pytest>=3.6.4",
         "pytest-cov>=2.12.1",
         "pytest-mock>=3.6.1",  # for access to mock fixtures in pytest
-        "pytest-rerunfailures>=10.2",  # to mark flaky tests
     ],
 }
 # for the brave of heart
