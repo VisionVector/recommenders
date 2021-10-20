@@ -4,6 +4,8 @@
 import numpy as np
 from sklearn.decomposition import PCA
 
+from recommenders.datasets.download_utils import maybe_download
+
 
 def length_normalize(matrix):
     """Length normalize the matrix
