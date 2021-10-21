@@ -95,9 +95,7 @@ class RLRMCalgorithm(object):
         # residual variable
         residual_global = np.zeros(RLRMCdata.train.data.shape, dtype=np.float64)
 
-        ####################################
-        # Riemannian first-order algorithm #
-        ####################################
+        ###################Riemannian first-order algorithm######################
 
         solver = ConjugateGradientMS(
             maxtime=self.max_time,

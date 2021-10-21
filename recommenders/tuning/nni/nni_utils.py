@@ -8,6 +8,7 @@ import requests
 import subprocess
 import sys
 import time
+import pandas as pd
 
 
 NNI_REST_ENDPOINT = "http://localhost:8080/api/v1/nni"
@@ -18,7 +19,7 @@ MAX_RETRIES = 10
 
 
 def get_experiment_status(status_url=NNI_STATUS_URL):
-    """Helper method. Gets the experiment status from the REST endpoint.
+    """Helper method. Gets the experiment status from the REST endpoint. 
 
     Args:
         status_url (str): URL for the REST endpoint
@@ -56,7 +57,7 @@ def check_experiment_status(wait=WAITING_TIME, max_retries=MAX_RETRIES):
 
 
 def check_stopped(wait=WAITING_TIME, max_retries=MAX_RETRIES):
-    """Checks that there is no NNI experiment active (the URL is not accessible).
+    """Checks that there is no NNI experiment active (the URL is not accessible). 
     This method should be called after `nnictl stop` for verification.
 
     Args:
@@ -67,7 +68,7 @@ def check_stopped(wait=WAITING_TIME, max_retries=MAX_RETRIES):
     while i < max_retries:
         try:
             get_experiment_status(NNI_STATUS_URL)
-        except:  # noqa E722 do not use bare 'except'
+        except:
             break
         time.sleep(wait)
         i += 1
@@ -77,7 +78,7 @@ def check_stopped(wait=WAITING_TIME, max_retries=MAX_RETRIES):
 
 def check_metrics_written(wait=WAITING_TIME, max_retries=MAX_RETRIES):
     """Waits until the metrics have been written to the trial logs.
-
+    
     Args:
         wait (numeric) : time to wait in seconds
         max_retries (int): max number of retries
@@ -152,3 +153,5 @@ def start_nni(config_path, wait=WAITING_TIME, max_retries=MAX_RETRIES):
     if proc.returncode != 0:
         raise RuntimeError("'nnictl create' failed with code %d" % proc.returncode)
     check_experiment_status(wait=wait, max_retries=max_retries)
+
+    
