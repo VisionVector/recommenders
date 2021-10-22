@@ -214,7 +214,7 @@ class LightGCN(object):
                 mf_loss += batch_mf_loss / n_batch
                 emb_loss += batch_emb_loss / n_batch
 
-            if np.isnan(loss):
+            if np.isnan(loss) == True:
                 print("ERROR: loss is nan.")
                 sys.exit()
             train_end = time.time()
@@ -268,7 +268,7 @@ class LightGCN(object):
         """
         try:
             self.saver.restore(self.sess, model_path)
-        except Exception:
+        except:
             raise IOError(
                 "Failed to find any matching files for {0}".format(model_path)
             )
@@ -358,7 +358,7 @@ class LightGCN(object):
 
         """
         data = self.data
-        if not use_id:
+        if use_id == False:
             user_ids = np.array([data.user2id[x] for x in test[data.col_user].unique()])
         else:
             user_ids = np.array(test[data.col_user].unique())
