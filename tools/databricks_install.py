@@ -29,7 +29,7 @@ from databricks_cli.dbfs.dbfs_path import DbfsPath
 from recommenders.utils.spark_utils import MMLSPARK_PACKAGE, MMLSPARK_REPO
 
 CLUSTER_NOT_FOUND_MSG = """
-    Cannot find the target cluster {}. Please check if you entered the valid id.
+    Cannot find the target cluster {}. Please check if you entered the valid id. 
     Cluster id can be found by running 'databricks clusters list', which returns a table formatted as:
 
     <CLUSTER_ID>\t<CLUSTER_NAME>\t<STATUS>
@@ -47,10 +47,7 @@ COSMOSDB_JAR_FILE_OPTIONS = {
     "3": "https://search.maven.org/remotecontent?filepath=com/microsoft/azure/azure-cosmosdb-spark_2.2.0_2.11/1.1.1/azure-cosmosdb-spark_2.2.0_2.11-1.1.1-uber.jar",
     "4": "https://search.maven.org/remotecontent?filepath=com/microsoft/azure/azure-cosmosdb-spark_2.3.0_2.11/1.2.2/azure-cosmosdb-spark_2.3.0_2.11-1.2.2-uber.jar",
     "5": "https://search.maven.org/remotecontent?filepath=com/microsoft/azure/azure-cosmosdb-spark_2.4.0_2.11/1.3.5/azure-cosmosdb-spark_2.4.0_2.11-1.3.5-uber.jar",
-    "6": "https://search.maven.org/remotecontent?filepath=com/microsoft/azure/azure-cosmosdb-spark_2.4.0_2.11/3.7.0/azure-cosmosdb-spark_2.4.0_2.11-3.7.0-uber.jar",
-    "7": "https://search.maven.org/remotecontent?filepath=com/azure/cosmos/spark/azure-cosmos-spark_3-1_2-12/4.3.1/azure-cosmos-spark_3-1_2-12-4.3.1.jar",
-    "8": "https://search.maven.org/remotecontent?filepath=com/azure/cosmos/spark/azure-cosmos-spark_3-1_2-12/4.3.1/azure-cosmos-spark_3-1_2-12-4.3.1.jar",
-    "9": "https://search.maven.org/remotecontent?filepath=com/azure/cosmos/spark/azure-cosmos-spark_3-1_2-12/4.3.1/azure-cosmos-spark_3-1_2-12-4.3.1.jar"
+    "6": "https://search.maven.org/remotecontent?filepath=com/microsoft/azure/azure-cosmosdb-spark_2.4.0_2.11/3.7.0/azure-cosmosdb-spark_2.4.0_2.11-3.7.0-uber.jar"
 }
 
 MMLSPARK_INFO = {
@@ -73,7 +70,7 @@ PENDING_SLEEP_ATTEMPTS = int(
     5 * 60 / PENDING_SLEEP_INTERVAL
 )  # wait a maximum of 5 minutes...
 
-# dependencies from PyPI
+## dependencies from PyPI
 PYPI_PREREQS = [
     "pip==21.2.4",
     "setuptools==54.0.0",
@@ -91,8 +88,7 @@ PYPI_O16N_LIBS = [
     "pydocumentdb>=2.3.3",
 ]
 
-# Additional dependencies met below.
-
+## Additional dependencies met below.
 
 def dbfs_file_exists(api_client, dbfs_path):
     """Checks to determine whether a file exists.
@@ -107,7 +103,7 @@ def dbfs_file_exists(api_client, dbfs_path):
     try:
         DbfsApi(api_client).list_files(dbfs_path=DbfsPath(dbfs_path))
         file_exists = True
-    except Exception:
+    except:
         file_exists = False
     return file_exists
 
@@ -118,9 +114,9 @@ def get_installed_libraries(api_client, cluster_id):
     Args:
         api_client (ApiClient object): object used for authenticating to the workspace
         cluster_id (str): id of the cluster
-
+    
     Returns:
-        Dict[str, str]: dictionary of {package: status}
+        Dict[str, str]: dictionary of {package: status} 
     """
     cluster_status = LibrariesApi(api_client).cluster_status(cluster_id)
     libraries = {lib["library"]["pypi"]["package"]: lib["status"] for lib in cluster_status["library_statuses"] if "pypi" in lib["library"]}
@@ -178,9 +174,9 @@ def prepare_for_operationalization(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="""
-      This script installs the recommenders package from PyPI onto a databricks cluster.
-      Optionally, this script may also install the mmlspark library, and it may also install additional libraries useful
-      for operationalization. This script requires that you have installed databricks-cli in the python environment in
+      This script installs the recommenders package from PyPI onto a databricks cluster. 
+      Optionally, this script may also install the mmlspark library, and it may also install additional libraries useful 
+      for operationalization. This script requires that you have installed databricks-cli in the python environment in 
       which you are running this script, and that have you have already configured it with a profile.
       """,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -283,6 +279,7 @@ if __name__ == "__main__":
         )
         sys.exit()
 
+
     # install prerequisites
     print(
         "Installing required Python libraries onto databricks cluster {}".format(
@@ -305,11 +302,11 @@ if __name__ == "__main__":
     while "recommenders" not in installed_libraries:
         time.sleep(PENDING_SLEEP_INTERVAL)
         installed_libraries = get_installed_libraries(my_api_client, args.cluster_id)
-    while installed_libraries["recommenders"] not in ["INSTALLED", "FAILED"]:
+    while installed_libraries["recommenders"] != "INSTALLED":
         time.sleep(PENDING_SLEEP_INTERVAL)
         installed_libraries = get_installed_libraries(my_api_client, args.cluster_id)
     if installed_libraries["recommenders"] == "FAILED":
-        raise Exception("recommenders package failed to install")
+        raise Exception("recommenders package failed to install")    
 
     # additional PyPI dependencies:
     libs2install = [{"pypi": {"package": i}} for i in PYPI_EXTRA_DEPS]
@@ -343,7 +340,7 @@ if __name__ == "__main__":
     # wrap up and send out a final message:
     print(
         """
-        Requests submitted. You can check on status of your cluster with:
+        Requests submitted. You can check on status of your cluster with: 
 
         databricks --profile """
         + args.profile
