@@ -31,7 +31,7 @@ class DKN(BaseModel):
         """
         self.graph = tf.Graph()
         with self.graph.as_default():
-            with tf.compat.v1.name_scope("embedding"):
+            with tf.name_scope("embedding"):
                 word2vec_embedding = self._init_embedding(hparams.wordEmb_file)
                 self.embedding = tf.Variable(
                     word2vec_embedding, trainable=True, name="word"
@@ -40,11 +40,13 @@ class DKN(BaseModel):
                 if hparams.use_entity:
                     e_embedding = self._init_embedding(hparams.entityEmb_file)
                     W = tf.Variable(
-                        tf.random.uniform([hparams.entity_dim, hparams.dim], -1, 1),
-                        trainable=True
+                        tf.random.uniform([hparams.entity_dim, hparams.dim], -1, 1)
                     )
-                    b = tf.Variable(tf.zeros([hparams.dim]), trainable=True)
-                    self.entity_embedding = tf.nn.tanh(tf.matmul(e_embedding, W) + b)
+                    b = tf.Variable(tf.zeros([hparams.dim]))
+                    e_embedding_transformed = tf.nn.tanh(tf.matmul(e_embedding, W) + b)
+                    self.entity_embedding = tf.Variable(
+                        e_embedding_transformed, trainable=True, name="entity"
+                    )
                 else:
                     self.entity_embedding = tf.Variable(
                         tf.constant(
@@ -59,11 +61,13 @@ class DKN(BaseModel):
                 if hparams.use_context:
                     c_embedding = self._init_embedding(hparams.contextEmb_file)
                     W = tf.Variable(
-                        tf.random.uniform([hparams.entity_dim, hparams.dim], -1, 1),
-                        trainable=True
+                        tf.random.uniform([hparams.entity_dim, hparams.dim], -1, 1)
                     )
-                    b = tf.Variable(tf.zeros([hparams.dim]), trainable=True)
-                    self.context_embedding = tf.nn.tanh(tf.matmul(c_embedding, W) + b)
+                    b = tf.Variable(tf.zeros([hparams.dim]))
+                    c_embedding_transformed = tf.nn.tanh(tf.matmul(c_embedding, W) + b)
+                    self.context_embedding = tf.Variable(
+                        c_embedding_transformed, trainable=True, name="context"
+                    )
                 else:
                     self.context_embedding = tf.Variable(
                         tf.constant(
@@ -117,22 +121,22 @@ class DKN(BaseModel):
         l1_loss = tf.zeros([1], dtype=tf.float32)
         # embedding_layer l2 loss
         l1_loss = tf.add(
-            l1_loss, tf.multiply(hparams.embed_l1, tf.norm(tensor=self.embedding, ord=1))
+            l1_loss, tf.multiply(hparams.embed_l1, tf.norm(self.embedding, ord=1))
         )
         if hparams.use_entity:
             l1_loss = tf.add(
                 l1_loss,
-                tf.multiply(hparams.embed_l1, tf.norm(tensor=self.entity_embedding, ord=1)),
+                tf.multiply(hparams.embed_l1, tf.norm(self.entity_embedding, ord=1)),
             )
         if hparams.use_entity and hparams.use_context:
             l1_loss = tf.add(
                 l1_loss,
-                tf.multiply(hparams.embed_l1, tf.norm(tensor=self.context_embedding, ord=1)),
+                tf.multiply(hparams.embed_l1, tf.norm(self.context_embedding, ord=1)),
             )
         params = self.layer_params
         for param in params:
             l1_loss = tf.add(
-                l1_loss, tf.multiply(hparams.layer_l1, tf.norm(tensor=param, ord=1))
+                l1_loss, tf.multiply(hparams.layer_l1, tf.norm(param, ord=1))
             )
         return l1_loss
 
@@ -140,7 +144,7 @@ class DKN(BaseModel):
         hparams = self.hparams
         self.keep_prob_train = 1 - np.array(hparams.dropout)
         self.keep_prob_test = np.ones_like(hparams.dropout)
-        with tf.compat.v1.variable_scope("DKN") as scope:
+        with tf.compat.v1.variable_scope("DKN"):
             logit = self._build_dkn()
             return logit
 
@@ -171,7 +175,7 @@ class DKN(BaseModel):
         hidden_nn_layers.append(nn_input)
         with tf.compat.v1.variable_scope(
             "nn_part", initializer=self.initializer
-        ) as scope:
+        ):
             for idx, layer_size in enumerate(hparams.layer_sizes):
                 curr_w_nn_layer = tf.compat.v1.get_variable(
                     name="w_nn_layer" + str(layer_idx),
@@ -187,7 +191,7 @@ class DKN(BaseModel):
                     hidden_nn_layers[layer_idx], curr_w_nn_layer, curr_b_nn_layer
                 )
                 if hparams.enable_BN is True:
-                    curr_hidden_nn_layer = tf.compat.v1.layers.batch_normalization(
+                    curr_hidden_nn_layer = tf.layers.batch_normalization(
                         curr_hidden_nn_layer,
                         momentum=0.95,
                         epsilon=0.0001,
@@ -247,12 +251,12 @@ class DKN(BaseModel):
 
         with tf.compat.v1.variable_scope(
             "attention_net", initializer=self.initializer
-        ) as scope:
+        ) as scope:  # noqa: F841
 
             # use kims cnn to get conv embedding
             with tf.compat.v1.variable_scope(
                 "kcnn", initializer=self.initializer, reuse=tf.compat.v1.AUTO_REUSE
-            ) as cnn_scope:
+            ) as cnn_scope:  # noqa: F841
                 news_field_embed = self._kims_cnn(
                     candidate_word_batch, candidate_entity_batch, hparams
                 )
@@ -271,7 +275,7 @@ class DKN(BaseModel):
             avg_strategy = False
             if avg_strategy:
                 click_field_embed_final = tf.reduce_mean(
-                    input_tensor=click_field_embed, axis=1, keepdims=True
+                    click_field_embed, axis=1, keepdims=True
                 )
             else:
                 news_field_embed = tf.expand_dims(news_field_embed, 1)
@@ -299,7 +303,7 @@ class DKN(BaseModel):
                 )
 
                 if hparams.enable_BN is True:
-                    curr_attention_layer = tf.compat.v1.layers.batch_normalization(
+                    curr_attention_layer = tf.layers.batch_normalization(
                         curr_attention_layer,
                         momentum=0.95,
                         epsilon=0.0001,
@@ -326,7 +330,7 @@ class DKN(BaseModel):
                 )
                 norm_attention_weight = tf.nn.softmax(attention_weight, axis=1)
                 click_field_embed_final = tf.reduce_sum(
-                    input_tensor=tf.multiply(click_field_embed, norm_attention_weight),
+                    tf.multiply(click_field_embed, norm_attention_weight),
                     axis=1,
                     keepdims=True,
                 )
@@ -359,20 +363,20 @@ class DKN(BaseModel):
         num_filters = hparams.num_filters
 
         dim = hparams.dim
-        embedded_chars = tf.nn.embedding_lookup(params=self.embedding, ids=word)
+        embedded_chars = tf.nn.embedding_lookup(self.embedding, word)
         if hparams.use_entity and hparams.use_context:
             entity_embedded_chars = tf.nn.embedding_lookup(
-                params=self.entity_embedding, ids=entity
+                self.entity_embedding, entity
             )
             context_embedded_chars = tf.nn.embedding_lookup(
-                params=self.context_embedding, ids=entity
+                self.context_embedding, entity
             )
             concat = tf.concat(
                 [embedded_chars, entity_embedded_chars, context_embedded_chars], axis=-1
             )
         elif hparams.use_entity:
             entity_embedded_chars = tf.nn.embedding_lookup(
-                params=self.entity_embedding, ids=entity
+                self.entity_embedding, entity
             )
             concat = tf.concat([embedded_chars, entity_embedded_chars], axis=-1)
         else:
@@ -396,7 +400,7 @@ class DKN(BaseModel):
                     name="W" + "_filter_size_" + str(filter_size),
                     shape=filter_shape,
                     dtype=tf.float32,
-                    initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution=("uniform" if False else "truncated_normal")),
+                    initializer=tf.contrib.layers.xavier_initializer(uniform=False),
                 )
                 b = tf.compat.v1.get_variable(
                     name="b" + "_filter_size_" + str(filter_size),
@@ -408,8 +412,8 @@ class DKN(BaseModel):
                 if b not in self.layer_params:
                     self.layer_params.append(b)
                 conv = tf.nn.conv2d(
-                    input=concat_expanded,
-                    filters=W,
+                    concat_expanded,
+                    W,
                     strides=[1, 1, 1, 1],
                     padding="VALID",
                     name="conv",
