@@ -7,10 +7,10 @@ import time
 import os
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
 from recommenders.models.deeprec.deeprec_utils import cal_metric
 
 
-tf.compat.v1.disable_eager_execution()
 __all__ = ["BaseModel"]
 
 
@@ -22,7 +22,7 @@ class BaseModel:
         parameter set.
 
         Args:
-            hparams (object): An `HParams` object, holds the entire set of hyperparameters.
+            hparams (object): A `tf.contrib.training.HParams` object, hold the entire set of hyperparameters.
             iterator_creator (object): An iterator to load the data.
             graph (object): An optional graph.
             seed (int): Random seed.
@@ -34,7 +34,7 @@ class BaseModel:
         self.graph = graph if graph is not None else tf.Graph()
         self.iterator = iterator_creator(hparams, self.graph)
         self.train_num_ngs = (
-            hparams.train_num_ngs if "train_num_ngs" in hparams.values() else None
+            hparams.train_num_ngs if "train_num_ngs" in hparams else None
         )
 
         with self.graph.as_default():
@@ -137,12 +137,12 @@ class BaseModel:
         # embedding_layer l2 loss
         for param in self.embed_params:
             l1_loss = tf.add(
-                l1_loss, tf.multiply(self.hparams.embed_l1, tf.norm(tensor=param, ord=1))
+                l1_loss, tf.multiply(self.hparams.embed_l1, tf.norm(param, ord=1))
             )
         params = self.layer_params
         for param in params:
             l1_loss = tf.add(
-                l1_loss, tf.multiply(self.hparams.layer_l1, tf.norm(tensor=param, ord=1))
+                l1_loss, tf.multiply(self.hparams.layer_l1, tf.norm(param, ord=1))
             )
         return l1_loss
 
@@ -155,47 +155,47 @@ class BaseModel:
         cross_l_loss = tf.zeros([1], dtype=tf.float32)
         for param in self.cross_params:
             cross_l_loss = tf.add(
-                cross_l_loss, tf.multiply(self.hparams.cross_l1, tf.norm(tensor=param, ord=1))
+                cross_l_loss, tf.multiply(self.hparams.cross_l1, tf.norm(param, ord=1))
             )
             cross_l_loss = tf.add(
-                cross_l_loss, tf.multiply(self.hparams.cross_l2, tf.norm(tensor=param, ord=2))
+                cross_l_loss, tf.multiply(self.hparams.cross_l2, tf.norm(param, ord=2))
             )
         return cross_l_loss
 
     def _get_initializer(self):
         if self.hparams.init_method == "tnormal":
-            return tf.compat.v1.truncated_normal_initializer(
+            return tf.truncated_normal_initializer(
                 stddev=self.hparams.init_value, seed=self.seed
             )
         elif self.hparams.init_method == "uniform":
-            return tf.compat.v1.random_uniform_initializer(
+            return tf.random_uniform_initializer(
                 -self.hparams.init_value, self.hparams.init_value, seed=self.seed
             )
         elif self.hparams.init_method == "normal":
-            return tf.compat.v1.random_normal_initializer(
+            return tf.random_normal_initializer(
                 stddev=self.hparams.init_value, seed=self.seed
             )
         elif self.hparams.init_method == "xavier_normal":
-            return tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution=("uniform" if False else "truncated_normal"), seed=self.seed)
+            return tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed)
         elif self.hparams.init_method == "xavier_uniform":
-            return tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution=("uniform" if True else "truncated_normal"), seed=self.seed)
+            return tf.contrib.layers.xavier_initializer(uniform=True, seed=self.seed)
         elif self.hparams.init_method == "he_normal":
-            return tf.compat.v1.keras.initializers.VarianceScaling(
-                scale=2.0, mode=("FAN_IN").lower(), distribution=("uniform" if False else "truncated_normal"), seed=self.seed
+            return tf.contrib.layers.variance_scaling_initializer(
+                factor=2.0, mode="FAN_IN", uniform=False, seed=self.seed
             )
         elif self.hparams.init_method == "he_uniform":
-            return tf.compat.v1.keras.initializers.VarianceScaling(
-                scale=2.0, mode=("FAN_IN").lower(), distribution=("uniform" if True else "truncated_normal"), seed=self.seed
+            return tf.contrib.layers.variance_scaling_initializer(
+                factor=2.0, mode="FAN_IN", uniform=True, seed=self.seed
             )
         else:
-            return tf.compat.v1.truncated_normal_initializer(
+            return tf.truncated_normal_initializer(
                 stddev=self.hparams.init_value, seed=self.seed
             )
 
     def _compute_data_loss(self):
         if self.hparams.loss == "cross_entropy_loss":
             data_loss = tf.reduce_mean(
-                input_tensor=tf.nn.sigmoid_cross_entropy_with_logits(
+                tf.nn.sigmoid_cross_entropy_with_logits(
                     logits=tf.reshape(self.logit, [-1]),
                     labels=tf.reshape(self.iterator.labels, [-1]),
                 )
@@ -203,7 +203,7 @@ class BaseModel:
         elif self.hparams.loss == "square_loss":
             data_loss = tf.sqrt(
                 tf.reduce_mean(
-                    input_tensor=tf.math.squared_difference(
+                    tf.squared_difference(
                         tf.reshape(self.pred, [-1]),
                         tf.reshape(self.iterator.labels, [-1]),
                     )
@@ -211,7 +211,7 @@ class BaseModel:
             )
         elif self.hparams.loss == "log_loss":
             data_loss = tf.reduce_mean(
-                input_tensor=tf.compat.v1.losses.log_loss(
+                tf.compat.v1.losses.log_loss(
                     predictions=tf.reshape(self.pred, [-1]),
                     labels=tf.reshape(self.iterator.labels, [-1]),
                 )
@@ -222,11 +222,11 @@ class BaseModel:
             if self.hparams.model_type == "NextItNet":
                 labels = (
                     tf.transpose(
-                        a=tf.reshape(
+                        tf.reshape(
                             self.iterator.labels,
                             (-1, group, self.hparams.max_seq_length),
                         ),
-                        perm=[0, 2, 1],
+                        [0, 2, 1],
                     ),
                 )
                 labels = tf.reshape(labels, (-1, group))
@@ -235,8 +235,8 @@ class BaseModel:
             softmax_pred = tf.nn.softmax(logits, axis=-1)
             boolean_mask = tf.equal(labels, tf.ones_like(labels))
             mask_paddings = tf.ones_like(softmax_pred)
-            pos_softmax = tf.compat.v1.where(boolean_mask, softmax_pred, mask_paddings)
-            data_loss = -group * tf.reduce_mean(input_tensor=tf.math.log(pos_softmax))
+            pos_softmax = tf.where(boolean_mask, softmax_pred, mask_paddings)
+            data_loss = -group * tf.reduce_mean(tf.math.log(pos_softmax))
         else:
             raise ValueError("this loss not defined {0}".format(self.hparams.loss))
         return data_loss
@@ -249,7 +249,7 @@ class BaseModel:
             object: Regular loss.
         """
         regular_loss = self._l2_loss() + self._l1_loss() + self._cross_l_loss()
-        return tf.reduce_sum(input_tensor=regular_loss)
+        return tf.reduce_sum(regular_loss)
 
     def _train_opt(self):
         """Get the optimizer according to configuration. Usually we will use Adam.
@@ -261,25 +261,27 @@ class BaseModel:
         optimizer = self.hparams.optimizer
 
         if optimizer == "adadelta":
-            train_step = tf.compat.v1.train.AdadeltaOptimizer(lr)
+            train_step = tf.train.AdadeltaOptimizer(lr)
         elif optimizer == "adagrad":
-            train_step = tf.compat.v1.train.AdagradOptimizer(lr)
+            train_step = tf.train.AdagradOptimizer(lr)
         elif optimizer == "sgd":
-            train_step = tf.compat.v1.train.GradientDescentOptimizer(lr)
+            train_step = tf.train.GradientDescentOptimizer(lr)
         elif optimizer == "adam":
             train_step = tf.compat.v1.train.AdamOptimizer(lr)
         elif optimizer == "ftrl":
-            train_step = tf.compat.v1.train.FtrlOptimizer(lr)
+            train_step = tf.train.FtrlOptimizer(lr)
         elif optimizer == "gd":
-            train_step = tf.compat.v1.train.GradientDescentOptimizer(lr)
+            train_step = tf.train.GradientDescentOptimizer(lr)
         elif optimizer == "padagrad":
-            train_step = tf.compat.v1.train.ProximalAdagradOptimizer(lr)
+            train_step = tf.train.ProximalAdagradOptimizer(lr)
         elif optimizer == "pgd":
-            train_step = tf.compat.v1.train.ProximalGradientDescentOptimizer(lr)
+            train_step = tf.train.ProximalGradientDescentOptimizer(lr)
         elif optimizer == "rmsprop":
-            train_step = tf.compat.v1.train.RMSPropOptimizer(lr)
+            train_step = tf.train.RMSPropOptimizer(lr)
+        elif optimizer == "lazyadam":
+            train_step = tf.contrib.opt.LazyAdamOptimizer(lr)
         else:
-            train_step = tf.compat.v1.train.GradientDescentOptimizer(lr)
+            train_step = tf.train.GradientDescentOptimizer(lr)
         return train_step
 
     def _build_train_opt(self):
@@ -342,7 +344,7 @@ class BaseModel:
         Returns:
             object: A tensor of the same shape of logit.
         """
-        return tf.nn.dropout(x=logit, rate=1 - (keep_prob))
+        return tf.nn.dropout(x=logit, keep_prob=keep_prob)
 
     def train(self, sess, feed_dict):
         """Go through the optimization step once with training data in `feed_dict`.
@@ -426,7 +428,7 @@ class BaseModel:
             object: An instance of self.
         """
         if self.hparams.write_tfevents:
-            self.writer = tf.compat.v1.summary.FileWriter(
+            self.writer = tf.summary.FileWriter(
                 self.hparams.SUMMARIES_DIR, self.sess.graph
             )
 
@@ -568,7 +570,7 @@ class BaseModel:
             labels.extend(np.reshape(step_labels, -1))
             imp_indexs.extend(np.reshape(imp_index, -1))
         res = cal_metric(labels, preds, self.hparams.metrics)
-        if "pairwise_metrics" in self.hparams.values():
+        if self.hparams.pairwise_metrics is not None:
             group_labels, group_preds = self.group_labels(labels, preds, imp_indexs)
             res_pairwise = cal_metric(
                 group_labels, group_preds, self.hparams.pairwise_metrics
@@ -587,7 +589,7 @@ class BaseModel:
             object: An instance of self.
         """
         load_sess = self.sess
-        with tf.io.gfile.GFile(outfile_name, "w") as wt:
+        with tf.gfile.GFile(outfile_name, "w") as wt:
             for batch_data_input, _, data_size in self.iterator.load_data_from_file(
                 infile_name
             ):
@@ -609,18 +611,18 @@ class BaseModel:
         Returns:
             object: Weighted sum after attention.
         """
-        hidden_size = inputs.shape[2]
+        hidden_size = inputs.shape[2].value
         if not attention_size:
             attention_size = hidden_size
 
-        attention_mat = tf.compat.v1.get_variable(
+        attention_mat = tf.get_variable(
             name="attention_mat",
-            shape=[inputs.shape[-1], hidden_size],
+            shape=[inputs.shape[-1].value, hidden_size],
             initializer=self.initializer,
         )
         att_inputs = tf.tensordot(inputs, attention_mat, [[2], [0]])
 
-        query = tf.compat.v1.get_variable(
+        query = tf.get_variable(
             name="query",
             shape=[attention_size],
             dtype=tf.float32,
@@ -643,28 +645,28 @@ class BaseModel:
             object: Prediction logit after fully connected layer.
         """
         hparams = self.hparams
-        with tf.compat.v1.variable_scope(scope):
+        with tf.variable_scope(scope):
             last_layer_size = model_output.shape[-1]
             layer_idx = 0
             hidden_nn_layers = []
             hidden_nn_layers.append(model_output)
-            with tf.compat.v1.variable_scope("nn_part", initializer=self.initializer) as scope:
+            with tf.variable_scope("nn_part", initializer=self.initializer) as scope:
                 for idx, layer_size in enumerate(layer_sizes):
-                    curr_w_nn_layer = tf.compat.v1.get_variable(
+                    curr_w_nn_layer = tf.get_variable(
                         name="w_nn_layer" + str(layer_idx),
                         shape=[last_layer_size, layer_size],
                         dtype=tf.float32,
                     )
-                    curr_b_nn_layer = tf.compat.v1.get_variable(
+                    curr_b_nn_layer = tf.get_variable(
                         name="b_nn_layer" + str(layer_idx),
                         shape=[layer_size],
                         dtype=tf.float32,
-                        initializer=tf.compat.v1.zeros_initializer(),
+                        initializer=tf.zeros_initializer(),
                     )
-                    tf.compat.v1.summary.histogram(
+                    tf.summary.histogram(
                         "nn_part/" + "w_nn_layer" + str(layer_idx), curr_w_nn_layer
                     )
-                    tf.compat.v1.summary.histogram(
+                    tf.summary.histogram(
                         "nn_part/" + "b_nn_layer" + str(layer_idx), curr_b_nn_layer
                     )
                     curr_hidden_nn_layer = (
@@ -678,7 +680,7 @@ class BaseModel:
                     activation = hparams.activation[idx]
 
                     if hparams.enable_BN is True:
-                        curr_hidden_nn_layer = tf.compat.v1.layers.batch_normalization(
+                        curr_hidden_nn_layer = tf.layers.batch_normalization(
                             curr_hidden_nn_layer,
                             momentum=0.95,
                             epsilon=0.0001,
@@ -692,19 +694,19 @@ class BaseModel:
                     layer_idx += 1
                     last_layer_size = layer_size
 
-                w_nn_output = tf.compat.v1.get_variable(
+                w_nn_output = tf.get_variable(
                     name="w_nn_output", shape=[last_layer_size, 1], dtype=tf.float32
                 )
-                b_nn_output = tf.compat.v1.get_variable(
+                b_nn_output = tf.get_variable(
                     name="b_nn_output",
                     shape=[1],
                     dtype=tf.float32,
-                    initializer=tf.compat.v1.zeros_initializer(),
+                    initializer=tf.zeros_initializer(),
                 )
-                tf.compat.v1.summary.histogram(
+                tf.summary.histogram(
                     "nn_part/" + "w_nn_output" + str(layer_idx), w_nn_output
                 )
-                tf.compat.v1.summary.histogram(
+                tf.summary.histogram(
                     "nn_part/" + "b_nn_output" + str(layer_idx), b_nn_output
                 )
                 nn_output = (
