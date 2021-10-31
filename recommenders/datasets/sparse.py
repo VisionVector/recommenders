@@ -13,6 +13,7 @@ from recommenders.utils.constants import (
     DEFAULT_USER_COL,
     DEFAULT_ITEM_COL,
     DEFAULT_RATING_COL,
+    DEFAULT_TIMESTAMP_COL,
     DEFAULT_PREDICTION_COL,
 )
 
