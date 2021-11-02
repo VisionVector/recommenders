@@ -27,7 +27,7 @@ if HASH is not None:
     version += ".post" + str(int(time.time()))
 
 install_requires = [
-    "numpy>=1.19",  # 1.19 required by tensorflow
+    "numpy>=1.19",  # 1.19 required by tensorflow 
     "pandas>1.0.3,<2",
     "scipy>=1.0.0,<2",
     "tqdm>=4.31.1,<5",
@@ -39,7 +39,8 @@ install_requires = [
     "memory_profiler>=0.54.0,<1",
     "nltk>=3.4,<4",
     "pydocumentdb>=2.3.3<3",  # TODO: replace with azure-cosmos
-    "pymanopt>=0.2.5,<1",
+    # Temporary fix for pymanopt, only this commit works with TF2 
+    "pymanopt@https://github.com/pymanopt/pymanopt/archive/fb36a272cdeecb21992cfd9271eb82baafeb316d.zip",
     "seaborn>=0.8.1,<1",
     "transformers>=2.5.0,<5",
     "bottleneck>=1.2.1,<2",
@@ -66,14 +67,17 @@ extras_require = {
     ],
     "gpu": [
         "nvidia-ml-py3>=7.352.0",
-        "tensorflow>=2.6",  # compiled with CUDA 11.2, cudnn 8.1
-        "torch==1.2.0",  # last os-common version with CUDA 10.0 support
+        "tensorflow==2.6",  # compiled with CUDA 11.2, cudnn 8.1
+        "tensorflow-estimator==2.6",
+        "tensorboard==2.6",
+        "tf-slim>=1.1.0",
+        "torch>=1.8",  # for CUDA 11 support
         "fastai>=1.0.46,<2",
     ],
     "spark": [
         "databricks_cli>=0.8.6,<1",
-        "pyarrow>=0.8.0,<1.0.0",
-        "pyspark>=2.4.5,<3.0.0",
+        "pyarrow>=0.12.1,<6.0.0",
+        "pyspark>=2.4.5,<3.2.0",
     ],
     "xlearn": [
         "cmake>=3.18.4.post1",
@@ -85,6 +89,7 @@ extras_require = {
         "pytest>=3.6.4",
         "pytest-cov>=2.12.1",
         "pytest-mock>=3.6.1",  # for access to mock fixtures in pytest
+        "pytest-rerunfailures>=10.2",  # to mark flaky tests
     ],
 }
 # for the brave of heart
@@ -129,9 +134,6 @@ setup(
     "machine learning python spark gpu",
     install_requires=install_requires,
     package_dir={"recommenders": "recommenders"},
-    packages=find_packages(
-        where=".",
-        exclude=["contrib", "docs", "examples", "scenarios", "tests", "tools"],
-    ),
-    python_requires=">=3.6, <3.8",
+    python_requires=">=3.6, <3.9",     # latest Databricks versions come with Python 3.8 installed
+    packages=find_packages(where=".", exclude=["contrib", "docs", "examples", "scenarios", "tests", "tools"]),
 )
