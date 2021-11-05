@@ -18,7 +18,7 @@ from recommenders.models.geoimc.geoimc_utils import (
     mean_center,
     reduce_dims,
 )
-from pymanopt.manifolds import Stiefel, SymmetricPositiveDefinite
+from pymanopt.manifolds import Stiefel, PositiveDefinite
 
 _IMC_TEST_DATA = [
     (
@@ -132,7 +132,7 @@ def test_inferer_infer(dataPtr):
     rank = 2
     W = [
         Stiefel(rowFeatureDim, rank).rand(),
-        SymmetricPositiveDefinite(rank).rand(),
+        PositiveDefinite(rank).rand(),
         Stiefel(colFeatureDim, rank).rand(),
     ]
 
