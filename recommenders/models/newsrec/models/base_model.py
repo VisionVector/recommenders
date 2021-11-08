@@ -6,10 +6,12 @@ import time
 import numpy as np
 from tqdm import tqdm
 import tensorflow as tf
-from tensorflow import keras
+from tensorflow.compat.v1 import keras
 
 from recommenders.models.deeprec.deeprec_utils import cal_metric
 
+tf.compat.v1.disable_eager_execution()
+tf.compat.v1.experimental.output_all_intermediates(True)
 __all__ = ["BaseModel"]
 
 
@@ -17,7 +19,7 @@ class BaseModel:
     """Basic class of models
 
     Attributes:
-        hparams (object): A tf.contrib.training.HParams object, hold the entire set of hyperparameters.
+        hparams (HParams): A HParams object, holds the entire set of hyperparameters.
         train_iterator (object): An iterator to load the data in training steps.
         test_iterator (object): An iterator to load the data in testing steps.
         graph (object): An optional graph.
@@ -34,7 +36,7 @@ class BaseModel:
         parameter set.
 
         Args:
-            hparams (object): A tf.contrib.training.HParams object, hold the entire set of hyperparameters.
+            hparams (HParams): A HParams object, holds the entire set of hyperparameters.
             iterator_creator (object): An iterator to load the data.
             graph (object): An optional graph.
             seed (int): Random seed.
