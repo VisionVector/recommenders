@@ -27,7 +27,7 @@ if HASH is not None:
     version += ".post" + str(int(time.time()))
 
 install_requires = [
-    "numpy>=1.19",  # 1.19 required by tensorflow
+    "numpy>=1.19",
     "pandas>1.0.3,<2",
     "scipy>=1.0.0,<2",
     "tqdm>=4.31.1,<5",
@@ -39,8 +39,7 @@ install_requires = [
     "memory_profiler>=0.54.0,<1",
     "nltk>=3.4,<4",
     "pydocumentdb>=2.3.3<3",  # TODO: replace with azure-cosmos
-    # Temporary fix for pymanopt, only this commit works with TF2
-    "pymanopt@https://github.com/pymanopt/pymanopt/archive/fb36a272cdeecb21992cfd9271eb82baafeb316d.zip",
+    "pymanopt>=0.2.5,<1",
     "seaborn>=0.8.1,<1",
     "transformers>=2.5.0,<5",
     "bottleneck>=1.2.1,<2",
@@ -52,7 +51,6 @@ install_requires = [
     # For Surprise, specify the tarball in order to avoid incompatibilities of compiled .pyx files with numpy versions < 1.20
     "scikit-surprise@https://files.pythonhosted.org/packages/97/37/5d334adaf5ddd65da99fc65f6507e0e4599d092ba048f4302fe8775619e8/scikit-surprise-1.1.1.tar.gz",
     "retrying>=1.3.3",
-    "pandera[strategies]>=0.6.5",  # For generating fake datasets
 ]
 
 # shared dependencies
@@ -68,12 +66,8 @@ extras_require = {
     ],
     "gpu": [
         "nvidia-ml-py3>=7.352.0",
-        "tensorflow~=2.6.1",  # compiled with CUDA 11.2, cudnn 8.1
-        "tensorflow-estimator==2.6",
-        "tensorboard==2.6",
-        "keras==2.6",
-        "tf-slim>=1.1.0",
-        "torch>=1.8",  # for CUDA 11 support
+        "tensorflow-gpu>=1.15.0,<2",  # compiled with CUDA 10.0
+        "torch==1.2.0",  # last os-common version with CUDA 10.0 support
         "fastai>=1.0.46,<2",
     ],
     "spark": [
@@ -87,6 +81,7 @@ extras_require = {
     ],
     "dev": [
         "black>=18.6b4,<21",
+        "pandera[strategies]>=0.6.5",  # For generating fake datasets
         "pytest>=3.6.4",
         "pytest-cov>=2.12.1",
         "pytest-mock>=3.6.1",  # for access to mock fixtures in pytest

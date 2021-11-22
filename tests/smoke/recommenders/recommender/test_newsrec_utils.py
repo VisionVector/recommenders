@@ -5,7 +5,8 @@ import os
 import pytest
 
 try:
-    from recommenders.models.newsrec.newsrec_utils import prepare_hparams
+    import tensorflow as tf
+    from recommenders.models.newsrec.newsrec_utils import prepare_hparams, load_yaml
     from recommenders.models.deeprec.deeprec_utils import download_deeprec_resources
     from recommenders.models.newsrec.io.mind_iterator import MINDIterator
     from recommenders.models.newsrec.io.mind_all_iterator import MINDAllIterator
