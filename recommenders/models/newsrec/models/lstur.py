@@ -1,8 +1,10 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-import tensorflow.compat.v1.keras as keras
-from tensorflow.compat.v1.keras import layers
+import numpy as np
+import tensorflow as tf
+import tensorflow.keras as keras
+from tensorflow.keras import layers
 
 
 from recommenders.models.newsrec.models.base_model import BaseModel

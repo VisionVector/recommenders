@@ -8,6 +8,7 @@ from tempfile import TemporaryDirectory
 import os
 
 from recommenders.datasets.pandas_df_utils import (
+    user_item_pairs,
     filter_by,
     LibffmConverter,
     has_same_base_dtype,

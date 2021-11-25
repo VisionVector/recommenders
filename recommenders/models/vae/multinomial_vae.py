@@ -2,15 +2,17 @@
 # Licensed under the MIT License.
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from recommenders.evaluation.python_evaluation import ndcg_at_k
 
 import tensorflow as tf
+import bottleneck as bn
 from tensorflow.keras.layers import *
 from tensorflow.keras.models import Model
 from tensorflow.keras import backend as K
-from tensorflow.keras.callbacks import ReduceLROnPlateau, Callback
+from tensorflow.keras.callbacks import ReduceLROnPlateau, ModelCheckpoint, Callback
 
 
 class LossHistory(Callback):
@@ -253,7 +255,7 @@ class Mult_VAE:
         self.anneal_cap = anneal_cap
         self.annealing = annealing
 
-        if self.annealing:
+        if self.annealing == True:
             self.beta = K.variable(0.0)
         else:
             self.beta = beta
@@ -285,10 +287,8 @@ class Mult_VAE:
         self.h = Dense(
             self.intermediate_dim,
             activation="tanh",
-            kernel_initializer=tf.compat.v1.keras.initializers.glorot_uniform(
-                seed=self.seed
-            ),
-            bias_initializer=tf.compat.v1.keras.initializers.truncated_normal(
+            kernel_initializer=tf.keras.initializers.glorot_uniform(seed=self.seed),
+            bias_initializer=tf.keras.initializers.truncated_normal(
                 stddev=0.001, seed=self.seed
             ),
         )(self.dropout_encoder)
@@ -304,10 +304,8 @@ class Mult_VAE:
         self.h_decoder = Dense(
             self.intermediate_dim,
             activation="tanh",
-            kernel_initializer=tf.compat.v1.keras.initializers.glorot_uniform(
-                seed=self.seed
-            ),
-            bias_initializer=tf.compat.v1.keras.initializers.truncated_normal(
+            kernel_initializer=tf.keras.initializers.glorot_uniform(seed=self.seed),
+            bias_initializer=tf.keras.initializers.truncated_normal(
                 stddev=0.001, seed=self.seed
             ),
         )
@@ -327,10 +325,8 @@ class Mult_VAE:
     def _get_vae_loss(self, x, x_bar):
         """Calculate negative ELBO (NELBO)."""
         log_softmax_var = tf.nn.log_softmax(x_bar)
-        self.neg_ll = -tf.reduce_mean(
-            input_tensor=tf.reduce_sum(input_tensor=log_softmax_var * x, axis=-1)
-        )
-        a = tf.keras.backend.print_tensor(self.neg_ll)  # noqa: F841
+        self.neg_ll = -tf.reduce_mean(tf.reduce_sum(log_softmax_var * x, axis=-1))
+        a = tf.keras.backend.print_tensor(self.neg_ll)
         # calculate positive Kullback–Leibler divergence  divergence term
         kl_loss = K.mean(
             0.5
@@ -421,7 +417,7 @@ class Mult_VAE:
             monitor="val_loss", factor=0.2, patience=1, min_lr=0.0001
         )
 
-        if self.annealing:
+        if self.annealing == True:
             # initialise AnnealingCallback for annealing process
             anneal = AnnealingCallback(
                 self.beta, self.anneal_cap, self.total_anneal_steps
@@ -456,7 +452,7 @@ class Mult_VAE:
 
     def get_optimal_beta(self):
         """Returns the value of the optimal beta."""
-        if self.annealing:
+        if self.annealing == True:
             # find the epoch/index that had the highest NDCG@k value
             index_max_ndcg = np.argmax(self.val_ndcg)
 
