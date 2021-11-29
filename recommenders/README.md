@@ -22,6 +22,11 @@ To install core utilities, CPU-based algorithms, and dependencies
 pip install --upgrade pip
 pip install recommenders
 ```
+In the case of conda, you also need to 
+```bash
+conda install numpy-base
+```
+after the pip installation.
 
 ## Optional Dependencies
 
