@@ -1,30 +1,52 @@
-scalaVersion := "2.11.8"
-
-sparkVersion := sys.env.get("sparkversion").getOrElse("2.3.0")
-
-spName := "microsoft/sarplus"
-
-organization := "microsoft"
 name := "sarplus"
+licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT"))
+// credentials += Credentials(Path.userHome / ".m2" / ".sbtcredentials")
+// publishTo := {
+//   val org = sys.env.getOrElse("ORG", "")
+//   val project = sys.env.getOrElse("PROJECT", "")
+//   val feed = sys.env.getOrElse("FEED", "")
+//   Some("releases" at "https://pkgs.dev.azure.com/%s/%s/_packaging/%s/Maven/v1".format(org, project, feed))
+// }
 
-version := "0.2.6" 
+lazy val sparkVer = settingKey[String]("spark version")
+lazy val hadoopVer = settingKey[String]("hadoop version")
 
-sparkComponents ++= Seq("core", "sql", "mllib")
-
-libraryDependencies ++= Seq(
-  "commons-io" % "commons-io" % "2.6",
-  "com.google.guava" % "guava" % "25.0-jre",
-  "org.scalatest" %% "scalatest" % "3.0.5" % "test",
-  "org.scalamock" %% "scalamock" % "4.1.0" % "test"
+lazy val commonSettings = Seq(
+  organization := "sarplus.microsoft",
+  version := sys.env.getOrElse("VERSION", "0.5.0"),
+  resolvers ++= Seq(
+    Resolver.sonatypeRepo("snapshots"),
+    Resolver.sonatypeRepo("releases"),
+  ),
+  addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full),
+  sparkVer := sys.env.getOrElse("SPARK_VERSION", "3.2.0"),
+  hadoopVer := sys.env.getOrElse("HADOOP_VERSION", "3.3.1"),
+  libraryDependencies ++= Seq(
+    "com.fasterxml.jackson.core" % "jackson-databind" % "2.12.2",
+    "commons-io" % "commons-io" % "2.8.0",
+    "org.apache.hadoop" % "hadoop-common" % hadoopVer.value,
+    "org.apache.hadoop" % "hadoop-hdfs" % hadoopVer.value,
+    "org.apache.spark" %% "spark-core" % sparkVer.value,
+    "org.apache.spark" %% "spark-mllib" % sparkVer.value,
+    "org.apache.spark" %% "spark-sql" % sparkVer.value,
+    "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+    "com.google.guava" % "guava" % "15.0",
+    "org.scalamock" %% "scalamock" % "4.1.0" % "test",
+    "org.scalatest" %% "scalatest" % "3.0.8" % "test",
+    "xerces" % "xercesImpl" % "2.12.1",
+  ),
+  artifactName := {
+    (sv: ScalaVersion, module: ModuleID, artifact: Artifact) =>
+      artifact.name + "_" + sv.full + "_s" + sparkVer.value + "_h" + hadoopVer.value + "-" + module.revision + "." + artifact.extension
+  },
 )
 
-// All Spark Packages need a license
-licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT"))
+lazy val compat = project.settings(commonSettings)
+lazy val root = (project in file("."))
+  .dependsOn(compat)
+  .settings(
+    name := "sarplus",
+    commonSettings,
+  )
 
-// doesn't work anyway...
-credentials += Credentials(Path.userHome / ".ivy2" / ".sbtcredentials") // A file containing credentials
-
-spHomepage := "http://github.com/Microsoft/Recommenders/contrib/sarplus"
-
-// If you published your package to Maven Central for this release (must be done prior to spPublish)
-spIncludeMaven := true
+// aetherPublishBothSettings

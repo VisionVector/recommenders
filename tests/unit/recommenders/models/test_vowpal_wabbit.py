@@ -114,9 +114,7 @@ def test_fit_and_predict(model, df):
         f.writelines(["1 0\n", "3 1\n", "5 2\n"])
 
     # patch subprocess call to vw
-    with mock.patch(
-        "recommenders.models.vowpal_wabbit.vw.run"
-    ) as mock_run:  # noqa: F841
+    with mock.patch("recommenders.models.vowpal_wabbit.vw.run") as mock_run:
         model.fit(df)
         result = model.predict(df)
 
