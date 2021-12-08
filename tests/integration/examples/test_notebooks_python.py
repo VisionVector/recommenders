@@ -91,7 +91,6 @@ def test_baseline_deep_dive_integration(
         assert results[key] == pytest.approx(value, rel=TOL, abs=ABS_TOL)
 
 
-@pytest.mark.experimental
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "size, expected_values",
@@ -252,7 +251,7 @@ def test_geoimc_integration(notebooks, output_notebook, kernel_name, expected_va
 
 
 @pytest.mark.integration
-@pytest.mark.experimental
+@pytest.mark.skip(reason="xLearn pip package has installation incompatibilities")
 def test_xlearn_fm_integration(notebooks, output_notebook, kernel_name):
     notebook_path = notebooks["xlearn_fm_deep_dive"]
     pm.execute_notebook(
