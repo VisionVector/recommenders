@@ -1,13 +1,18 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+
 import calendar
 import datetime
 import math
+import os
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
+from pyspark.sql import SparkSession
 import pytest
-import os
 from sklearn.model_selection import train_test_split
 
-from pyspark.sql import SparkSession
 
 from pysarplus import SARPlus, SARModel
 
@@ -20,7 +25,15 @@ def assert_compare(expected_id, expected_score, actual_prediction):
 
 
 @pytest.fixture(scope="module")
-def spark(app_name="Sample", url="local[*]", memory="1G"):
+def token(request):
+    if request.config.getoption("--token") == "":
+        return ""
+    else:
+        return "?" + request.config.getoption("--token")
+
+
+@pytest.fixture(scope="module")
+def spark(tmp_path_factory, app_name="Sample", url="local[*]", memory="1G"):
     """Start Spark if not started
     Args:
         app_name (str): sets name of the application
@@ -28,19 +41,26 @@ def spark(app_name="Sample", url="local[*]", memory="1G"):
         memory (str): size of memory for spark driver
     """
 
+    try:
+        sarplus_jar_path = next(
+            Path(__file__)
+            .parents[2]
+            .joinpath("scala", "target")
+            .glob(f"**/sarplus*{os.environ.get('VERSION', '')}*.jar")
+        ).absolute()
+    except StopIteration:
+        raise Exception("Could not find Sarplus JAR file")
+
     spark = (
         SparkSession.builder.appName(app_name)
         .master(url)
-        .config(
-            "spark.jars",
-            os.path.dirname(__file__)
-            + "/../../scala/target/scala-2.11/sarplus_2.11-0.2.6.jar",
-        )
+        .config("spark.jars", sarplus_jar_path)
         .config("spark.driver.memory", memory)
         .config("spark.sql.shuffle.partitions", "1")
         .config("spark.default.parallelism", "1")
         .config("spark.sql.crossJoin.enabled", True)
         .config("spark.ui.enabled", False)
+        .config("spark.sql.warehouse.dir", str(tmp_path_factory.mktemp("spark")))
         # .config("spark.eventLog.enabled", True) # only for local debugging, breaks on build server
         .getOrCreate()
     )
@@ -203,9 +223,9 @@ def train_test_dummy_timestamp(pandas_dummy_timestamp):
 
 
 @pytest.fixture(scope="module")
-def demo_usage_data(header, sar_settings):
+def demo_usage_data(header, sar_settings, token):
     # load the data
-    data = pd.read_csv(sar_settings["FILE_DIR"] + "demoUsage.csv")
+    data = pd.read_csv(sar_settings["FILE_DIR"] + "demoUsage.csv" + token)
     data["rating"] = pd.Series([1] * data.shape[0])
     data = data.rename(
         columns={
@@ -243,7 +263,7 @@ def sar_settings():
         # absolute tolerance parameter for matrix equivalence in SAR tests
         "ATOL": 1e-8,
         # directory of the current file - used to link unit test data
-        "FILE_DIR": "http://recodatasets.blob.core.windows.net/sarunittest/",
+        "FILE_DIR": "https://recodatasets.blob.core.windows.net/sarunittest/",
         # user ID used in the test files (they are designed for this user ID, this is part of the test)
         "TEST_USER_ID": "0003000098E85347",
     }
@@ -259,7 +279,7 @@ def test_fit(
         spark,
         **header,
         timedecay_formula=timedecay_formula,
-        similarity_type=similarity_type
+        similarity_type=similarity_type,
     )
 
     trainset, testset = train_test_dummy_timestamp
@@ -276,6 +296,7 @@ def test_fit(
 Main SAR tests are below - load test files which are used for both Scala SAR and Python reference implementations
 """
 
+
 # Tests 1-6
 @pytest.mark.parametrize(
     "threshold,similarity_type,file",
@@ -289,7 +310,14 @@ Main SAR tests are below - load test files which are used for both Scala SAR and
     ],
 )
 def test_sar_item_similarity(
-    spark, threshold, similarity_type, file, demo_usage_data, sar_settings, header
+    spark,
+    threshold,
+    similarity_type,
+    file,
+    demo_usage_data,
+    sar_settings,
+    header,
+    token,
 ):
 
     model = SARPlus(
@@ -299,7 +327,7 @@ def test_sar_item_similarity(
         time_decay_coefficient=30,
         time_now=None,
         threshold=threshold,
-        similarity_type=similarity_type
+        similarity_type=similarity_type,
     )
 
     df = spark.createDataFrame(demo_usage_data)
@@ -307,7 +335,7 @@ def test_sar_item_similarity(
 
     # reference
     item_similarity_ref = pd.read_csv(
-        sar_settings["FILE_DIR"] + "sim_" + file + str(threshold) + ".csv"
+        sar_settings["FILE_DIR"] + "sim_" + file + str(threshold) + ".csv" + token
     )
 
     item_similarity_ref = pd.melt(
@@ -344,7 +372,7 @@ def test_sar_item_similarity(
 
 
 # Test 7
-def test_user_affinity(spark, demo_usage_data, sar_settings, header):
+def test_user_affinity(spark, demo_usage_data, sar_settings, header, token):
     time_now = demo_usage_data[header["col_timestamp"]].max()
 
     model = SARPlus(
@@ -353,13 +381,13 @@ def test_user_affinity(spark, demo_usage_data, sar_settings, header):
         timedecay_formula=True,
         time_decay_coefficient=30,
         time_now=time_now,
-        similarity_type="cooccurrence"
+        similarity_type="cooccurrence",
     )
 
     df = spark.createDataFrame(demo_usage_data)
     model.fit(df)
 
-    user_affinity_ref = pd.read_csv(sar_settings["FILE_DIR"] + "user_aff.csv")
+    user_affinity_ref = pd.read_csv(sar_settings["FILE_DIR"] + "user_aff.csv" + token)
     user_affinity_ref = pd.melt(
         user_affinity_ref,
         user_affinity_ref.columns[0],
@@ -393,7 +421,15 @@ def test_user_affinity(spark, demo_usage_data, sar_settings, header):
     [(3, "cooccurrence", "count"), (3, "jaccard", "jac"), (3, "lift", "lift")],
 )
 def test_userpred(
-    spark, threshold, similarity_type, file, header, sar_settings, demo_usage_data
+    spark,
+    tmp_path,
+    threshold,
+    similarity_type,
+    file,
+    header,
+    sar_settings,
+    demo_usage_data,
+    token,
 ):
     time_now = demo_usage_data[header["col_timestamp"]].max()
 
@@ -407,7 +443,7 @@ def test_userpred(
         time_decay_coefficient=30,
         time_now=time_now,
         threshold=threshold,
-        similarity_type=similarity_type
+        similarity_type=similarity_type,
     )
 
     df = spark.createDataFrame(demo_usage_data)
@@ -419,6 +455,7 @@ def test_userpred(
         + file
         + str(threshold)
         + "_userid_only.csv"
+        + token
     )
 
     pred_ref = pd.read_csv(url)
@@ -435,7 +472,7 @@ def test_userpred(
                 demo_usage_data[header["col_user"]] == sar_settings["TEST_USER_ID"]
             ]
         ),
-        cache_path="test_userpred-" + test_id,
+        cache_path=str(tmp_path.joinpath("test_userpred-" + test_id)),
         top_k=10,
         n_user_prediction_partitions=1,
     )
