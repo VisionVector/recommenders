@@ -1,10 +1,5 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
-# Licensed under the MIT License.
-
-import os
 import sysconfig
 
-from pathlib import Path
 from setuptools import setup
 from setuptools.extension import Extension
 
@@ -19,21 +14,11 @@ class get_pybind_include(object):
         return pybind11.get_include(self.user)
 
 
-DEPENDENCIES = [
-    "numpy",
-    "pandas",
-    "pyarrow>=1.0.0",
-    "pybind11>=2.2",
-    "pyspark>=3.0.0"
-]
-
 setup(
     name="pysarplus",
-    version=os.environ["VERSION"],
+    version="0.2.6",
     description="SAR prediction for use with PySpark",
-    long_description=(Path(__file__).parent / "README.md").read_text(),
-    long_description_content_type='text/markdown',
-    url="https://github.com/microsoft/recommenders/tree/main/contrib/sarplus",
+    url="https://github.com/Microsoft/Recommenders/contrib/sarplus",
     author="Markus Cozowicz",
     author_email="marcozo@microsoft.com",
     license="MIT",
@@ -43,16 +28,12 @@ setup(
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
         "Topic :: Scientific/Engineering :: Mathematics",
     ],
     setup_requires=["pytest-runner"],
-    install_requires=DEPENDENCIES,
+    install_requires=["pybind11>=2.2"],
     tests_require=["pytest"],
     packages=["pysarplus"],
     ext_modules=[
@@ -60,7 +41,8 @@ setup(
             "pysarplus_cpp",
             ["src/pysarplus.cpp"],
             include_dirs=[get_pybind_include(), get_pybind_include(user=True)],
-            extra_compile_args=sysconfig.get_config_var("CFLAGS").split() + ["-std=c++11", "-Wall", "-Wextra"],
+            extra_compile_args=sysconfig.get_config_var("CFLAGS").split()
+            + ["-std=c++11", "-Wall", "-Wextra"],
             libraries=["stdc++"],
             language="c++11",
         )
