@@ -58,8 +58,6 @@ jobs:
     
     - name: Install dependencies (tox)
       run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential libpython3.6 libpython3.7
         python -m pip install --upgrade pip setuptools wheel
         pip install tox
 
@@ -92,7 +90,7 @@ jobs:
         # different kinds of tests are located in tests/<unit|integration|smoke> folders
         test-kind: ['unit'] 
         # pytest markers configured in tox.ini. See https://docs.pytest.org/en/6.2.x/example/markers.html
-        test-marker: ['not gpu and not spark and not notebooks and not experimental', 'notebooks and not gpu and not spark and not experimental']
+        test-marker: ['not gpu and not spark and not notebooks', 'notebooks and not gpu and not spark']
 
     steps:
     - uses: actions/checkout@v2
@@ -134,7 +132,7 @@ jobs:
         # different kinds of tests are located in tests/<unit|integration|smoke> folders
         test-kind: ['unit'] 
         # pytest markers configured in tox.ini. See https://docs.pytest.org/en/6.2.x/example/markers.html
-        test-marker: ['notebooks and spark and not gpu and not experimental', 'spark and not notebooks and not gpu and not experimental']
+        test-marker: ['notebooks and spark and not gpu', 'spark and not notebooks and not gpu']
 
     steps:
     - uses: actions/checkout@v2
@@ -176,7 +174,7 @@ jobs:
         # different kinds of tests are located in tests/<unit|integration|smoke> folders
         test-kind: ['unit'] 
         # pytest markers configured in tox.ini. See https://docs.pytest.org/en/6.2.x/example/markers.html
-        test-marker: ['gpu and notebooks and not spark and not experimental', 'gpu and not notebooks and not spark and not experimental']
+        test-marker: ['gpu and notebooks and not spark', 'gpu and not notebooks and not spark']
 
     steps:
     - uses: actions/checkout@v2

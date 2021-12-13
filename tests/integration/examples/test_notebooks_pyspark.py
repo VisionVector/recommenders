@@ -3,7 +3,6 @@
 
 import sys
 import pytest
-
 try:
     import papermill as pm
     import scrapbook as sb
