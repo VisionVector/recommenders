@@ -119,7 +119,7 @@ setup(
     author="RecoDev Team at Microsoft",
     author_email="RecoDevTeam@service.microsoft.com",
     classifiers=[
-        "Development Status :: 5 - Production/Stable",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "Intended Audience :: Information Technology",
         "Intended Audience :: Science/Research",
