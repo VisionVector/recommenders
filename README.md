@@ -155,7 +155,7 @@ These tests are the nightly builds, which compute the smoke and integration test
 
 ### DSVM Build Status
 
-The following tests run on a Linux DSVM daily. 
+The following tests run on a Linux DSVM daily. These machines run 24/7.
 
 | Build Type | Branch | Status |  | Branch | Status |
 | --- | --- | --- | --- | --- | --- |
