@@ -23,8 +23,7 @@ DEPENDENCIES = [
     "pandas",
     "pyarrow>=1.0.0",
     "pybind11>=2.2",
-    "pyspark>=3.0.0",
-    "setuptools>=60.0.0",
+    "pyspark>=3.0.0"
 ]
 
 setup(
