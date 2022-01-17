@@ -183,16 +183,9 @@ class RBM:
         )  # normalize and convert to tensor
 
         samp = tf.nn.relu(tf.sign(pr - f))  # apply rejection method
-        
-        # get integer index of the rating to be sampled
-        v_argmax = tf.cast(
-            tf.argmax(input=samp, axis=2), "int32"
-        )
-
-        # lookup the rating using integer index
         v_samp = tf.cast(
-            self.ratings_lookup_table.lookup(v_argmax), "float32"
-        )
+            tf.argmax(input=samp, axis=2) + 1, "float32"
+        )  # select sampled element
 
         return v_samp
 
@@ -211,7 +204,7 @@ class RBM:
 
         numerator = [
             tf.exp(tf.multiply(tf.constant(k, dtype="float32"), phi))
-            for k in self.possible_ratings
+            for k in range(1, self.ratings + 1)
         ]
 
         denominator = tf.reduce_sum(input_tensor=numerator, axis=0)
@@ -561,7 +554,7 @@ class RBM:
 
             self.sess.run(
                 self.iter.initializer,
-                feed_dict={self.vu: xtst, self.batch_size: self.minibatch},
+                feed_dict={self.vu: xtst, self.batch_size: xtst.shape[0]},
             )
 
             precision_test = self.sess.run(self.Clacc)
@@ -625,7 +618,7 @@ class RBM:
         """Config GPU memory"""
 
         self.config_gpu = tf.compat.v1.ConfigProto(
-            log_device_placement=False, allow_soft_placement=True
+            log_device_placement=True, allow_soft_placement=True
         )
         self.config_gpu.gpu_options.allow_growth = True  # dynamic memory allocation
 
@@ -646,8 +639,6 @@ class RBM:
             self.iter.initializer,
             feed_dict={self.vu: xtr, self.batch_size: self.minibatch},
         )
-
-        self.sess.run(tf.compat.v1.tables_initializer())
 
     def batch_training(self, num_minibatches):
         """Perform training over input minibatches. If `self.with_metrics` is False,
@@ -710,18 +701,6 @@ class RBM:
         tf.compat.v1.reset_default_graph()
 
         # ----------------------Initializers-------------------------------------
-        
-        # create a sorted list of all the unique ratings (of float type)
-        self.possible_ratings = np.sort(np.setdiff1d(np.unique(xtr), np.array([0])))
-
-        # create a lookup table to map integer indices to float ratings
-        self.ratings_lookup_table = tf.lookup.StaticHashTable(
-                tf.lookup.KeyValueTensorInitializer(
-                    tf.constant(list(range(len(self.possible_ratings))), dtype=tf.int32),
-                    tf.constant(list(self.possible_ratings), dtype=tf.float32),
-                ), default_value=0
-        )
-
         self.generate_graph()
         self.init_metrics()
         self.init_gpu()

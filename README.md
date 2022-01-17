@@ -2,15 +2,26 @@
 
 [![Documentation Status](https://readthedocs.org/projects/microsoft-recommenders/badge/?version=latest)](https://microsoft-recommenders.readthedocs.io/en/latest/?badge=latest)
 
-## What's New (January 13, 2022)
+## What's New 
+### (September 27, 2021)
 
-We have a new release [Recommenders 1.0.0](https://github.com/microsoft/recommenders/releases/tag/1.0.0)! The codebase has now migrated to TensorFlow versions 2.6 / 2.7 and to Spark version 3. In addition, there are a few changes in the dependencies and extras installed by `pip` (see [this guide](recommenders/README.md#optional-dependencies)). We have also made improvements in the code and the CI / CD pipelines.
+We have a new release [Recommenders 0.7.0](https://github.com/microsoft/recommenders/releases/tag/0.7.0)!
+We have changed the names of the folders which contain the source code, so that they are more informative. This implies that you will need to change any import statements that reference the recommenders package. Specifically, the folder `reco_utils` has been renamed to `recommenders` and its subfolders have been renamed according to [issue 1390](https://github.com/microsoft/recommenders/issues/1390).  
+
+The previous release ([0.6.0](https://github.com/microsoft/recommenders/releases/tag/0.6.0)) is compatible with the old style of naming of modules. 
+
+The recommenders package now supports three types of environments: [venv](https://docs.python.org/3/library/venv.html), [virtualenv](https://virtualenv.pypa.io/en/latest/index.html#) and [conda](https://docs.conda.io/projects/conda/en/latest/glossary.html?highlight=environment#conda-environment) with Python versions 3.6 and 3.7.
+
+We have also added new evaluation metrics: _novelty, serendipity, diversity and coverage_ (see the [evalution notebooks](examples/03_evaluate/README.md)).
+
+Code coverage reports are now generated for every PR, using [Codecov](https://about.codecov.io/).
 
 Starting with release 0.6.0, Recommenders has been available on PyPI and can be installed using pip! 
 
 Here you can find the PyPi page: https://pypi.org/project/recommenders/
 
 Here you can find the package documentation: https://microsoft-recommenders.readthedocs.io/en/latest/
+
 
 ## Introduction
 
@@ -37,51 +48,41 @@ and currently does not support version 3.8 and above. It is recommended to insta
 
 To set up on your local machine:
 
-* To install core utilities, CPU-based algorithms, and dependencies:
+To install core utilities, CPU-based algorithms, and dependencies:
 
-    1. Ensure software required for compilation and Python libraries
-       is installed.
+1. Ensure software required for compilation and Python libraries is installed. On Linux this can be supported by adding:
+```bash
+sudo apt-get install -y build-essential libpython<version>
+``` 
+where `<version>` should be `3.6` or `3.7` as appropriate.
 
-       + On Linux this can be supported by adding:
+On Windows you will need [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/).
+  
+2. Create a conda or virtual environment. See the [setup guide](SETUP.md) for more details.
 
-         ```bash
-         sudo apt-get install -y build-essential libpython<version>
-         ``` 
+3. Within the created environment, install the package from [PyPI](https://pypi.org):
 
-         where `<version>` should be `3.6` or `3.7` as appropriate.
+```bash
+pip install --upgrade pip
+pip install --upgrade setuptools
+pip install recommenders[examples]
+```
 
-       + On Windows you will need [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/).
+4. Register your (conda or virtual) environment with Jupyter:
 
-    2. Create a conda or virtual environment.  See the
-       [setup guide](SETUP.md) for more details.
+```bash
+python -m ipykernel install --user --name my_environment_name --display-name "Python (reco)"
+```
 
-    3. Within the created environment, install the package from
-       [PyPI](https://pypi.org):
+5. Start the Jupyter notebook server
 
-       ```bash
-       pip install --upgrade pip
-       pip install --upgrade setuptools
-       pip install recommenders[examples]
-       ```
+```bash
+jupyter notebook
+```
 
-    4. Register your (conda or virtual) environment with Jupyter:
+6. Run the [SAR Python CPU MovieLens](examples/00_quick_start/sar_movielens.ipynb) notebook under the `00_quick_start` folder. Make sure to change the kernel to "Python (reco)".
 
-       ```bash
-       python -m ipykernel install --user --name my_environment_name --display-name "Python (reco)"
-       ```
-
-    5. Start the Jupyter notebook server
-
-       ```bash
-       jupyter notebook
-       ```
-
-    6. Run the [SAR Python CPU MovieLens](examples/00_quick_start/sar_movielens.ipynb)
-       notebook under the `00_quick_start` folder.  Make sure to
-       change the kernel to "Python (reco)".
-
-* For additional options to install the package (support for GPU,
-  Spark etc.) see [this guide](recommenders/README.md).
+For additional options to install the package (support for GPU, Spark etc.) see [this guide](recommenders/README.md).
 
 **NOTE** - The [Alternating Least Squares (ALS)](examples/00_quick_start/als_movielens.ipynb) notebooks require a PySpark environment to run. Please follow the steps in the [setup guide](SETUP.md#dependencies-setup) to run these notebooks in a PySpark environment. For the deep learning algorithms, it is recommended to use a GPU machine and to follow the steps in the [setup guide](SETUP.md#dependencies-setup) to set up Nvidia libraries.
 
@@ -118,8 +119,10 @@ The table below lists the recommender algorithms currently available in the repo
 | Restricted Boltzmann Machines (RBM) | Collaborative Filtering | Neural network based algorithm for learning the underlying probability distribution for explicit or implicit user/item feedback. It works in the CPU/GPU enviroment. | [Quick start](examples/00_quick_start/rbm_movielens.ipynb) / [Deep dive](examples/02_model_collaborative_filtering/rbm_deep_dive.ipynb) |
 | Riemannian Low-rank Matrix Completion (RLRMC)<sup>*</sup> | Collaborative Filtering | Matrix factorization algorithm using Riemannian conjugate gradients optimization with small memory consumption to predice user/item interactions. It works in the CPU enviroment. | [Quick start](examples/00_quick_start/rlrmc_movielens.ipynb) |
 | Simple Algorithm for Recommendation (SAR)<sup>*</sup> | Collaborative Filtering | Similarity-based algorithm for implicit user/item feedback.  It works in the CPU environment. | [Quick start](examples/00_quick_start/sar_movielens.ipynb) / [Deep dive](examples/02_model_collaborative_filtering/sar_deep_dive.ipynb) |
+| Self-Attentive Sequential Recommendation (SASRec) | Sequential | Transformer based algorithm for sequential recommendation. It works in the CPU/GPU environment. | [Deep dive](examples/00_quick_start/sasrec_amazon.ipynb) |
 | Short-term and Long-term Preference Integrated Recommender (SLi-Rec)<sup>*</sup> | Collaborative Filtering | Sequential-based algorithm that aims to capture both long and short-term user preferences using attention mechanism, a time-aware controller and a content-aware controller. It works in the CPU/GPU environment. | [Quick start](examples/00_quick_start/sequential_recsys_amazondataset.ipynb) |
 | Multi-Interest-Aware Sequential User Modeling (SUM)<sup>*</sup> | Collaborative Filtering | An enhanced memory network-based sequential user model which aims to capture users' multiple interests. It works in the CPU/GPU environment. | [Quick start](examples/00_quick_start/sequential_recsys_amazondataset.ipynb) |
+| Sequential Recommendation Via Personalized Transformer (SSEPT) | Sequential | Transformer based algorithm for sequential recommendation with User embedding. It works in the CPU/GPU environment. | [Deep dive](examples/00_quick_start/sasrec_amazon.ipynb) |
 | Standard VAE | Collaborative Filtering | Generative Model for predicting user/item interactions.  It works in the CPU/GPU environment. | [Deep dive](examples/02_model_collaborative_filtering/standard_vae_deep_dive.ipynb) |
 | Surprise/Singular Value Decomposition (SVD) | Collaborative Filtering | Matrix factorization algorithm for predicting explicit rating feedback in small datasets. It works in the CPU/GPU environment. | [Deep dive](examples/02_model_collaborative_filtering/surprise_svd_deep_dive.ipynb) |
 | Term Frequency - Inverse Document Frequency (TF-IDF) | Content-Based Filtering | Simple similarity-based algorithm for content-based recommendations with text datasets. It works in the CPU environment. | [Quick staert](examples/00_quick_start/tfidf_covid.ipynb) |
@@ -164,7 +167,7 @@ These tests are the nightly builds, which compute the smoke and integration test
 
 ### DSVM Build Status
 
-The following tests run on a Linux DSVM daily. 
+The following tests run on a Linux DSVM daily. These machines run 24/7.
 
 | Build Type | Branch | Status |  | Branch | Status |
 | --- | --- | --- | --- | --- | --- |
