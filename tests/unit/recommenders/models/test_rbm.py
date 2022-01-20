@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-from mimetypes import init
 import numpy as np
 import pytest
 
@@ -14,9 +13,6 @@ except ImportError:
 @pytest.fixture(scope="module")
 def init_rbm():
     return {
-        "n_users": 5000,
-        "possible_ratings": [1, 2, 3, 4, 5],
-        "n_visible": 500,
         "n_hidden": 100,
         "epochs": 10,
         "minibatch": 50,
@@ -31,9 +27,6 @@ def init_rbm():
 @pytest.mark.gpu
 def test_class_init(init_rbm):
     model = RBM(
-        n_users=init_rbm["n_users"],
-        possible_ratings=init_rbm["possible_ratings"],
-        visible_units=init_rbm["n_visible"],
         hidden_units=init_rbm["n_hidden"],
         training_epoch=init_rbm["epochs"],
         minibatch_size=init_rbm["minibatch"],
@@ -65,19 +58,16 @@ def test_class_init(init_rbm):
 @pytest.mark.gpu
 def test_train_param_init(init_rbm, affinity_matrix):
     # obtain the train/test set matrices
-    Xtr, _ = affinity_matrix
+    Xtr, Xtst = affinity_matrix
 
     # initialize the model
     model = RBM(
-        n_users=Xtr.shape[0],
-        possible_ratings=np.unique(Xtr),
-        visible_units=Xtr.shape[1],
         hidden_units=init_rbm["n_hidden"],
         training_epoch=init_rbm["epochs"],
         minibatch_size=init_rbm["minibatch"],
     )
     # fit the model to the data
-    model.fit(Xtr)
+    model.fit(Xtr, Xtst)
 
     # visible units placeholder (tensor)
     model.vu.shape[1] == Xtr.shape[1]
@@ -92,13 +82,10 @@ def test_train_param_init(init_rbm, affinity_matrix):
 @pytest.mark.gpu
 def test_sampling_funct(init_rbm, affinity_matrix):
     # obtain the train/test set matrices
-    Xtr, _ = affinity_matrix
+    Xtr, Xtst = affinity_matrix
 
     # initialize the model
     model = RBM(
-        n_users=Xtr.shape[0],
-        possible_ratings=np.unique(Xtr),
-        visible_units=Xtr.shape[1],
         hidden_units=init_rbm["n_hidden"],
         training_epoch=init_rbm["epochs"],
         minibatch_size=init_rbm["minibatch"],
@@ -119,7 +106,7 @@ def test_sampling_funct(init_rbm, affinity_matrix):
     r = Xtr.max()  # obtain the rating scale
 
     # fit the model to the data
-    model.fit(Xtr)
+    model.fit(Xtr, Xtst)
 
     # evaluate the activation probabilities of the hidden units and their sampled values
     phv, h = model.sess.run(model.sample_hidden_units(model.v))
