@@ -13,6 +13,7 @@ except ImportError:
 @pytest.fixture(scope="module")
 def init_rbm():
     return {
+        "n_users": 5000,
         "possible_ratings": [1, 2, 3, 4, 5],
         "n_visible": 500,
         "n_hidden": 100,
@@ -29,6 +30,7 @@ def init_rbm():
 @pytest.mark.gpu
 def test_class_init(init_rbm):
     model = RBM(
+        n_users=init_rbm["n_users"],
         possible_ratings=init_rbm["possible_ratings"],
         visible_units=init_rbm["n_visible"],
         hidden_units=init_rbm["n_hidden"],
@@ -41,6 +43,8 @@ def test_class_init(init_rbm):
         display_epoch=init_rbm["display_epoch"],
     )
 
+    # number of users
+    assert model.n_users == init_rbm["n_users"]
     # list of unique rating values
     assert np.array_equal(model.possible_ratings, init_rbm["possible_ratings"])
     # number of visible units
@@ -70,6 +74,7 @@ def test_train_param_init(init_rbm, affinity_matrix):
 
     # initialize the model
     model = RBM(
+        n_users=Xtr.shape[0],
         possible_ratings=np.setdiff1d(np.unique(Xtr), np.array([0])),
         visible_units=Xtr.shape[1],
         hidden_units=init_rbm["n_hidden"],
@@ -96,6 +101,7 @@ def test_sampling_funct(init_rbm, affinity_matrix):
 
     # initialize the model
     model = RBM(
+        n_users=Xtr.shape[0],
         possible_ratings=np.setdiff1d(np.unique(Xtr), np.array([0])),
         visible_units=Xtr.shape[1],
         hidden_units=init_rbm["n_hidden"],
@@ -153,6 +159,7 @@ def test_save_load(init_rbm, affinity_matrix):
 
     # initialize the model
     original_model = RBM(
+        n_users=Xtr.shape[0],
         possible_ratings=np.setdiff1d(np.unique(Xtr), np.array([0])),
         visible_units=Xtr.shape[1],
         hidden_units=init_rbm["n_hidden"],
@@ -170,6 +177,7 @@ def test_save_load(init_rbm, affinity_matrix):
 
     # initialize another model
     saved_model = RBM(
+        n_users=Xtr.shape[0],
         possible_ratings=np.setdiff1d(np.unique(Xtr), np.array([0])),
         visible_units=Xtr.shape[1],
         hidden_units=init_rbm["n_hidden"],
@@ -185,6 +193,8 @@ def test_save_load(init_rbm, affinity_matrix):
     # load the pretrained model
     saved_model.load()
 
+    # number of users
+    assert saved_model.n_users == original_model.n_users
     # list of unique rating values
     assert np.array_equal(saved_model.possible_ratings, original_model.possible_ratings)
     # number of visible units

@@ -16,6 +16,7 @@ class RBM:
 
     def __init__(
         self,
+        n_users,
         possible_ratings,
         visible_units,
         hidden_units=500,
@@ -106,6 +107,7 @@ class RBM:
         tf.compat.v1.set_random_seed(self.seed)
 
         self.n_visible = visible_units  # number of items
+        self.n_users = n_users  # number of users
 
         tf.compat.v1.reset_default_graph()
 
@@ -569,8 +571,7 @@ class RBM:
         # keep the position of the items in the train set so that they can be optionally exluded from recommendation
         self.seen_mask = np.not_equal(xtr, 0)
 
-        n_users = xtr.shape[0]
-        num_minibatches = int(n_users / self.minibatch)  # number of minibatches
+        num_minibatches = int(self.n_users / self.minibatch)  # number of minibatches
 
         self.init_training_session(xtr)
 
