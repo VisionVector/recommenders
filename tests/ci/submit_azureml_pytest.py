@@ -138,7 +138,12 @@ def setup_persistent_compute_target(workspace, cluster_name, vm_size, max_nodes)
     return cpu_cluster
 
 
-def create_run_config(cpu_cluster, docker_proc_type, conda_env_file):
+def create_run_config(cpu_cluster,
+                    docker_proc_type,
+                    workspace,
+                    add_gpu_dependencies,
+                    add_spark_dependencies,
+                    reco_wheel_path):
     """
     AzureML requires the run environment to be setup prior to submission.
     This configures a docker persistent compute.  Even though
@@ -146,14 +151,17 @@ def create_run_config(cpu_cluster, docker_proc_type, conda_env_file):
     of the compute environment.
 
     Args:
-        cpu_cluster      (str) : Names the cluster for the test
-                                 In the case of unit tests, any of
-                                 the following:
-                                 - Reco_cpu_test
-                                 - Reco_gpu_test
-        docker_proc_type (str) : processor type, cpu or gpu
-        conda_env_file   (str) : filename which contains info to
-                                 set up conda env
+            cpu_cluster      (str)          : Names the cluster for the test
+                                                In the case of unit tests, any of
+                                                the following:
+                                                - Reco_cpu_test
+                                                - Reco_gpu_test
+            docker_proc_type (str)          : processor type, cpu or gpu
+            workspace                       : workspace reference
+            add_gpu_dependencies (bool)     : True if gpu packages should be
+                                        added to the conda environment, else False
+            add_spark_dependencies (bool)   : True if PySpark packages should be
+                                        added to the conda environment, else False
     Return:
           run_amlcompute : AzureML run config
     """
@@ -170,9 +178,24 @@ def create_run_config(cpu_cluster, docker_proc_type, conda_env_file):
     # False means the user will provide a conda file for setup
     # True means the user will manually configure the environment
     run_amlcompute.environment.python.user_managed_dependencies = False
-    run_amlcompute.environment.python.conda_dependencies = CondaDependencies(
-        conda_dependencies_file_path=conda_env_file
+
+    # install local version of recommenders on AML compute using .whl file
+    whl_url = run_amlcompute.environment.add_private_pip_wheel(
+        workspace=workspace,
+        file_path=reco_wheel_path,
+        exist_ok=True,
     )
+    conda_dep = CondaDependencies()
+    conda_dep.add_pip_package(whl_url)
+    conda_dep.add_pip_package("recommenders[dev,examples]")
+
+    # install extra dependencies
+    if add_gpu_dependencies:
+        conda_dep.add_pip_package("recommenders[gpu]")
+    if add_spark_dependencies:
+        conda_dep.add_pip_package("recommenders[spark]")
+
+    run_amlcompute.environment.python.conda_dependencies = conda_dep
     return run_amlcompute
 
 
@@ -323,13 +346,13 @@ def create_arg_parser():
     parser.add_argument(
         "--subid", action="store", default="123456", help="Azure Subscription ID"
     )
-    # ./reco.yaml is created in the azure devops pipeline.
+    # reco wheel is created in the azure devops pipeline.
     # Not recommended to change this.
     parser.add_argument(
-        "--condafile",
+        "--wheelfile",
         action="store",
-        default="./reco.yaml",
-        help="file with environment variables",
+        default="./dist/recommenders-1.0.0-py3-none-any.whl",
+        help="recommenders whl file path",
     )
     # AzureML experiment name
     parser.add_argument(
@@ -360,6 +383,12 @@ def create_arg_parser():
         action="store",
         default="--pr PRTestRun",
         help="If a pr triggered the test, list it here",
+    )
+    parser.add_argument(
+        "--add_gpu_dependencies", action="store_true", help="include packages for GPU support"
+    )
+    parser.add_argument(
+        "--add_spark_dependencies", action="store_true", help="include packages for PySpark support"
     )
 
     args = parser.parse_args()
@@ -402,7 +431,10 @@ if __name__ == "__main__":
     run_config = create_run_config(
         cpu_cluster=cpu_cluster,
         docker_proc_type=docker_proc_type,
-        conda_env_file=args.condafile,
+        workspace=workspace,
+        add_gpu_dependencies=args.add_gpu_dependencies,
+        add_spark_dependencies=args.add_spark_dependencies,
+        reco_wheel_path=args.wheelfile
     )
 
     logger.info("exp: In Azure, look for experiment named {}".format(args.expname))
