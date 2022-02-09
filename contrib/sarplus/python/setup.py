@@ -23,7 +23,7 @@ DEPENDENCIES = [
     "pandas",
     "pyarrow>=1.0.0",
     "pybind11>=2.2",
-    "pyspark>=3.0.0"
+    "pyspark>=3.0.0",
 ]
 
 setup(
@@ -58,9 +58,7 @@ setup(
             "pysarplus_cpp",
             ["src/pysarplus.cpp"],
             include_dirs=[get_pybind_include(), get_pybind_include(user=True)],
-            extra_compile_args=sysconfig.get_config_var("CFLAGS").split() + ["-std=c++11", "-Wall", "-Wextra"],
-            libraries=["stdc++"],
-            language="c++11",
+            language="c++",
         )
     ],
     zip_safe=False,
