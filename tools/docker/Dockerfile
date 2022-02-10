@@ -20,7 +20,8 @@ RUN if [ "${VIRTUAL_ENV}" != "conda" ] && [ "${VIRTUAL_ENV}" != "venv" ] && [ "$
 # Install base dependencies and libpython (for cornac)
 RUN apt-get update && \
     apt-get install -y curl build-essential
-RUN apt-get install -y libpython3.7
+RUN if [ "${VIRTUAL_ENV}" = "conda" ] ; then apt-get install -y libpython3.7; fi
+RUN if [ "${VIRTUAL_ENV}" = "venv" ] || [ "${VIRTUAL_ENV}" = "virtualenv" ]; then apt-get install -y libpython3.7; fi
 
 # Install Anaconda
 ARG ANACONDA="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
@@ -99,7 +100,8 @@ RUN if [ "${VIRTUAL_ENV}" != "conda" ] && [ "${VIRTUAL_ENV}" != "venv" ] && [ "$
 
 RUN apt-get update && \
     apt-get install -y curl build-essential
-RUN apt-get install -y libpython3.7
+RUN if [ "${VIRTUAL_ENV}" = "conda" ] ; then apt-get install -y libpython3.7; fi
+RUN if [ "${VIRTUAL_ENV}" = "venv" ] || [ "${VIRTUAL_ENV}" = "virtualenv" ]; then apt-get install -y libpython3.7; fi
 
 # Install Anaconda
 ARG ANACONDA="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
@@ -113,6 +115,7 @@ ENV PATH="${HOME}/${VIRTUAL_ENV}/bin:${PATH}"
 
 SHELL ["/bin/bash", "--login", "-c"]
 
+# Python version supported by recommenders
 RUN if [ "${VIRTUAL_ENV}" = "conda" ] ; then conda install python=3.7; fi
 RUN if [ "${VIRTUAL_ENV}" = "venv" ] ; then apt-get -y install python3.7; \
     apt-get -y install python3-pip; \
