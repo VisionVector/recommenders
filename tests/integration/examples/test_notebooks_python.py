@@ -91,6 +91,7 @@ def test_baseline_deep_dive_integration(
         assert results[key] == pytest.approx(value, rel=TOL, abs=ABS_TOL)
 
 
+@pytest.mark.experimental
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "size, expected_values",
