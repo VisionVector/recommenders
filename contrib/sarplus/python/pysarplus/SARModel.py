@@ -4,13 +4,10 @@
 import pysarplus_cpp
 import os
 
-from pathlib import Path
-
 
 class SARModel:
     __path = None
     __model = None
-    __extension = ".sar"
 
     def __init__(self, path):
         if SARModel.__model is not None and SARModel.__path == path:
@@ -18,13 +15,19 @@ class SARModel:
             return
 
         # find the .sar.related & .sar.offsets files
-        sar_files = list(Path(path).glob("*" + SARModel.__extension))
-        sar_files.sort(key=os.path.getmtime, reverse=True)
-        if len(sar_files) < 1:
-            raise ValueError(f"Directory '{path}' must contain at least 1 file ending in '{SARModel.__extension}'")
+        all_files = os.listdir(path)
+
+        def find_or_raise(extension):
+            files = [f for f in all_files if f.endswith(extension)]
+            if len(files) != 1:
+                raise ValueError(
+                    "Directory '%s' must contain exactly 1 file ending in '%s'"
+                    % (path, extension)
+                )
+            return path + "/" + files[0]
 
         # instantiate C++ backend
-        SARModel.__model = self.model = pysarplus_cpp.SARModelCpp(str(sar_files[0]))
+        SARModel.__model = self.model = pysarplus_cpp.SARModelCpp(find_or_raise(".sar"))
         SARModel.__path = path
 
     def predict(self, items, ratings, top_k, remove_seen):
