@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
+import sysconfig
+
 from pathlib import Path
 from setuptools import setup
 from setuptools.extension import Extension
@@ -21,7 +23,7 @@ DEPENDENCIES = [
     "pandas",
     "pyarrow>=1.0.0",
     "pybind11>=2.2",
-    "pyspark>=3.0.0",
+    "pyspark>=3.0.0"
 ]
 
 setup(
@@ -49,7 +51,6 @@ setup(
     setup_requires=["pytest-runner"],
     install_requires=DEPENDENCIES,
     tests_require=["pytest"],
-    python_requires=">=3.6",
     packages=["pysarplus"],
     package_data={"": ["VERSION"]},
     ext_modules=[
@@ -57,7 +58,9 @@ setup(
             "pysarplus_cpp",
             ["src/pysarplus.cpp"],
             include_dirs=[get_pybind_include(), get_pybind_include(user=True)],
-            language="c++",
+            extra_compile_args=sysconfig.get_config_var("CFLAGS").split() + ["-std=c++11", "-Wall", "-Wextra"],
+            libraries=["stdc++"],
+            language="c++11",
         )
     ],
     zip_safe=False,
