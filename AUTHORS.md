@@ -41,6 +41,9 @@ To contributors: please add your name to the list when you submit a patch to the
 * **[Aaron He](https://github.com/AaronHeee)**
    * Reco utils of NCF
    * Deep dive notebook demonstrating the use of NCF
+* **[Abir Chakraborty](https://github.com/aeroabir)**
+   * Self-Attentive Sequential Recommendation (SASRec)
+   * Sequential Recommendation Via Personalized Transformer (SSEPT)
 * **[Alexandros Ioannou](https://github.com/aioannou96)**
    * Standard VAE algorithm 
    * Multinomial VAE algorithm  
@@ -50,6 +53,8 @@ To contributors: please add your name to the list when you submit a patch to the
 * **[Beth Zeranski](https://github.com/bethz)**
    * DevOps Pipelines used as a control plane to run existing Pytests on AzureML
    * Automation scripts to configure AzureML environment for pipeline use 
+* **[Dan Bianchini](https://github.com/danb27)**
+   * SAR Single Node algorithm improvements
 * **[Dan Ciborowski](https://github.com/dciborow)**
    * ALS operationalization notebook
    * SAR PySpark improvement
