@@ -213,25 +213,6 @@ SAR
 .. automodule:: recommenders.models.sar.sar_singlenode
     :members:
 
-SASRec 
-******************************
-
-.. automodule:: recommenders.models.sasrec.model
-    :members:
-
-.. automodule:: recommenders.models.sasrec.sampler
-    :members:
-
-.. automodule:: recommenders.models.sasrec.util
-    :members:
-
-
-SSE-PT 
-******************************
-
-.. automodule:: recommenders.models.sasrec.ssept
-    :members:
-
 
 Surprise
 ******************************
