@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-import numpy as np
 try:
     from pyspark.mllib.evaluation import RegressionMetrics, RankingMetrics
     from pyspark.sql import Window, DataFrame
@@ -100,13 +99,13 @@ class SparkRatingEvaluation:
             raise ValueError("Schema of rating_pred not valid. Missing Prediction Col")
 
         self.rating_true = self.rating_true.select(
-            col(self.col_user),
-            col(self.col_item),
+            col(self.col_user).cast("double"),
+            col(self.col_item).cast("double"),
             col(self.col_rating).cast("double").alias("label"),
         )
         self.rating_pred = self.rating_pred.select(
-            col(self.col_user),
-            col(self.col_item),
+            col(self.col_user).cast("double"),
+            col(self.col_item).cast("double"),
             col(self.col_prediction).cast("double").alias("prediction"),
         )
 
@@ -159,8 +158,7 @@ class SparkRatingEvaluation:
             0
         ]
         var2 = self.y_pred_true.selectExpr("variance(label)").collect()[0][0]
-        # numpy divide is more tolerant to var2 being zero
-        return 1 - np.divide(var1, var2)
+        return 1 - var1 / var2
 
 
 class SparkRankingEvaluation:
