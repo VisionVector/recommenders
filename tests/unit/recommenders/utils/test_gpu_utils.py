@@ -47,11 +47,6 @@ def test_get_cudnn_version():
 
 
 @pytest.mark.gpu
-def test_cudnn_enabled():
-    assert torch.backends.cudnn.enabled == True
-
-
-@pytest.mark.gpu
 def test_tensorflow_gpu():
     assert tf.test.is_gpu_available()
 
