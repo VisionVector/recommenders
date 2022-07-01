@@ -674,9 +674,8 @@ def get_top_k_items(
         top_k_items = dataframe
     else:
         top_k_items = (
-            dataframe.sort_values([col_user, col_rating], ascending=[True, False])
-            .groupby(col_user, as_index=False)
-            .head(k)
+            dataframe.groupby(col_user, as_index=False)
+            .apply(lambda x: x.nlargest(k, col_rating))
             .reset_index(drop=True)
         )
     # Add ranks
