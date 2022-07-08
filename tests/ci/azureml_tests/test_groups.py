@@ -178,9 +178,11 @@ unit_test_groups = {
         "tests/unit/recommenders/evaluation/test_spark_evaluation.py::test_distributional_coverage",
         "tests/unit/recommenders/datasets/test_spark_splitter.py::test_min_rating_filter",
     ],
-    "group_notebooks_pyspark_001": [  # Total group time: 746.53s
-        "tests/unit/examples/test_notebooks_pyspark.py::test_spark_tuning",  # 212.29s+190.02s+180.13s+164.09s (flaky test, it rerun several times)
-    ],
+    # TODO: This is a flaky test, skip for now, to be fixed in future iterations.
+    # Refer to the issue: https://github.com/microsoft/recommenders/issues/1770
+    # "group_notebooks_pyspark_001": [  # Total group time: 746.53s
+    #     "tests/unit/examples/test_notebooks_pyspark.py::test_spark_tuning",  # 212.29s+190.02s+180.13s+164.09s (flaky test, it rerun several times)
+    # ],
     "group_notebooks_pyspark_002": [  # Total group time: 728.43s
         "tests/unit/examples/test_notebooks_pyspark.py::test_als_deep_dive_runs",
         "tests/unit/examples/test_notebooks_pyspark.py::test_data_split_runs",
@@ -256,7 +258,6 @@ unit_test_groups = {
         "tests/unit/recommenders/models/test_tfidf_utils.py::test_tokenize_text",
         "tests/unit/recommenders/models/test_tfidf_utils.py::test_get_tokens",
         "tests/unit/recommenders/models/test_cornac_utils.py::test_recommend_k_items",
-        "tests/unit/recommenders/evaluation/test_python_evaluation_time_performance.py",  # FIXME: new time performance tests, time not tested yet
     ],
     "group_notebooks_cpu_001": [  # Total group time: 226.42s
         "tests/unit/examples/test_notebooks_python.py::test_rlrmc_quickstart_runs",
