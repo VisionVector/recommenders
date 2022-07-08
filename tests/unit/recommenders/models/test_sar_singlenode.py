@@ -1,15 +1,34 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
+import codecs
+import csv
 import itertools
 import json
 import pytest
 import numpy as np
 import pandas as pd
 from pandas.testing import assert_frame_equal
+import urllib
 
 from recommenders.utils.constants import DEFAULT_PREDICTION_COL
 from recommenders.models.sar import SAR
+
+
+def _csv_reader_url(url, delimiter=",", encoding="utf-8"):
+    ftpstream = urllib.request.urlopen(url)
+    csvfile = csv.reader(codecs.iterdecode(ftpstream, encoding), delimiter=delimiter)
+    return csvfile
+
+
+def load_userpred(file, k=10):
+    """Loads test predicted items and their SAR scores"""
+    reader = _csv_reader_url(file)
+    next(reader)
+    values = next(reader)
+    items = values[1 : (k + 1)]
+    scores = np.array([float(x) for x in values[(k + 1) :]])
+    return items, scores
 
 
 def test_init(header):
@@ -80,19 +99,11 @@ def test_predict_all_items(train_test_dummy_timestamp, header):
     "threshold,similarity_type,file",
     [
         (1, "cooccurrence", "count"),
-        (1, "cosine", "cos"),
-        (1, "inclusion index", "incl"),
         (1, "jaccard", "jac"),
-        (1, "lexicographers mutual information", "lex"),
         (1, "lift", "lift"),
-        (1, "mutual information", "mi"),
         (3, "cooccurrence", "count"),
-        (3, "cosine", "cos"),
-        (3, "inclusion index", "incl"),
         (3, "jaccard", "jac"),
-        (3, "lexicographers mutual information", "lex"),
         (3, "lift", "lift"),
-        (3, "mutual information", "mi"),
     ],
 )
 def test_sar_item_similarity(
@@ -200,15 +211,7 @@ def test_user_affinity(demo_usage_data, sar_settings, header):
 
 @pytest.mark.parametrize(
     "threshold,similarity_type,file",
-    [
-        (3, "cooccurrence", "count"),
-        (3, "cosine", "cos"),
-        (3, "inclusion index", "incl"),
-        (3, "jaccard", "jac"),
-        (3, "lexicographers mutual information", "lex"),
-        (3, "lift", "lift"),
-        (3, "mutual information", "mi"),
-    ],
+    [(3, "cooccurrence", "count"), (3, "jaccard", "jac"), (3, "lift", "lift")],
 )
 def test_recommend_k_items(
     threshold, similarity_type, file, header, sar_settings, demo_usage_data
@@ -224,9 +227,12 @@ def test_recommend_k_items(
     )
     model.fit(demo_usage_data)
 
-    true_userpred = pd.read_csv(
-        sar_settings["FILE_DIR"] + "userpred_" + file + str(threshold) + ".csv",
-        index_col=0
+    true_items, true_scores = load_userpred(
+        sar_settings["FILE_DIR"]
+        + "userpred_"
+        + file
+        + str(threshold)
+        + "_userid_only.csv"
     )
     test_results = model.recommend_k_items(
         demo_usage_data[
@@ -236,13 +242,10 @@ def test_recommend_k_items(
         sort_top_k=True,
         remove_seen=True,
     )
-
-    if true_userpred.shape[0] == 0:
-        assert test_results.shape[0] == 0
-    else:
-        pd.testing.assert_frame_equal(
-            test_results, true_userpred, atol=sar_settings["ATOL"]
-        )
+    test_items = list(test_results[header["col_item"]])
+    test_scores = np.array(test_results["prediction"])
+    assert true_items == test_items
+    assert np.allclose(true_scores, test_scores, atol=sar_settings["ATOL"])
 
 
 def test_get_item_based_topk(header, pandas_dummy):

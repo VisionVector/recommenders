@@ -37,61 +37,27 @@ DATA_ITEM_NUM = DATA_USER_NUM * 2
 DATA_SAMPLE_NUM = DATA_USER_NUM * 1000
 DATA_RATING_MAX = 5
 
-
 # fmt: off
-def check_CPU_powerful():
-    with Timer() as t:
-        df_true = pd.DataFrame(
-            {
-                DEFAULT_USER_COL: np.random.choice(range(0, DATA_USER_NUM), DATA_SAMPLE_NUM),
-                DEFAULT_ITEM_COL: np.random.choice(range(0, DATA_ITEM_NUM), DATA_SAMPLE_NUM),
-                DEFAULT_RATING_COL: np.random.choice(range(1, DATA_RATING_MAX+1), DATA_SAMPLE_NUM)
-            }
-        )
-        df_pred = pd.DataFrame(
-            {
-                DEFAULT_USER_COL: np.random.choice(range(0, DATA_USER_NUM), DATA_SAMPLE_NUM),
-                DEFAULT_ITEM_COL: np.random.choice(range(0, DATA_ITEM_NUM), DATA_SAMPLE_NUM),
-                DEFAULT_PREDICTION_COL: np.random.choice(range(1, DATA_RATING_MAX+1), DATA_SAMPLE_NUM)
-            }
-        )
-        map_at_k(
-            rating_true=df_true,
-            rating_pred=df_pred,
-            col_prediction=DEFAULT_PREDICTION_COL,
-            k=10,
-        )
-    
-    # Skip time performance tests if current runtime > AzureML runtime     
-    if t.interval < 19.566604433647072:
-        return True
-    else:
-        return False
-
-
-is_CPU_powerful = check_CPU_powerful()
-
-
 @pytest.fixture
 def rating_true():
     return pd.DataFrame(
-        {
-            DEFAULT_USER_COL: np.random.choice(range(0, DATA_USER_NUM), DATA_SAMPLE_NUM),
-            DEFAULT_ITEM_COL: np.random.choice(range(0, DATA_ITEM_NUM), DATA_SAMPLE_NUM),
-            DEFAULT_RATING_COL: np.random.choice(range(1, DATA_RATING_MAX+1), DATA_SAMPLE_NUM)
-        }
-    )
+    {
+        DEFAULT_USER_COL: np.random.choice(range(0, DATA_USER_NUM), DATA_SAMPLE_NUM),
+        DEFAULT_ITEM_COL: np.random.choice(range(0, DATA_ITEM_NUM), DATA_SAMPLE_NUM),
+        DEFAULT_RATING_COL: np.random.choice(range(1, DATA_RATING_MAX+1), DATA_SAMPLE_NUM)
+    }
+)
 
 
 @pytest.fixture
 def rating_pred():
     return pd.DataFrame(
-        {
-            DEFAULT_USER_COL: np.random.choice(range(0, DATA_USER_NUM), DATA_SAMPLE_NUM),
-            DEFAULT_ITEM_COL: np.random.choice(range(0, DATA_ITEM_NUM), DATA_SAMPLE_NUM),
-            DEFAULT_PREDICTION_COL: np.random.choice(range(1, DATA_RATING_MAX+1), DATA_SAMPLE_NUM)
-        }
-    )
+    {
+        DEFAULT_USER_COL: np.random.choice(range(0, DATA_USER_NUM), DATA_SAMPLE_NUM),
+        DEFAULT_ITEM_COL: np.random.choice(range(0, DATA_ITEM_NUM), DATA_SAMPLE_NUM),
+        DEFAULT_PREDICTION_COL: np.random.choice(range(1, DATA_RATING_MAX+1), DATA_SAMPLE_NUM)
+    }
+)
 # fmt: on
 
 
@@ -119,7 +85,6 @@ def rating_pred_binary(rating_pred):
 # The thresholds are calculated by MEAN + 5 * STANDARD DEVIATION.
 
 
-@pytest.mark.skipif(not is_CPU_powerful, reason="current CPU slower than AzureML CPU")
 def test_merge_rating(rating_true, rating_pred):
     with Timer() as t:
         merge_rating_true_pred(
@@ -133,7 +98,6 @@ def test_merge_rating(rating_true, rating_pred):
     assert t.interval < 19.58985256
 
 
-@pytest.mark.skipif(not is_CPU_powerful, reason="current CPU slower than AzureML CPU")
 def test_merge_ranking(rating_true, rating_pred):
     with Timer() as t:
         merge_ranking_true_pred(
@@ -148,7 +112,6 @@ def test_merge_ranking(rating_true, rating_pred):
     assert t.interval < 21.52722161
 
 
-@pytest.mark.skipif(not is_CPU_powerful, reason="current CPU slower than AzureML CPU")
 def test_python_rmse(rating_true, rating_pred):
     with Timer() as t:
         rmse(
@@ -159,7 +122,6 @@ def test_python_rmse(rating_true, rating_pred):
     assert t.interval < 29.95031411
 
 
-@pytest.mark.skipif(not is_CPU_powerful, reason="current CPU slower than AzureML CPU")
 def test_python_mae(rating_true, rating_pred):
     with Timer() as t:
         mae(
@@ -170,7 +132,6 @@ def test_python_mae(rating_true, rating_pred):
     assert t.interval < 30.45756622
 
 
-@pytest.mark.skipif(not is_CPU_powerful, reason="current CPU slower than AzureML CPU")
 def test_python_rsquared(rating_true, rating_pred):
     with Timer() as t:
         rsquared(
@@ -181,7 +142,6 @@ def test_python_rsquared(rating_true, rating_pred):
     assert t.interval < 30.60572284
 
 
-@pytest.mark.skipif(not is_CPU_powerful, reason="current CPU slower than AzureML CPU")
 def test_python_exp_var(rating_true, rating_pred):
     with Timer() as t:
         exp_var(
@@ -192,7 +152,6 @@ def test_python_exp_var(rating_true, rating_pred):
     assert t.interval < 31.01451915
 
 
-@pytest.mark.skipif(not is_CPU_powerful, reason="current CPU slower than AzureML CPU")
 def test_get_top_k_items(rating_true):
     with Timer() as t:
         get_top_k_items(
@@ -204,7 +163,6 @@ def test_get_top_k_items(rating_true):
     assert t.interval < 2.94850964
 
 
-@pytest.mark.skipif(not is_CPU_powerful, reason="current CPU slower than AzureML CPU")
 def test_get_top_k_items_largek(rating_true):
     with Timer() as t:
         get_top_k_items(
@@ -216,7 +174,6 @@ def test_get_top_k_items_largek(rating_true):
     assert t.interval < 4.04160459
 
 
-@pytest.mark.skipif(not is_CPU_powerful, reason="current CPU slower than AzureML CPU")
 def test_python_ndcg_at_k(rating_true, rating_pred):
     with Timer() as t:
         ndcg_at_k(
@@ -228,7 +185,6 @@ def test_python_ndcg_at_k(rating_true, rating_pred):
     assert t.interval < 21.55627936
 
 
-@pytest.mark.skipif(not is_CPU_powerful, reason="current CPU slower than AzureML CPU")
 def test_python_map_at_k(rating_true, rating_pred):
     with Timer() as t:
         map_at_k(
@@ -240,14 +196,12 @@ def test_python_map_at_k(rating_true, rating_pred):
     assert t.interval < 29.90376154
 
 
-@pytest.mark.skipif(not is_CPU_powerful, reason="current CPU slower than AzureML CPU")
 def test_python_precision(rating_true, rating_pred):
     with Timer() as t:
         precision_at_k(rating_true, rating_pred, k=10)
     assert t.interval < 29.95129834
 
 
-@pytest.mark.skipif(not is_CPU_powerful, reason="current CPU slower than AzureML CPU")
 def test_python_recall(rating_true, rating_pred):
     with Timer() as t:
         recall_at_k(
@@ -259,7 +213,6 @@ def test_python_recall(rating_true, rating_pred):
     assert t.interval < 30.29558967
 
 
-@pytest.mark.skipif(not is_CPU_powerful, reason="current CPU slower than AzureML CPU")
 def test_python_auc(rating_true_binary, rating_pred_binary):
     with Timer() as t:
         auc(
@@ -271,7 +224,6 @@ def test_python_auc(rating_true_binary, rating_pred_binary):
     assert t.interval < 21.53587225
 
 
-@pytest.mark.skipif(not is_CPU_powerful, reason="current CPU slower than AzureML CPU")
 def test_python_logloss(rating_true_binary, rating_pred_binary):
     with Timer() as t:
         logloss(
