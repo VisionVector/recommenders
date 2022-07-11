@@ -19,7 +19,6 @@ ABS_TOL = 0.05
 @pytest.mark.flaky(reruns=5, reruns_delay=2)
 @pytest.mark.smoke
 @pytest.mark.spark
-@pytest.mark.notebooks
 def test_als_pyspark_smoke(notebooks, output_notebook, kernel_name):
     notebook_path = notebooks["als_pyspark"]
     pm.execute_notebook(
@@ -47,7 +46,6 @@ def test_als_pyspark_smoke(notebooks, output_notebook, kernel_name):
 @pytest.mark.flaky(reruns=5, reruns_delay=2)
 @pytest.mark.smoke
 @pytest.mark.spark
-@pytest.mark.notebooks
 @pytest.mark.skipif(sys.platform == "win32", reason="Not implemented on Windows")
 def test_mmlspark_lightgbm_criteo_smoke(notebooks, output_notebook, kernel_name):
     notebook_path = notebooks["mmlspark_lightgbm_criteo"]

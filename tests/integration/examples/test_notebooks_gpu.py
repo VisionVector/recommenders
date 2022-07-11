@@ -25,7 +25,6 @@ def test_gpu_vm():
 
 
 @pytest.mark.gpu
-@pytest.mark.notebooks
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "size, epochs, expected_values, seed",
@@ -65,7 +64,6 @@ def test_ncf_integration(
 
 
 @pytest.mark.gpu
-@pytest.mark.notebooks
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "size, epochs, batch_size, expected_values, seed",
@@ -120,7 +118,6 @@ def test_ncf_deep_dive_integration(
 
 
 @pytest.mark.gpu
-@pytest.mark.notebooks
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "size, epochs, expected_values",
@@ -161,7 +158,6 @@ def test_fastai_integration(
 
 
 @pytest.mark.gpu
-@pytest.mark.notebooks
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "syn_epochs, criteo_epochs, expected_values, seed",
@@ -211,7 +207,6 @@ def test_xdeepfm_integration(
 
 
 @pytest.mark.gpu
-@pytest.mark.notebooks
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "size, steps, expected_values, seed",
@@ -260,7 +255,6 @@ def test_wide_deep_integration(
 
 
 @pytest.mark.gpu
-@pytest.mark.notebooks
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "yaml_file, data_path, epochs, batch_size, expected_values, seed",
@@ -312,7 +306,6 @@ def test_slirec_quickstart_integration(
 
 
 @pytest.mark.gpu
-@pytest.mark.notebooks
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "epochs, batch_size, seed, MIND_type, expected_values",
@@ -374,7 +367,6 @@ def test_nrms_quickstart_integration(
 
 
 @pytest.mark.gpu
-@pytest.mark.notebooks
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "epochs, batch_size, seed, MIND_type, expected_values",
@@ -436,7 +428,6 @@ def test_naml_quickstart_integration(
 
 
 @pytest.mark.gpu
-@pytest.mark.notebooks
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "epochs, batch_size, seed, MIND_type, expected_values",
@@ -498,7 +489,6 @@ def test_lstur_quickstart_integration(
 
 
 @pytest.mark.gpu
-@pytest.mark.notebooks
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "epochs, batch_size, seed, MIND_type, expected_values",
@@ -560,7 +550,6 @@ def test_npa_quickstart_integration(
 
 
 @pytest.mark.gpu
-@pytest.mark.notebooks
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "yaml_file, data_path, size, epochs, batch_size, expected_values, seed",
@@ -618,7 +607,6 @@ def test_lightgcn_deep_dive_integration(
 
 
 @pytest.mark.gpu
-@pytest.mark.notebooks
 @pytest.mark.integration
 def test_dkn_quickstart_integration(notebooks, output_notebook, kernel_name):
     notebook_path = notebooks["dkn_quickstart"]
@@ -639,7 +627,6 @@ def test_dkn_quickstart_integration(notebooks, output_notebook, kernel_name):
 
 
 @pytest.mark.gpu
-@pytest.mark.notebooks
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "size, expected_values",
@@ -667,7 +654,6 @@ def test_cornac_bivae_integration(
 
 
 @pytest.mark.gpu
-@pytest.mark.notebooks
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "data_dir, num_epochs, batch_size, model_name, expected_values, seed",
