@@ -2,7 +2,6 @@
 # Licensed under the MIT License.
 
 import numpy as np
-
 try:
     from pyspark.mllib.evaluation import RegressionMetrics, RankingMetrics
     from pyspark.sql import Window, DataFrame
@@ -323,13 +322,9 @@ class SparkRankingEvaluation:
         Return:
             float: recall at k (min=0, max=1).
         """
-        df_hit = self._items_for_user_all.withColumn(
-            "hit", F.array_intersect(DEFAULT_PREDICTION_COL, "ground_truth")
-        )
-        df_hit = df_hit.withColumn("num_hit", F.size("hit"))
-        df_hit = df_hit.withColumn("num_actual", F.size("ground_truth"))
-        df_hit = df_hit.withColumn("per_hit", df_hit["num_hit"] / df_hit["num_actual"])
-        recall = df_hit.select(F.mean("per_hit")).collect()[0][0]
+        recall = self._items_for_user_all.rdd.map(
+            lambda x: float(len(set(x[0]).intersection(set(x[1])))) / float(len(x[1]))
+        ).mean()
 
         return recall
 
