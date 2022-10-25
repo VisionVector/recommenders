@@ -1,12 +1,24 @@
-import pandas as pd
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+
+import os
 import numpy as np
-from pyspark.ml.recommendation import ALS
-from pyspark.sql.types import StructType, StructField
-from pyspark.sql.types import FloatType, IntegerType, LongType
-from fastai.collab import collab_learner, CollabDataBunch
+import pandas as pd
+from tempfile import TemporaryDirectory
 import surprise
 import cornac
+try:
+    from pyspark.ml.recommendation import ALS
+    from pyspark.sql.types import StructType, StructField
+    from pyspark.sql.types import FloatType, IntegerType, LongType
+except ImportError:
+    pass  # skip this import if we are not in a Spark environment
+try:
+    from fastai.collab import collab_learner, CollabDataBunch
+except ImportError:
+    pass  # skip this import if we are not in a GPU environment
 
+from recommenders.utils.timer import Timer
 from recommenders.utils.constants import (
     COL_DICT,
     DEFAULT_K,
@@ -17,27 +29,12 @@ from recommenders.utils.constants import (
     DEFAULT_TIMESTAMP_COL,
     SEED,
 )
-from recommenders.utils.timer import Timer
-from recommenders.utils.spark_utils import start_or_get_spark
 from recommenders.models.sar import SAR
-from recommenders.models.ncf.ncf_singlenode import NCF
-from recommenders.models.ncf.dataset import Dataset as NCFDataset
 from recommenders.models.surprise.surprise_utils import (
     predict,
     compute_ranking_predictions,
 )
-from recommenders.models.fastai.fastai_utils import (
-    cartesian_product,
-    score,
-)
 from recommenders.models.cornac.cornac_utils import predict_ranking
-from recommenders.models.deeprec.models.graphrec.lightgcn import LightGCN
-from recommenders.models.deeprec.DataModel.ImplicitCF import ImplicitCF
-from recommenders.models.deeprec.deeprec_utils import prepare_hparams
-from recommenders.evaluation.spark_evaluation import (
-    SparkRatingEvaluation,
-    SparkRankingEvaluation,
-)
 from recommenders.evaluation.python_evaluation import (
     map_at_k,
     ndcg_at_k,
@@ -45,6 +42,32 @@ from recommenders.evaluation.python_evaluation import (
     recall_at_k,
 )
 from recommenders.evaluation.python_evaluation import rmse, mae, rsquared, exp_var
+
+try:
+    from recommenders.utils.spark_utils import start_or_get_spark
+    from recommenders.evaluation.spark_evaluation import (
+        SparkRatingEvaluation,
+        SparkRankingEvaluation,
+    )
+except Exception:
+    pass  # skip this import if we are not in a Spark environment
+try:
+    from recommenders.models.deeprec.deeprec_utils import prepare_hparams
+    from recommenders.models.fastai.fastai_utils import (
+        cartesian_product,
+        score,
+    )
+    from recommenders.models.deeprec.models.graphrec.lightgcn import LightGCN
+    from recommenders.models.deeprec.DataModel.ImplicitCF import ImplicitCF
+    from recommenders.models.ncf.ncf_singlenode import NCF
+    from recommenders.models.ncf.dataset import Dataset as NCFDataset
+except ImportError:
+    pass  # skip this import if we are not in a GPU environment
+
+# Helpers
+tmp_dir = TemporaryDirectory()
+TRAIN_FILE = os.path.join(tmp_dir.name, "df_train.csv")
+TEST_FILE = os.path.join(tmp_dir.name, "df_test.csv")
 
 
 def prepare_training_als(train, test):
@@ -57,7 +80,7 @@ def prepare_training_als(train, test):
         )
     )
     spark = start_or_get_spark()
-    return spark.createDataFrame(train, schema)
+    return spark.createDataFrame(train, schema).cache()
 
 
 def train_als(params, data):
@@ -77,7 +100,7 @@ def prepare_metrics_als(train, test):
         )
     )
     spark = start_or_get_spark()
-    return spark.createDataFrame(train, schema), spark.createDataFrame(test, schema)
+    return spark.createDataFrame(train, schema).cache(), spark.createDataFrame(test, schema).cache()
 
 
 def predict_als(model, test):
@@ -223,13 +246,20 @@ def recommend_k_fastai(model, test, train, top_k=DEFAULT_K, remove_seen=True):
     return topk_scores, t
 
 
-def prepare_training_ncf(train, test):
+def prepare_training_ncf(df_train, df_test):
+    #df_train.sort_values(["userID"], axis=0, ascending=[True], inplace=True)
+    #df_test.sort_values(["userID"], axis=0, ascending=[True], inplace=True)
+    train = df_train.sort_values(["userID"], axis=0, ascending=[True])
+    test = df_test.sort_values(["userID"], axis=0, ascending=[True])
+    test = test[df_test["userID"].isin(train["userID"].unique())]
+    test = test[test["itemID"].isin(train["itemID"].unique())]
+    train.to_csv(TRAIN_FILE, index=False)
+    test.to_csv(TEST_FILE, index=False)
     return NCFDataset(
-        train=train,
+        train_file=TRAIN_FILE,
         col_user=DEFAULT_USER_COL,
         col_item=DEFAULT_ITEM_COL,
         col_rating=DEFAULT_RATING_COL,
-        col_timestamp=DEFAULT_TIMESTAMP_COL,
         seed=SEED,
     )
 
@@ -263,6 +293,7 @@ def recommend_k_ncf(model, test, train, top_k=DEFAULT_K, remove_seen=True):
         topk_scores = merged[merged[DEFAULT_RATING_COL].isnull()].drop(
             DEFAULT_RATING_COL, axis=1
         )
+    # Remove temp files
     return topk_scores, t
 
 
