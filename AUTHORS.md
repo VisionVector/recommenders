@@ -32,8 +32,6 @@ They have admin access to the repo and provide support reviewing issues and pull
 * **[Scott Graham](https://github.com/gramhagen)**
    * Improving documentation
    * VW notebook
-* **[Simon Zhao](https://github.com/simonzhaoms)**
-   * SARplus algorithm upgrade
 * **[Tao Wu](https://github.com/wutaomsft)**
    * Improving documentation
 
@@ -122,6 +120,8 @@ To contributors: please add your name to the list when you submit a patch to the
    * Windows test pipelines
 * **[Satyadev Ntv](https://github.com/satyadevntv)**
    * GeoIMC algorithm
+* **[Simon Zhao](https://github.com/simonzhaoms)**
+   * SARplus algorithm upgrade
 * **[Yan Zhang](https://github.com/YanZhangADS)**
    * Diversity metrics including coverage, novelty, diversity, and serendipity
    * Diversity metrics evaluation sample notebook
