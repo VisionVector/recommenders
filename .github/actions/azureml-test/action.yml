@@ -74,37 +74,48 @@ runs:
         python-version: "3.8"
     - name: Install azureml-core and azure-cli on a GitHub hosted server
       shell: bash
-      run: pip install --quiet azureml-core azure-cli
+      run: pip install azureml-core azure-cli
     - name: Log in to Azure
       uses: azure/login@v1
       with:
         creds: ${{inputs.AZUREML_TEST_CREDENTIALS}}
     - name: Install wheel package
       shell: bash
-      run: pip install --quiet wheel
+      run: pip install wheel
     - name: Create wheel from setup.py
       shell: bash
-      run: python setup.py --quiet bdist_wheel
+      run: python setup.py bdist_wheel
+    - name: Extract branch name
+      shell: bash
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+      id: extract_branch
     - name: Submit CPU tests to AzureML
       shell: bash
       if: contains(inputs.TEST_GROUP, 'cpu')
       run: >-
           python tests/ci/azureml_tests/submit_groupwise_azureml_pytest.py --clustername ${{inputs.CPU_CLUSTER_NAME}}
-          --subid ${{inputs.AZUREML_TEST_SUBID}} --reponame "recommenders" --branch ${{ github.ref }}
+          --subid ${{inputs.AZUREML_TEST_SUBID}} --reponame "recommenders" --branch ${{ steps.extract_branch.outputs.branch }}
           --rg ${{inputs.RG}} --wsname ${{inputs.WS}} --expname ${{inputs.EXP_NAME}}_${{inputs.TEST_GROUP}}
-          --testlogs ${{inputs.TEST_LOGS_PATH}} --testkind ${{inputs.TEST_KIND}} 
+          --testlogs ${{inputs.TEST_LOGS_PATH}} --testkind ${{inputs.TEST_KIND}}
           --conda_pkg_python ${{inputs.PYTHON_VERSION}} --testgroup ${{inputs.TEST_GROUP}}
-          --durations 0 --disable-warnings 
     - name: Submit GPU tests to AzureML
       shell: bash
       if: contains(inputs.TEST_GROUP, 'gpu')
       run: >-
-          echo "Skipping GPU" >> ${{inputs.TEST_LOGS_PATH}}
+          python tests/ci/azureml_tests/submit_groupwise_azureml_pytest.py --clustername ${{inputs.GPU_CLUSTER_NAME}}
+          --subid ${{inputs.AZUREML_TEST_SUBID}} --reponame "recommenders" --branch ${{ steps.extract_branch.outputs.branch }}
+          --rg ${{inputs.RG}} --wsname ${{inputs.WS}} --expname ${{inputs.EXP_NAME}}_${{inputs.TEST_GROUP}}
+          --testlogs ${{inputs.TEST_LOGS_PATH}} --add_gpu_dependencies --testkind ${{inputs.TEST_KIND}}
+          --conda_pkg_python ${{inputs.PYTHON_VERSION}} --testgroup ${{inputs.TEST_GROUP}}
     - name: Submit PySpark tests to AzureML
       shell: bash
       if: contains(inputs.TEST_GROUP, 'spark')
       run: >-
-          echo "Skipping PySpark" >> ${{inputs.TEST_LOGS_PATH}}
+          python tests/ci/azureml_tests/submit_groupwise_azureml_pytest.py --clustername ${{inputs.CPU_CLUSTER_NAME}}
+          --subid ${{inputs.AZUREML_TEST_SUBID}} --reponame "recommenders" --branch ${{ steps.extract_branch.outputs.branch }}
+          --rg ${{inputs.RG}} --wsname ${{inputs.WS}} --expname ${{inputs.EXP_NAME}}_${{inputs.TEST_GROUP}}
+          --testlogs ${{inputs.TEST_LOGS_PATH}} --add_spark_dependencies --testkind ${{inputs.TEST_KIND}}
+          --conda_pkg_python ${{inputs.PYTHON_VERSION}} --testgroup ${{inputs.TEST_GROUP}}
     - name: Print test logs
       shell: bash
       run: cat ${{inputs.TEST_LOGS_PATH}}

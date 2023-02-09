@@ -7,12 +7,14 @@ pytest runs all tests in the specified test folder unless parameters
 are set otherwise.
 """
 
-import sys
 import logging
+import os
+import sys
+from azureml.core import Run
 import pytest
+import json
 import argparse
 import glob
-from azureml.core import Run
 from test_groups import nightly_test_groups, unit_test_groups
 
 if __name__ == "__main__":
@@ -54,8 +56,8 @@ if __name__ == "__main__":
     logger.info("Executing tests now...")
 
     # execute pytest command
-    pytest_exit_code = pytest.main(args=test_group)
-
+    pytest_exit_code = pytest.main(test_group)
+    
     logger.info("Test execution completed!")
 
     # log pytest exit code as a metric
@@ -68,8 +70,5 @@ if __name__ == "__main__":
     # logger.info("os.listdir files {}".format(os.listdir(".")))
 
     # upload pytest stdout file
-    logs_path = (
-        glob.glob("**/70_driver_log.txt", recursive=True)
-        + glob.glob("**/std_log.txt", recursive=True)
-    )[0]
-    run.upload_file(name="test_logs", path_or_stream=logs_path)
+    logs_path = (glob.glob('**/70_driver_log.txt', recursive=True) + glob.glob('**/std_log.txt', recursive=True))[0]
+    run.upload_file(name='test_logs', path_or_stream=logs_path)
