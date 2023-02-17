@@ -18,9 +18,6 @@ on:
       - contrib/sarplus/scala/**
       - contrib/sarplus/VERSION
       - .github/workflows/sarplus.yml
-  
-  # Enable manual trigger
-  workflow_dispatch:
 
 env:
   SARPLUS_ROOT: ${{ github.workspace }}/contrib/sarplus
@@ -32,7 +29,7 @@ jobs:
     # Test pysarplus with different versions of Python.
     # Package pysarplus and upload as GitHub workflow artifact when merged into
     # the main branch.
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"]
