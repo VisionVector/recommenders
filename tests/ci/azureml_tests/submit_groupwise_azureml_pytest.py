@@ -180,6 +180,7 @@ def create_run_config(
     run_azuremlcompute.target = cpu_cluster
     run_azuremlcompute.environment.docker.enabled = True
     run_azuremlcompute.environment.docker.base_image = docker_proc_type
+    # run_azuremlcompute.environment.environment_variables['EXAMPLE_ENV_VAR'] = 'EXAMPLE_VALUE'
 
     # Use conda_dependencies.yml to create a conda environment in
     # the Docker image for execution
@@ -394,7 +395,8 @@ def create_arg_parser():
     parser.add_argument(
         "--conda_pkg_cudatoolkit",
         action="store",
-        default="cudatoolkit=11.2",
+        # default="cudatoolkit=11.2",
+        default="cudatoolkit=11.1",
         help="conda package name for cudatoolkit",
     )
     # conda package name for cudnn
@@ -402,6 +404,7 @@ def create_arg_parser():
         "--conda_pkg_cudnn",
         action="store",
         default="cudnn=8.1",
+        # default="cudnn=8.2.1",
         help="conda package name for cudnn",
     )
     # conda package name for jdk
