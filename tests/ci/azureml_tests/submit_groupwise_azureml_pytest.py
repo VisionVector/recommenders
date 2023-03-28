@@ -134,10 +134,7 @@ def setup_persistent_compute_target(workspace, cluster_name, vm_size, max_nodes)
     except ComputeTargetException:
         logger.debug("setup: create cluster")
         compute_config = AmlCompute.provisioning_configuration(
-            vm_size=vm_size,
-            max_nodes=max_nodes,
-            ssh_public_access_enabled=True,
-            idle_time_before_scale_down=3600,  # 1 hour
+            vm_size=vm_size, max_nodes=max_nodes
         )
         cpu_cluster = ComputeTarget.create(workspace, cluster_name, compute_config)
     cpu_cluster.wait_for_completion(show_output=False)
@@ -212,10 +209,6 @@ def create_run_config(
         conda_dep.add_channel("conda-forge")
         conda_dep.add_conda_package(conda_pkg_jdk)
         conda_dep.add_pip_package("recommenders[dev,examples,spark]")
-        # run_azuremlcompute.environment_variables = {
-        #     "PYSPARK_PYTHON": "$Python_ROOT_DIR/bin/python",
-        #     "PYSPARK_DRIVER_PYTHON": "$Python_ROOT_DIR/bin/python",
-        # }
     else:
         conda_dep.add_pip_package("recommenders[dev,examples]")
 
