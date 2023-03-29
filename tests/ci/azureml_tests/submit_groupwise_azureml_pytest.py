@@ -134,10 +134,7 @@ def setup_persistent_compute_target(workspace, cluster_name, vm_size, max_nodes)
     except ComputeTargetException:
         logger.debug("setup: create cluster")
         compute_config = AmlCompute.provisioning_configuration(
-            vm_size=vm_size,
-            max_nodes=max_nodes,
-            ssh_public_access_enabled=True,
-            idle_time_before_scale_down=3600,  # 1 hour
+            vm_size=vm_size, max_nodes=max_nodes
         )
         cpu_cluster = ComputeTarget.create(workspace, cluster_name, compute_config)
     cpu_cluster.wait_for_completion(show_output=False)
@@ -212,6 +209,15 @@ def create_run_config(
         conda_dep.add_channel("conda-forge")
         conda_dep.add_conda_package(conda_pkg_jdk)
         conda_dep.add_pip_package("recommenders[dev,examples,spark]")
+        # run_azuremlcompute.environment_variables = {
+        #     "PYSPARK_PYTHON": "python",
+        #     "PYSPARK_DRIVER_PYTHON": "python",
+        #     "SPARK_HOME": "",
+        # }
+        # env = run_azuremlcompute.environment
+        # env.environment_variables["PYSPARK_PYTHON"] = env.python.interpreter_path
+        # env.environment_variables["PYSPARK_DRIVER_PYTHON"] = env.python.interpreter_path
+        # env.environment_variables["SPARK_HOME"] = ""
     else:
         conda_dep.add_pip_package("recommenders[dev,examples]")
 
@@ -479,9 +485,13 @@ if __name__ == "__main__":
     )
 
     # add helpful information to experiment on Azure
+    run.tag("Python", args.conda_pkg_python)
     run.tag("RepoName", args.reponame)
     run.tag("Branch", args.branch)
     run.tag("PR", args.pr)
+    run.tag("script", args.test)
+    run.tag("testgroup", args.testgroup)
+    run.tag("testkind", args.testkind)
 
     # download logs file from AzureML
     run.download_file(name="test_logs", output_file_path=args.testlogs)
