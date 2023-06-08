@@ -40,6 +40,7 @@ install_requires = [
     "nltk>=3.4,<4",
     "seaborn>=0.8.1,<1",
     "transformers>=2.5.0,<5",
+    "bottleneck>=1.2.1,<2",
     "category_encoders>=1.3.0,<2",
     "jinja2>=2,<3.1",
     "pyyaml>=5.4.1,<6",
@@ -55,7 +56,6 @@ install_requires = [
 # shared dependencies
 extras_require = {
     "examples": [
-        "azure.mgmt.cosmosdb>=0.8.0,<1",
         "hyperopt>=0.1.2,<1",
         "ipykernel>=4.6.1,<7",
         "jupyter>=1,<2",
@@ -141,5 +141,5 @@ setup(
         where=".",
         exclude=["contrib", "docs", "examples", "scenarios", "tests", "tools"],
     ),
-    setup_requires=["numpy>=1.15"],
+    setup_requires=["numpy>=1.19"],
 )
