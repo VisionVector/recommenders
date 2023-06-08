@@ -45,8 +45,7 @@ install_requires = [
     "jinja2>=2,<3.1",
     "pyyaml>=5.4.1,<6",
     "requests>=2.0.0,<3",
-    "cornac>=1.1.2,<1.15.2;python_version<='3.7'",
-    "cornac>=1.15.2,<2;python_version>='3.8'", # After 1.15.2, Cornac requires python 3.8
+    "cornac>=1.1.2,<2",
     "retrying>=1.3.3",
     "pandera[strategies]>=0.6.5",  # For generating fake datasets
     "scikit-surprise>=1.0.6",
@@ -56,7 +55,6 @@ install_requires = [
 # shared dependencies
 extras_require = {
     "examples": [
-        "azure.mgmt.cosmosdb>=0.8.0,<1",
         "hyperopt>=0.1.2,<1",
         "ipykernel>=4.6.1,<7",
         "jupyter>=1,<2",
@@ -138,9 +136,6 @@ setup(
     install_requires=install_requires,
     package_dir={"recommenders": "recommenders"},
     python_requires=">=3.6, <3.10",
-    packages=find_packages(
-        where=".",
-        exclude=["contrib", "docs", "examples", "scenarios", "tests", "tools"],
-    ),
-    setup_requires=["numpy>=1.15"],
+    packages=find_packages(where=".", exclude=["contrib", "docs", "examples", "scenarios", "tests", "tools"]),
+    setup_requires=["numpy>=1.19"]
 )

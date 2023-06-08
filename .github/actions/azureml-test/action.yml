@@ -82,6 +82,9 @@ runs:
     - name: Install wheel package
       shell: bash
       run: pip install --quiet wheel
+    - name: Create wheel from setup.py
+      shell: bash
+      run: python setup.py --quiet bdist_wheel
     - name: Submit CPU tests to AzureML
       shell: bash
       if: contains(inputs.TEST_GROUP, 'cpu')
@@ -91,7 +94,7 @@ runs:
           --rg ${{inputs.RG}} --wsname ${{inputs.WS}} --expname ${{inputs.EXP_NAME}}_${{inputs.TEST_GROUP}}
           --testlogs ${{inputs.TEST_LOGS_PATH}} --testkind ${{inputs.TEST_KIND}}
           --conda_pkg_python ${{inputs.PYTHON_VERSION}} --testgroup ${{inputs.TEST_GROUP}}
-          --disable-warnings --sha "${GITHUB_SHA}"
+          --disable-warnings
     - name: Submit GPU tests to AzureML
       shell: bash
       if: contains(inputs.TEST_GROUP, 'gpu')
@@ -101,7 +104,7 @@ runs:
           --rg ${{inputs.RG}} --wsname ${{inputs.WS}} --expname ${{inputs.EXP_NAME}}_${{inputs.TEST_GROUP}}
           --testlogs ${{inputs.TEST_LOGS_PATH}} --add_gpu_dependencies --testkind ${{inputs.TEST_KIND}}
           --conda_pkg_python ${{inputs.PYTHON_VERSION}} --testgroup ${{inputs.TEST_GROUP}}
-          --disable-warnings --sha "${GITHUB_SHA}"
+          --disable-warnings
     - name: Submit PySpark tests to AzureML
       shell: bash
       if: contains(inputs.TEST_GROUP, 'spark')
@@ -111,7 +114,7 @@ runs:
           --rg ${{inputs.RG}} --wsname ${{inputs.WS}} --expname ${{inputs.EXP_NAME}}_${{inputs.TEST_GROUP}}
           --testlogs ${{inputs.TEST_LOGS_PATH}} --add_spark_dependencies --testkind ${{inputs.TEST_KIND}}
           --conda_pkg_python ${{inputs.PYTHON_VERSION}} --testgroup ${{inputs.TEST_GROUP}}
-          --disable-warnings --sha "${GITHUB_SHA}"
+          --disable-warnings
     - name: Print test logs
       shell: bash
       run: cat ${{inputs.TEST_LOGS_PATH}}
