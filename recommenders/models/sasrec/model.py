@@ -1,6 +1,5 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
-
 import random
 import numpy as np
 from tqdm import tqdm
@@ -73,7 +72,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
             tf.expand_dims(key_masks, 1), [1, tf.shape(queries)[1], 1]
         )  # (h*N, T_q, T_k)
 
-        paddings = tf.ones_like(outputs) * (-(2**32) + 1)
+        paddings = tf.ones_like(outputs) * (-(2 ** 32) + 1)
         # outputs, (h*N, T_q, T_k)
         outputs = tf.where(tf.equal(key_masks, 0), paddings, outputs)
 
@@ -86,7 +85,7 @@ class MultiHeadAttention(tf.keras.layers.Layer):
             tf.expand_dims(tril, 0), [tf.shape(outputs)[0], 1, 1]
         )  # (h*N, T_q, T_k)
 
-        paddings = tf.ones_like(masks) * (-(2**32) + 1)
+        paddings = tf.ones_like(masks) * (-(2 ** 32) + 1)
         # outputs, (h*N, T_q, T_k)
         outputs = tf.where(tf.equal(masks, 0), paddings, outputs)
 
@@ -448,7 +447,7 @@ class SASREC(tf.keras.Model):
         """
 
         seq_embeddings = self.item_embedding_layer(input_seq)
-        seq_embeddings = seq_embeddings * (self.embedding_dim**0.5)
+        seq_embeddings = seq_embeddings * (self.embedding_dim ** 0.5)
 
         # FIXME
         positional_seq = tf.expand_dims(tf.range(tf.shape(input_seq)[1]), 0)

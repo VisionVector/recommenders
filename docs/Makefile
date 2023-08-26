@@ -1,4 +1,4 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 # You can set these variables from the command line.

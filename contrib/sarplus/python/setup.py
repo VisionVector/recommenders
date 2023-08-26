@@ -1,4 +1,4 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 from pathlib import Path
@@ -26,12 +26,10 @@ DEPENDENCIES = [
 
 setup(
     name="pysarplus",
-    version=(Path(__file__).resolve().parent / "pysarplus" / "VERSION")
-    .read_text()
-    .strip(),
+    version=(Path(__file__).resolve().parent / "pysarplus" / "VERSION").read_text().strip(),
     description="SAR prediction for use with PySpark",
     long_description=(Path(__file__).resolve().parent / "README.md").read_text(),
-    long_description_content_type="text/markdown",
+    long_description_content_type='text/markdown',
     url="https://github.com/microsoft/recommenders/tree/main/contrib/sarplus",
     author="RecoDev Team at Microsoft",
     author_email="recodevteam@service.microsoft.com",

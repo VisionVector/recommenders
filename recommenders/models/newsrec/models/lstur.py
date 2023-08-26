@@ -1,4 +1,4 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 import tensorflow.compat.v1.keras as keras

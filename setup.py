@@ -1,4 +1,4 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 from os import environ
@@ -102,10 +102,10 @@ extras_require["nni"] = [
 setup(
     name="recommenders",
     version=version,
-    description="Recommenders - Python utilities for building recommender systems",
+    description="Microsoft Recommenders - Python utilities for building recommender systems",
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
-    url="https://github.com/recommenders-team/recommenders",
+    url="https://github.com/microsoft/recommenders",
     project_urls={
         "Documentation": "https://microsoft-recommenders.readthedocs.io/en/stable/",
         "Wiki": "https://github.com/microsoft/recommenders/wiki",

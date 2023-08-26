@@ -1,4 +1,4 @@
-# Copyright (c) Recommenders contributors.
+# Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
 import sys
@@ -22,15 +22,13 @@ def get_number_gpus():
     """
     try:
         import torch
-
         return torch.cuda.device_count()
     except (ImportError, ModuleNotFoundError):
         pass
     try:
         import numba
-
         return len(numba.cuda.gpus)
-    except Exception:  # numba.cuda.cudadrv.error.CudaSupportError:
+    except Exception: # numba.cuda.cudadrv.error.CudaSupportError:
         return 0
 
 
@@ -70,13 +68,12 @@ def clear_memory_all_gpus():
 
 def get_cuda_version():
     """Get CUDA version
-
+    
     Returns:
         str: Version of the library.
     """
     try:
         import torch
-
         return torch.version.cuda
     except (ImportError, ModuleNotFoundError):
         path = ""
@@ -102,7 +99,7 @@ def get_cuda_version():
 
 def get_cudnn_version():
     """Get the CuDNN version
-
+    
     Returns:
         str: Version of the library.
     """
@@ -128,10 +125,9 @@ def get_cudnn_version():
                 return "Cannot find CUDNN version"
         else:
             return "Cannot find CUDNN version"
-
+            
     try:
         import torch
-
         return torch.backends.cudnn.version()
     except (ImportError, ModuleNotFoundError):
         if sys.platform == "win32":
