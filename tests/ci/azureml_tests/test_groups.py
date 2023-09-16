@@ -11,7 +11,7 @@
 # FOR INTEGRATION, NO GROUP SHOULD SURPASS 45MIN = 2700s !!!
 # FOR UNIT, NO GROUP SHOULD SURPASS 15MIN = 900s !!!
 
-global nightly_test_groups, unit_test_groups
+global nightly_test_groups, pr_gate_test_groups
 
 nightly_test_groups = {
     "group_cpu_001": [  # Total group time: 1883s
@@ -48,9 +48,9 @@ nightly_test_groups = {
         "tests/integration/examples/test_notebooks_python.py::test_benchmark_movielens_cpu",  # 58s
     ],
     "group_cpu_003": [  # Total group time: 2253s
-        "tests/smoke/recommenders/dataset/test_criteo.py::test_download_criteo",  # 1.05s
-        "tests/smoke/recommenders/dataset/test_criteo.py::test_extract_criteo",  # 1.22s
-        "tests/smoke/recommenders/dataset/test_criteo.py::test_criteo_load_pandas_df",  # 1.73s
+        "tests/data_validation/recommenders/dataset/test_criteo.py::test_download_criteo_sample",  # 1.05s
+        "tests/data_validation/recommenders/dataset/test_criteo.py::test_extract_criteo_sample",  # 1.22s
+        "tests/data_validation/recommenders/dataset/test_criteo.py::test_criteo_load_pandas_df_sample",  # 1.73s
         "tests/integration/recommenders/datasets/test_criteo.py::test_criteo_load_pandas_df",  # 1368.63s
         #
         "tests/smoke/examples/test_notebooks_python.py::test_sar_single_node_smoke",  # 12.58s
@@ -141,7 +141,7 @@ nightly_test_groups = {
         "tests/smoke/recommenders/dataset/test_movielens.py::test_load_spark_df",  # 4.33s
         "tests/integration/recommenders/datasets/test_movielens.py::test_load_spark_df",  # 25.58s + 101.99s + 139.23s
         #
-        "tests/smoke/recommenders/dataset/test_criteo.py::test_criteo_load_spark_df",  # 6.83s
+        "tests/data_validation/recommenders/dataset/test_criteo.py::test_criteo_load_spark_df_sample",  # 6.83s
         "tests/smoke/examples/test_notebooks_pyspark.py::test_mmlspark_lightgbm_criteo_smoke",  # 32.45s
         "tests/integration/recommenders/datasets/test_criteo.py::test_criteo_load_spark_df",  # 374.64s
         #
@@ -151,15 +151,65 @@ nightly_test_groups = {
     ],
 }
 
-unit_test_groups = {
+pr_gate_test_groups = {
+    "group_cpu_001": [  # Total group time: 525.96s
+        "tests/data_validation/recommenders/datasets/test_movielens.py::test_load_pandas_df_mock_100__with_default_param__succeed",
+        "tests/data_validation/recommenders/datasets/test_movielens.py::test_load_pandas_df_mock_100__with_custom_param__succeed",
+        "tests/data_validation/recommenders/datasets/test_movielens.py::test_mock_movielens_schema__has_default_col_names",
+        "tests/data_validation/recommenders/datasets/test_movielens.py::test_mock_movielens_schema__get_df__return_success",
+        "tests/data_validation/recommenders/datasets/test_movielens.py::test_mock_movielens_schema__get_df_remove_default_col__return_success",
+        "tests/data_validation/recommenders/datasets/test_wikidata.py::test_find_wikidata_id",
+        "tests/unit/recommenders/datasets/test_download_utils.py::test_maybe_download_wrong_bytes",
+        "tests/unit/recommenders/datasets/test_download_utils.py::test_maybe_download_maybe",
+        "tests/unit/recommenders/datasets/test_download_utils.py::test_maybe_download_retry",
+        "tests/unit/recommenders/datasets/test_download_utils.py::test_download_path",
+        "tests/unit/recommenders/utils/test_timer.py::test_timer",
+        "tests/unit/recommenders/tuning/test_ncf_utils.py::test_compute_test_results__return_success",
+        "tests/unit/recommenders/models/test_geoimc.py::test_imcproblem",
+        "tests/unit/recommenders/models/test_sar_singlenode.py::test_sar_item_similarity",
+        "tests/unit/recommenders/models/test_tfidf_utils.py::test_tokenize_text",
+        "tests/unit/recommenders/models/test_tfidf_utils.py::test_get_tokens",
+        "tests/unit/recommenders/models/test_cornac_utils.py::test_recommend_k_items",
+        "tests/performance/recommenders/evaluation/test_python_evaluation_time_performance.py::test_merge_rating",
+        "tests/performance/recommenders/evaluation/test_python_evaluation_time_performance.py::test_merge_ranking",
+        "tests/performance/recommenders/evaluation/test_python_evaluation_time_performance.py::test_python_rmse",
+        "tests/performance/recommenders/evaluation/test_python_evaluation_time_performance.py::test_python_mae",
+        "tests/performance/recommenders/evaluation/test_python_evaluation_time_performance.py::test_python_rsquared",
+        "tests/performance/recommenders/evaluation/test_python_evaluation_time_performance.py::test_python_exp_var",
+        "tests/performance/recommenders/evaluation/test_python_evaluation_time_performance.py::test_get_top_k_items",
+        "tests/performance/recommenders/evaluation/test_python_evaluation_time_performance.py::test_get_top_k_items_largek",
+        "tests/performance/recommenders/evaluation/test_python_evaluation_time_performance.py::test_python_ndcg_at_k",
+        "tests/performance/recommenders/evaluation/test_python_evaluation_time_performance.py::test_python_map_at_k",
+        "tests/performance/recommenders/evaluation/test_python_evaluation_time_performance.py::test_python_precision",
+        "tests/performance/recommenders/evaluation/test_python_evaluation_time_performance.py::test_python_recall",
+        "tests/performance/recommenders/evaluation/test_python_evaluation_time_performance.py::test_python_auc",
+        "tests/performance/recommenders/evaluation/test_python_evaluation_time_performance.py::test_python_logloss",
+        "tests/security/test_dependency_security.py::test_requests",
+        "tests/security/test_dependency_security.py::test_numpy",
+        "tests/security/test_dependency_security.py::test_pandas",
+        "tests/responsible_ai/recommenders/datasets/test_criteo_privacy.py",
+        "tests/responsible_ai/recommenders/datasets/test_movielens_privacy.py",
+    ],
+    "group_notebooks_cpu_001": [  # Total group time: 226.42s
+        "tests/unit/examples/test_notebooks_python.py::test_rlrmc_quickstart_runs",
+        "tests/unit/examples/test_notebooks_python.py::test_sar_deep_dive_runs",
+        "tests/unit/examples/test_notebooks_python.py::test_baseline_deep_dive_runs",
+        "tests/unit/examples/test_notebooks_python.py::test_template_runs",
+        "tests/unit/recommenders/utils/test_notebook_utils.py::test_is_jupyter",
+        "tests/unit/examples/test_notebooks_python.py::test_surprise_deep_dive_runs",
+        "tests/unit/examples/test_notebooks_python.py::test_lightgbm",
+        "tests/unit/examples/test_notebooks_python.py::test_cornac_deep_dive_runs",
+        "tests/unit/examples/test_notebooks_python.py::test_sar_single_node_runs",
+    ],
     "group_spark_001": [  # Total group time: 270.41s
-        "tests/unit/recommenders/datasets/test_movielens.py::test_load_spark_df_mock_100__with_custom_param__succeed",
-        "tests/unit/recommenders/datasets/test_movielens.py::test_mock_movielens_schema__get_spark_df__return_success",
+        "tests/data_validation/recommenders/datasets/test_movielens.py::test_load_spark_df_mock_100__with_custom_param__succeed",
+        "tests/data_validation/recommenders/datasets/test_movielens.py::test_mock_movielens_schema__get_spark_df__return_success",
+        "tests/data_validation/recommenders/datasets/test_movielens.py::test_mock_movielens_schema__get_spark_df__data_serialization_default_param",
+        "tests/data_validation/recommenders/datasets/test_movielens.py::test_mock_movielens_schema__get_spark_df__store_tmp_file",
+        "tests/data_validation/recommenders/datasets/test_movielens.py::test_load_spark_df_mock_100__with_default_param__succeed",
         "tests/unit/recommenders/datasets/test_spark_splitter.py::test_stratified_splitter",
         "tests/unit/recommenders/datasets/test_spark_splitter.py::test_chrono_splitter",
-        "tests/unit/recommenders/datasets/test_movielens.py::test_mock_movielens_schema__get_spark_df__data_serialization_default_param",
         "tests/unit/recommenders/evaluation/test_spark_evaluation.py::test_user_diversity_item_feature_vector",
-        "tests/unit/recommenders/datasets/test_movielens.py::test_mock_movielens_schema__get_spark_df__store_tmp_file",
         "tests/unit/recommenders/evaluation/test_spark_evaluation.py::test_spark_python_match",
         "tests/unit/recommenders/evaluation/test_spark_evaluation.py::test_spark_precision",
         "tests/unit/recommenders/evaluation/test_spark_evaluation.py::test_spark_exp_var",
@@ -170,7 +220,6 @@ unit_test_groups = {
         "tests/unit/recommenders/evaluation/test_spark_evaluation.py::test_user_serendipity",
         "tests/unit/recommenders/evaluation/test_spark_evaluation.py::test_diversity_item_feature_vector",
         "tests/unit/recommenders/evaluation/test_spark_evaluation.py::test_diversity",
-        "tests/unit/recommenders/datasets/test_movielens.py::test_load_spark_df_mock_100__with_default_param__succeed",
         "tests/unit/recommenders/evaluation/test_spark_evaluation.py::test_user_serendipity_item_feature_vector",
         "tests/unit/recommenders/evaluation/test_spark_evaluation.py::test_serendipity_item_feature_vector",
         "tests/unit/recommenders/evaluation/test_spark_evaluation.py::test_user_item_serendipity_item_feature_vector",
@@ -242,6 +291,9 @@ unit_test_groups = {
         "tests/unit/recommenders/models/test_deeprec_model.py::test_nextitnet_component_definition",
         "tests/unit/recommenders/models/test_deeprec_model.py::test_sum_component_definition",
         "tests/unit/recommenders/models/test_deeprec_model.py::test_lightgcn_component_definition",
+        "tests/security/test_dependency_security.py::test_tensorflow",
+        "tests/security/test_dependency_security.py::test_torch",
+        "tests/regression/test_compatibility_tf.py",
     ],
     "group_notebooks_gpu_001": [  # Total group time: 563.35s
         "tests/unit/examples/test_notebooks_gpu.py::test_gpu_vm",  # 0.76s (Always the first test to check the GPU works)
@@ -255,34 +307,5 @@ unit_test_groups = {
         "tests/unit/examples/test_notebooks_gpu.py::test_wide_deep",
         "tests/unit/examples/test_notebooks_gpu.py::test_xdeepfm",
         "tests/unit/examples/test_notebooks_gpu.py::test_gpu_vm",
-    ],
-    "group_cpu_001": [  # Total group time: 525.96s
-        "tests/unit/recommenders/datasets/test_movielens.py::test_load_pandas_df_mock_100__with_default_param__succeed",
-        "tests/unit/recommenders/datasets/test_dataset.py::test_maybe_download_wrong_bytes",
-        "tests/unit/recommenders/datasets/test_movielens.py::test_mock_movielens_schema__has_default_col_names",
-        "tests/unit/recommenders/datasets/test_movielens.py::test_load_pandas_df_mock_100__with_custom_param__succeed",
-        "tests/unit/recommenders/datasets/test_dataset.py::test_maybe_download_retry",
-        "tests/unit/recommenders/datasets/test_movielens.py::test_mock_movielens_schema__get_df__return_success",
-        "tests/unit/recommenders/utils/test_timer.py::test_timer",
-        "tests/unit/recommenders/tuning/test_ncf_utils.py::test_compute_test_results__return_success",
-        "tests/unit/recommenders/datasets/test_movielens.py::test_mock_movielens_schema__get_df_remove_default_col__return_success",
-        "tests/unit/recommenders/models/test_geoimc.py::test_imcproblem",
-        "tests/unit/recommenders/datasets/test_wikidata.py::test_find_wikidata_id",
-        "tests/unit/recommenders/models/test_sar_singlenode.py::test_sar_item_similarity",
-        "tests/unit/recommenders/models/test_tfidf_utils.py::test_tokenize_text",
-        "tests/unit/recommenders/models/test_tfidf_utils.py::test_get_tokens",
-        "tests/unit/recommenders/models/test_cornac_utils.py::test_recommend_k_items",
-        "tests/unit/recommenders/evaluation/test_python_evaluation_time_performance.py",  # 297.91s
-    ],
-    "group_notebooks_cpu_001": [  # Total group time: 226.42s
-        "tests/unit/examples/test_notebooks_python.py::test_rlrmc_quickstart_runs",
-        "tests/unit/examples/test_notebooks_python.py::test_sar_deep_dive_runs",
-        "tests/unit/examples/test_notebooks_python.py::test_baseline_deep_dive_runs",
-        "tests/unit/examples/test_notebooks_python.py::test_template_runs",
-        "tests/unit/recommenders/utils/test_notebook_utils.py::test_is_jupyter",
-        "tests/unit/examples/test_notebooks_python.py::test_surprise_deep_dive_runs",
-        "tests/unit/examples/test_notebooks_python.py::test_lightgbm",
-        "tests/unit/examples/test_notebooks_python.py::test_cornac_deep_dive_runs",
-        "tests/unit/examples/test_notebooks_python.py::test_sar_single_node_runs",
     ],
 }
