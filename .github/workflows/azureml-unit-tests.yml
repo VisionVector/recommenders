@@ -19,7 +19,6 @@ on:
       - tests/**
       - '!tests/**/*.md'
       - setup.py
-    types: [opened, synchronize, reopened, ready_for_review]
 
   # Enable manual trigger
   workflow_dispatch:
@@ -47,7 +46,6 @@ jobs:
         shell: bash
     outputs:
       test_groups: ${{ steps.get_test_groups.outputs.test_groups }}
-    if: github.event.pull_request.draft == false
 
   execute-tests:
     needs: get-test-groups
@@ -71,4 +69,3 @@ jobs:
           AZUREML_TEST_SUBID: ${{ secrets.AZUREML_TEST_SUBID }}
           PYTHON_VERSION: ${{ matrix.python-version }}
           TEST_GROUP: ${{ matrix.test-group }}
-    if: github.event.pull_request.draft == false
