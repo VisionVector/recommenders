@@ -3,9 +3,10 @@
 
 import os
 import pytest
+import papermill as pm
+import scrapbook as sb
 
 from recommenders.utils.gpu_utils import get_number_gpus
-from recommenders.utils.notebook_utils import execute_notebook, read_notebook
 
 
 TOL = 0.1
@@ -40,7 +41,7 @@ def test_ncf_functional(
     notebooks, output_notebook, kernel_name, size, epochs, expected_values, seed
 ):
     notebook_path = notebooks["ncf"]
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path,
         output_notebook,
         kernel_name=kernel_name,
@@ -48,7 +49,9 @@ def test_ncf_functional(
             TOP_K=10, MOVIELENS_DATA_SIZE=size, EPOCHS=epochs, BATCH_SIZE=512, SEED=seed
         ),
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
     for key, value in expected_values.items():
         assert results[key] == pytest.approx(value, rel=TOL, abs=ABS_TOL)
@@ -88,7 +91,7 @@ def test_ncf_deep_dive_functional(
     seed,
 ):
     notebook_path = notebooks["ncf_deep_dive"]
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path,
         output_notebook,
         kernel_name=kernel_name,
@@ -100,7 +103,9 @@ def test_ncf_deep_dive_functional(
             SEED=seed,
         ),
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
     for key, value in expected_values.items():
         assert results[key] == pytest.approx(value, rel=TOL, abs=ABS_TOL)
@@ -132,13 +137,15 @@ def test_fastai_functional(
     notebooks, output_notebook, kernel_name, size, epochs, expected_values
 ):
     notebook_path = notebooks["fastai"]
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path,
         output_notebook,
         kernel_name=kernel_name,
         parameters=dict(TOP_K=10, MOVIELENS_DATA_SIZE=size, EPOCHS=epochs),
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
     for key, value in expected_values.items():
         assert results[key] == pytest.approx(value, rel=TOL, abs=ABS_TOL)
@@ -165,7 +172,7 @@ def test_xdeepfm_functional(
     seed,
 ):
     notebook_path = notebooks["xdeepfm_quickstart"]
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path,
         output_notebook,
         kernel_name=kernel_name,
@@ -175,7 +182,9 @@ def test_xdeepfm_functional(
             RANDOM_SEED=seed,
         ),
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
     for key, value in expected_values.items():
         assert results[key] == pytest.approx(value, rel=TOL, abs=ABS_TOL)
@@ -228,10 +237,12 @@ def test_wide_deep_functional(
         "RANKING_METRICS": ["ndcg_at_k", "map_at_k", "precision_at_k", "recall_at_k"],
         "RANDOM_SEED": seed,
     }
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path, output_notebook, kernel_name=kernel_name, parameters=params
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
     for key, value in expected_values.items():
         assert results[key] == pytest.approx(value, rel=TOL, abs=ABS_TOL)
@@ -247,7 +258,7 @@ def test_wide_deep_functional(
             os.path.join("tests", "resources", "deeprec", "slirec"),
             10,
             400,
-            {"auc": 0.7183, "logloss": 0.6045},
+            {"res_syn": {"auc": 0.7183, "logloss": 0.6045}},
             42,
         )
     ],
@@ -272,16 +283,20 @@ def test_slirec_quickstart_functional(
         "BATCH_SIZE": batch_size,
         "RANDOM_SEED": seed,
     }
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path, output_notebook, kernel_name=kernel_name, parameters=params
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
-    assert results["auc"] == pytest.approx(expected_values["auc"], rel=TOL, abs=ABS_TOL)
-    ## disable logloss check, because so far SLi-Rec uses ranking loss, not a point-wise loss
-    # assert results["logloss"] == pytest.approx(
-    #     expected_values["logloss"], rel=TOL, abs=ABS_TOL
-    # )
+    for key, value in expected_values.items():
+        assert results[key]["auc"] == pytest.approx(value["auc"], rel=TOL, abs=ABS_TOL)
+
+        ## disable logloss check, because so far SLi-Rec uses ranking loss, not a point-wise loss
+        # assert results[key]["logloss"] == pytest.approx(
+        #     value["logloss"], rel=TOL, abs=ABS_TOL
+        # )
 
 
 @pytest.mark.gpu
@@ -295,10 +310,12 @@ def test_slirec_quickstart_functional(
             42,
             "demo",
             {
-                "group_auc": 0.6217,
-                "mean_mrr": 0.2783,
-                "ndcg@5": 0.3024,
-                "ndcg@10": 0.3719,
+                "res_syn": {
+                    "group_auc": 0.6217,
+                    "mean_mrr": 0.2783,
+                    "ndcg@5": 0.3024,
+                    "ndcg@10": 0.3719,
+                }
             },
         )
     ],
@@ -321,23 +338,26 @@ def test_nrms_quickstart_functional(
         "seed": seed,
         "MIND_type": MIND_type,
     }
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path, output_notebook, kernel_name=kernel_name, parameters=params
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
-    assert results["group_auc"] == pytest.approx(
-        expected_values["group_auc"], rel=TOL, abs=ABS_TOL
-    )
-    assert results["mean_mrr"] == pytest.approx(
-        expected_values["mean_mrr"], rel=TOL, abs=ABS_TOL
-    )
-    assert results["ndcg@5"] == pytest.approx(
-        expected_values["ndcg@5"], rel=TOL, abs=ABS_TOL
-    )
-    assert results["ndcg@10"] == pytest.approx(
-        expected_values["ndcg@10"], rel=TOL, abs=ABS_TOL
-    )
+    for key, value in expected_values.items():
+        assert results[key]["group_auc"] == pytest.approx(
+            value["group_auc"], rel=TOL, abs=ABS_TOL
+        )
+        assert results[key]["mean_mrr"] == pytest.approx(
+            value["mean_mrr"], rel=TOL, abs=ABS_TOL
+        )
+        assert results[key]["ndcg@5"] == pytest.approx(
+            value["ndcg@5"], rel=TOL, abs=ABS_TOL
+        )
+        assert results[key]["ndcg@10"] == pytest.approx(
+            value["ndcg@10"], rel=TOL, abs=ABS_TOL
+        )
 
 
 @pytest.mark.gpu
@@ -351,10 +371,12 @@ def test_nrms_quickstart_functional(
             42,
             "demo",
             {
-                "group_auc": 0.6436,
-                "mean_mrr": 0.2990,
-                "ndcg@5": 0.3297,
-                "ndcg@10": 0.3933,
+                "res_syn": {
+                    "group_auc": 0.6436,
+                    "mean_mrr": 0.2990,
+                    "ndcg@5": 0.3297,
+                    "ndcg@10": 0.3933,
+                }
             },
         )
     ],
@@ -377,23 +399,26 @@ def test_naml_quickstart_functional(
         "seed": seed,
         "MIND_type": MIND_type,
     }
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path, output_notebook, kernel_name=kernel_name, parameters=params
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
-    assert results["group_auc"] == pytest.approx(
-        expected_values["group_auc"], rel=TOL, abs=ABS_TOL
-    )
-    assert results["mean_mrr"] == pytest.approx(
-        expected_values["mean_mrr"], rel=TOL, abs=ABS_TOL
-    )
-    assert results["ndcg@5"] == pytest.approx(
-        expected_values["ndcg@5"], rel=TOL, abs=ABS_TOL
-    )
-    assert results["ndcg@10"] == pytest.approx(
-        expected_values["ndcg@10"], rel=TOL, abs=ABS_TOL
-    )
+    for key, value in expected_values.items():
+        assert results[key]["group_auc"] == pytest.approx(
+            value["group_auc"], rel=TOL, abs=ABS_TOL
+        )
+        assert results[key]["mean_mrr"] == pytest.approx(
+            value["mean_mrr"], rel=TOL, abs=ABS_TOL
+        )
+        assert results[key]["ndcg@5"] == pytest.approx(
+            value["ndcg@5"], rel=TOL, abs=ABS_TOL
+        )
+        assert results[key]["ndcg@10"] == pytest.approx(
+            value["ndcg@10"], rel=TOL, abs=ABS_TOL
+        )
 
 
 @pytest.mark.gpu
@@ -407,10 +432,12 @@ def test_naml_quickstart_functional(
             42,
             "demo",
             {
-                "group_auc": 0.6444,
-                "mean_mrr": 0.2983,
-                "ndcg@5": 0.3287,
-                "ndcg@10": 0.3938,
+                "res_syn": {
+                    "group_auc": 0.6444,
+                    "mean_mrr": 0.2983,
+                    "ndcg@5": 0.3287,
+                    "ndcg@10": 0.3938,
+                }
             },
         )
     ],
@@ -433,23 +460,26 @@ def test_lstur_quickstart_functional(
         "seed": seed,
         "MIND_type": MIND_type,
     }
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path, output_notebook, kernel_name=kernel_name, parameters=params
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
-    assert results["group_auc"] == pytest.approx(
-        expected_values["group_auc"], rel=TOL, abs=ABS_TOL
-    )
-    assert results["mean_mrr"] == pytest.approx(
-        expected_values["mean_mrr"], rel=TOL, abs=ABS_TOL
-    )
-    assert expected_values["ndcg@5"] == pytest.approx(
-        value["ndcg@5"], rel=TOL, abs=ABS_TOL
-    )
-    assert expected_values["ndcg@10"] == pytest.approx(
-        value["ndcg@10"], rel=TOL, abs=ABS_TOL
-    )
+    for key, value in expected_values.items():
+        assert results[key]["group_auc"] == pytest.approx(
+            value["group_auc"], rel=TOL, abs=ABS_TOL
+        )
+        assert results[key]["mean_mrr"] == pytest.approx(
+            value["mean_mrr"], rel=TOL, abs=ABS_TOL
+        )
+        assert results[key]["ndcg@5"] == pytest.approx(
+            value["ndcg@5"], rel=TOL, abs=ABS_TOL
+        )
+        assert results[key]["ndcg@10"] == pytest.approx(
+            value["ndcg@10"], rel=TOL, abs=ABS_TOL
+        )
 
 
 @pytest.mark.gpu
@@ -463,10 +493,12 @@ def test_lstur_quickstart_functional(
             42,
             "demo",
             {
-                "group_auc": 0.6035,
-                "mean_mrr": 0.2765,
-                "ndcg@5": 0.2977,
-                "ndcg@10": 0.3637,
+                "res_syn": {
+                    "group_auc": 0.6035,
+                    "mean_mrr": 0.2765,
+                    "ndcg@5": 0.2977,
+                    "ndcg@10": 0.3637,
+                }
             },
         )
     ],
@@ -489,23 +521,26 @@ def test_npa_quickstart_functional(
         "seed": seed,
         "MIND_type": MIND_type,
     }
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path, output_notebook, kernel_name=kernel_name, parameters=params
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
-    assert results["group_auc"] == pytest.approx(
-        expected_values["group_auc"], rel=TOL, abs=ABS_TOL
-    )
-    assert results["mean_mrr"] == pytest.approx(
-        expected_values["mean_mrr"], rel=TOL, abs=ABS_TOL
-    )
-    assert results["ndcg@5"] == pytest.approx(
-        expected_values["ndcg@5"], rel=TOL, abs=ABS_TOL
-    )
-    assert results["ndcg@10"] == pytest.approx(
-        expected_values["ndcg@10"], rel=TOL, abs=ABS_TOL
-    )
+    for key, value in expected_values.items():
+        assert results[key]["group_auc"] == pytest.approx(
+            value["group_auc"], rel=TOL, abs=ABS_TOL
+        )
+        assert results[key]["mean_mrr"] == pytest.approx(
+            value["mean_mrr"], rel=TOL, abs=ABS_TOL
+        )
+        assert results[key]["ndcg@5"] == pytest.approx(
+            value["ndcg@5"], rel=TOL, abs=ABS_TOL
+        )
+        assert results[key]["ndcg@10"] == pytest.approx(
+            value["ndcg@10"], rel=TOL, abs=ABS_TOL
+        )
 
 
 @pytest.mark.gpu
@@ -542,7 +577,7 @@ def test_lightgcn_deep_dive_functional(
     seed,
 ):
     notebook_path = notebooks["lightgcn_deep_dive"]
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path,
         output_notebook,
         kernel_name=kernel_name,
@@ -557,7 +592,9 @@ def test_lightgcn_deep_dive_functional(
             item_file=os.path.join(data_path, r"item_embeddings"),
         ),
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
     for key, value in expected_values.items():
         assert results[key] == pytest.approx(value, rel=TOL, abs=ABS_TOL)
@@ -567,18 +604,20 @@ def test_lightgcn_deep_dive_functional(
 @pytest.mark.notebooks
 def test_dkn_quickstart_functional(notebooks, output_notebook, kernel_name):
     notebook_path = notebooks["dkn_quickstart"]
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path,
         output_notebook,
         kernel_name=kernel_name,
         parameters=dict(EPOCHS=5, BATCH_SIZE=500),
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
-    assert results["auc"] == pytest.approx(0.5651, rel=TOL, abs=ABS_TOL)
-    assert results["mean_mrr"] == pytest.approx(0.1639, rel=TOL, abs=ABS_TOL)
-    assert results["ndcg@5"] == pytest.approx(0.1735, rel=TOL, abs=ABS_TOL)
-    assert results["ndcg@10"] == pytest.approx(0.2301, rel=TOL, abs=ABS_TOL)
+    assert results["res"]["auc"] == pytest.approx(0.5651, rel=TOL, abs=ABS_TOL)
+    assert results["res"]["mean_mrr"] == pytest.approx(0.1639, rel=TOL, abs=ABS_TOL)
+    assert results["res"]["ndcg@5"] == pytest.approx(0.1735, rel=TOL, abs=ABS_TOL)
+    assert results["res"]["ndcg@10"] == pytest.approx(0.2301, rel=TOL, abs=ABS_TOL)
 
 
 @pytest.mark.gpu
@@ -594,13 +633,15 @@ def test_cornac_bivae_functional(
     notebooks, output_notebook, kernel_name, size, expected_values
 ):
     notebook_path = notebooks["cornac_bivae_deep_dive"]
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path,
         output_notebook,
         kernel_name=kernel_name,
         parameters=dict(MOVIELENS_DATA_SIZE=size),
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
     for key, value in expected_values.items():
         assert results[key] == pytest.approx(value, rel=TOL, abs=ABS_TOL)
@@ -648,13 +689,15 @@ def test_sasrec_quickstart_functional(
         "model_name": model_name,
         "seed": seed,
     }
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path,
         output_notebook,
         kernel_name=kernel_name,
         parameters=params,
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
     for key, value in expected_values.items():
         assert results[key] == pytest.approx(value, rel=TOL, abs=ABS_TOL)
@@ -676,16 +719,15 @@ def test_benchmark_movielens_gpu(
     notebooks, output_notebook, kernel_name, size, algos, expected_values_ndcg
 ):
     notebook_path = notebooks["benchmark_movielens"]
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path,
         output_notebook,
         kernel_name=kernel_name,
         parameters=dict(data_sizes=size, algorithms=algos),
     )
-    results = read_notebook(output_notebook)
-
-    assert len(results) == 4
-    for i, value in enumerate(algos):
-        assert results[value] == pytest.approx(
-            expected_values_ndcg[i], rel=TOL, abs=ABS_TOL
-        )
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
+    assert len(results["results"]) == 4
+    for i, value in enumerate(results["results"]):
+        assert results["results"][i] == pytest.approx(value, rel=TOL, abs=ABS_TOL)

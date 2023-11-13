@@ -3,9 +3,10 @@
 
 
 import pytest
+import papermill as pm
+import scrapbook as sb
 
 from recommenders.utils.gpu_utils import get_number_gpus
-from recommenders.utils.notebook_utils import execute_notebook, read_notebook
 
 
 TOL = 0.5
@@ -21,13 +22,15 @@ def test_gpu_vm():
 @pytest.mark.gpu
 def test_ncf_smoke(notebooks, output_notebook, kernel_name):
     notebook_path = notebooks["ncf"]
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path,
         output_notebook,
         kernel_name=kernel_name,
         parameters=dict(TOP_K=10, MOVIELENS_DATA_SIZE="100k", EPOCHS=1, BATCH_SIZE=256),
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
     assert results["map"] == pytest.approx(0.0409234, rel=TOL, abs=ABS_TOL)
     assert results["ndcg"] == pytest.approx(0.1773, rel=TOL, abs=ABS_TOL)
@@ -39,7 +42,7 @@ def test_ncf_smoke(notebooks, output_notebook, kernel_name):
 @pytest.mark.gpu
 def test_ncf_deep_dive_smoke(notebooks, output_notebook, kernel_name):
     notebook_path = notebooks["ncf_deep_dive"]
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path,
         output_notebook,
         kernel_name=kernel_name,
@@ -47,7 +50,9 @@ def test_ncf_deep_dive_smoke(notebooks, output_notebook, kernel_name):
             TOP_K=10, MOVIELENS_DATA_SIZE="100k", EPOCHS=1, BATCH_SIZE=1024
         ),
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
     # There is too much variability to do an approx equal, just adding top values
     assert results["map"] == pytest.approx(0.0370396, rel=TOL, abs=ABS_TOL)
@@ -64,13 +69,15 @@ def test_ncf_deep_dive_smoke(notebooks, output_notebook, kernel_name):
 @pytest.mark.gpu
 def test_fastai_smoke(notebooks, output_notebook, kernel_name):
     notebook_path = notebooks["fastai"]
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path,
         output_notebook,
         kernel_name=kernel_name,
         parameters=dict(TOP_K=10, MOVIELENS_DATA_SIZE="100k", EPOCHS=1),
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
     assert results["rmse"] == pytest.approx(0.959352, rel=TOL, abs=ABS_TOL)
     assert results["mae"] == pytest.approx(0.766504, rel=TOL, abs=ABS_TOL)
@@ -86,7 +93,7 @@ def test_fastai_smoke(notebooks, output_notebook, kernel_name):
 @pytest.mark.gpu
 def test_xdeepfm_smoke(notebooks, output_notebook, kernel_name):
     notebook_path = notebooks["xdeepfm_quickstart"]
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path,
         output_notebook,
         kernel_name=kernel_name,
@@ -98,7 +105,9 @@ def test_xdeepfm_smoke(notebooks, output_notebook, kernel_name):
             RANDOM_SEED=42,
         ),
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
     assert results["res_syn"]["auc"] == pytest.approx(0.5043, rel=TOL, abs=ABS_TOL)
     assert results["res_syn"]["logloss"] == pytest.approx(0.7046, rel=TOL, abs=ABS_TOL)
@@ -121,10 +130,12 @@ def test_wide_deep_smoke(notebooks, output_notebook, kernel_name, tmp):
         "RANKING_METRICS": ["ndcg_at_k", "precision_at_k"],
         "RANDOM_SEED": 42,
     }
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path, output_notebook, kernel_name=kernel_name, parameters=params
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
     assert results["rmse"] == pytest.approx(1.06034, rel=TOL, abs=ABS_TOL)
     assert results["mae"] == pytest.approx(0.876228, rel=TOL, abs=ABS_TOL)
@@ -136,13 +147,15 @@ def test_wide_deep_smoke(notebooks, output_notebook, kernel_name, tmp):
 @pytest.mark.gpu
 def test_naml_smoke(notebooks, output_notebook, kernel_name):
     notebook_path = notebooks["naml_quickstart"]
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path,
         output_notebook,
         kernel_name=kernel_name,
         parameters=dict(epochs=1, seed=42, MIND_type="demo"),
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
     assert results["res_syn"]["group_auc"] == pytest.approx(
         0.5801, rel=TOL, abs=ABS_TOL
@@ -154,13 +167,15 @@ def test_naml_smoke(notebooks, output_notebook, kernel_name):
 @pytest.mark.gpu
 def test_nrms_smoke(notebooks, output_notebook, kernel_name):
     notebook_path = notebooks["nrms_quickstart"]
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path,
         output_notebook,
         kernel_name=kernel_name,
         parameters=dict(epochs=1, seed=42, MIND_type="demo"),
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
     assert results["res_syn"]["group_auc"] == pytest.approx(
         0.5768, rel=TOL, abs=ABS_TOL
@@ -172,13 +187,15 @@ def test_nrms_smoke(notebooks, output_notebook, kernel_name):
 @pytest.mark.gpu
 def test_npa_smoke(notebooks, output_notebook, kernel_name):
     notebook_path = notebooks["npa_quickstart"]
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path,
         output_notebook,
         kernel_name=kernel_name,
         parameters=dict(epochs=1, seed=42, MIND_type="demo"),
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
     assert results["res_syn"]["group_auc"] == pytest.approx(
         0.5861, rel=TOL, abs=ABS_TOL
@@ -190,13 +207,15 @@ def test_npa_smoke(notebooks, output_notebook, kernel_name):
 @pytest.mark.gpu
 def test_lstur_smoke(notebooks, output_notebook, kernel_name):
     notebook_path = notebooks["lstur_quickstart"]
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path,
         output_notebook,
         kernel_name=kernel_name,
         parameters=dict(epochs=1, seed=40, MIND_type="demo"),
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
     assert results["res_syn"]["group_auc"] == pytest.approx(
         0.5977, rel=TOL, abs=ABS_TOL
@@ -208,13 +227,15 @@ def test_lstur_smoke(notebooks, output_notebook, kernel_name):
 @pytest.mark.gpu
 def test_cornac_bivae_smoke(notebooks, output_notebook, kernel_name):
     notebook_path = notebooks["cornac_bivae_deep_dive"]
-    execute_notebook(
+    pm.execute_notebook(
         notebook_path,
         output_notebook,
         kernel_name=kernel_name,
         parameters=dict(MOVIELENS_DATA_SIZE="100k"),
     )
-    results = read_notebook(output_notebook)
+    results = sb.read_notebook(output_notebook).scraps.dataframe.set_index("name")[
+        "data"
+    ]
 
     assert results["map"] == pytest.approx(0.146552, rel=TOL, abs=ABS_TOL)
     assert results["ndcg"] == pytest.approx(0.474124, rel=TOL, abs=ABS_TOL)
