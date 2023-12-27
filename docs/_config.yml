@@ -1,55 +1,32 @@
-# Copyright (c) Recommenders contributors.
-# Licensed under the MIT License.
-
 # Book settings
 # Learn more at https://jupyterbook.org/customize/config.html
 
-# To build the Jupyter Book:
-# $ jupyter-book clean docs 
-# $ jupyter-book build docs
+title: My sample book
+author: The Jupyter Book Community
+logo: logo.png
 
-
-title: Recommenders documentation
-author: Recommenders contributors
-copyright: "2018-2024"
-logo: https://raw.githubusercontent.com/recommenders-team/artwork/main/color/recommenders_color.svg
-
-
-# Short description about the book
-description: >-
-  Recommenders - Python utilities for building recommendation systems
-
+# Force re-execution of notebooks on each build.
+# See https://jupyterbook.org/content/execute.html
 execute:
-  execute_notebooks           : off
+  execute_notebooks: force
 
-# Interact link settings
-notebook_interface            : "notebook"
+# Define the name of the latex output file for PDF builds
+latex:
+  latex_documents:
+    targetname: book.tex
 
-# Launch button settings
+# Add a bibtex file so that we can create citations
+bibtex_bibfiles:
+  - references.bib
+
+# Information about where the book exists on the web
 repository:
-  url                         : https://github.com/recommenders-team/recommenders 
-  path_to_book                : /docs
-  branch                      : main
+  url: https://github.com/executablebooks/jupyter-book  # Online location of your book
+  path_to_book: docs  # Optional path to your book, relative to the repository root
+  branch: master  # Which branch of the repository should be used when creating links (optional)
 
-launch_buttons:
-  notebook_interface          : classic
-
-# HTML-specific settings
+# Add GitHub buttons to your book
+# See https://jupyterbook.org/customize/config.html#add-a-link-to-your-repository
 html:
-  favicon                     : https://raw.githubusercontent.com/recommenders-team/artwork/main/icon/recommenders_color_icon.svg
-  home_page_in_navbar         : false
-  use_repository_button       : true
-  use_issues_button           : true
-  baseurl                     : https://recommenders-team.github.io/recommenders/
-
-sphinx:
-  extra_extensions:
-  - sphinx.ext.autodoc
-  - sphinx.ext.doctest
-  - sphinx.ext.intersphinx
-  - sphinx.ext.ifconfig
-  - sphinx.ext.napoleon       # To render Google format docstrings
-  - sphinx.ext.viewcode       # Add links to highlighted source code
-
-
-
+  use_issues_button: true
+  use_repository_button: true
