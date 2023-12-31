@@ -28,7 +28,10 @@ jobs:
       - name: Build and deploy documentation
         run: |
           jupyter-book build docs
-          cd docs
+
+      - name: Build and deploy documentation
+        run: |
+          cd docs/_build/html
           git add .
           git commit -m "Update documentation"
           git push origin gh-pages
