@@ -16,7 +16,8 @@ class NextItNetModel(SequentialBaseModel):
         Yuan, Fajie, et al. "A Simple Convolutional Generative Network
         for Next Item Recommendation", in Web Search and Data Mining, 2019.
 
-    Note:
+    .. note::
+
         It requires strong sequence with dataset.
     """
 
@@ -44,6 +45,7 @@ class NextItNetModel(SequentialBaseModel):
         )
 
         with tf.compat.v1.variable_scope("nextitnet", reuse=tf.compat.v1.AUTO_REUSE):
+
             dilate_input = tf.concat(
                 [item_history_embedding, cate_history_embedding], 2
             )
