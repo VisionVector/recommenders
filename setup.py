@@ -95,12 +95,12 @@ extras_require["experimental"] = [
 setup(
     name="recommenders",
     version=version,
-    description="Recommenders - Python utilities for building recommender systems",
+    description="Recommenders - Python utilities for building recommendation systems",
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     url="https://github.com/recommenders-team/recommenders",
     project_urls={
-        "Documentation": "https://microsoft-recommenders.readthedocs.io/en/stable/",
+        "Documentation": "https://recommenders-team.github.io/recommenders/intro.html",
         "Wiki": "https://github.com/recommenders-team/recommenders/wiki",
     },
     author="Recommenders contributors",
