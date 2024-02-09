@@ -46,7 +46,8 @@ install_requires = [
     "cornac>=1.1.2,<1.15.2;python_version<='3.7'",
     "cornac>=1.15.2,<2;python_version>='3.8'",  # After 1.15.2, Cornac requires python 3.8
     "retrying>=1.3.3",
-    "pandera[strategies]>=0.6.5",  # For generating fake datasets
+    "pandera[strategies]>=0.6.5,<0.18;python_version<='3.7'",  # For generating fake datasets
+    "pandera[strategies]>=0.6.5;python_version>='3.8'",
     "scikit-surprise>=1.0.6",
     "hyperopt>=0.1.2,<1",
     "ipykernel>=4.6.1,<7",
@@ -95,12 +96,12 @@ extras_require["experimental"] = [
 setup(
     name="recommenders",
     version=version,
-    description="Recommenders - Python utilities for building recommendation systems",
+    description="Recommenders - Python utilities for building recommender systems",
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     url="https://github.com/recommenders-team/recommenders",
     project_urls={
-        "Documentation": "https://recommenders-team.github.io/recommenders/intro.html",
+        "Documentation": "https://microsoft-recommenders.readthedocs.io/en/stable/",
         "Wiki": "https://github.com/recommenders-team/recommenders/wiki",
     },
     author="Recommenders contributors",

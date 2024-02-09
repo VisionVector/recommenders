@@ -138,7 +138,8 @@ def _get_column_name(name, col_user, col_item):
 def split_pandas_data_with_ratios(data, ratios, seed=42, shuffle=False):
     """Helper function to split pandas DataFrame with given ratios
 
-    Note:
+    .. note::
+
         Implementation referenced from `this source <https://stackoverflow.com/questions/38250710/how-to-split-data-into-3-sets-train-validation-and-test>`_.
 
     Args:
