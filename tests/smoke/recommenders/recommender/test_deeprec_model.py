@@ -20,6 +20,7 @@ try:
     from recommenders.models.deeprec.io.dkn_iterator import DKNTextIterator
     from recommenders.models.deeprec.io.sequential_iterator import SequentialIterator
     from recommenders.models.deeprec.models.sequential.sli_rec import SLI_RECModel
+    from recommenders.models.deeprec.models.sequential.sum import SUMModel
     from recommenders.datasets.amazon_reviews import (
         download_and_extract,
         data_preprocessing,
@@ -29,11 +30,6 @@ try:
 
 except ImportError:
     pass  # disable error while collecting tests for non-gpu environments
-
-try:
-    from recommenders.models.deeprec.models.sequential.sum import SUMModel
-except ImportError:
-    pass  # disable error while collecting tests for SUMModel
 
 
 @pytest.mark.gpu
