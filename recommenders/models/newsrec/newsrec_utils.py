@@ -310,7 +310,7 @@ def get_mind_data_set(type):
 
     if type == "large":
         return (
-            "https://recodatasets.z20.web.core.windows.net/newsrec",
+            "https://mind201910small.blob.core.windows.net/release/",
             "MINDlarge_train.zip",
             "MINDlarge_dev.zip",
             "MINDlarge_utils.zip",
@@ -318,7 +318,7 @@ def get_mind_data_set(type):
 
     elif type == "small":
         return (
-            "https://recodatasets.z20.web.core.windows.net/newsrec/",
+            "https://mind201910small.blob.core.windows.net/release/",
             "MINDsmall_train.zip",
             "MINDsmall_dev.zip",
             "MINDsmall_utils.zip",
