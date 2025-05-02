@@ -1,11 +1,11 @@
 # Copyright (c) Recommenders contributors.
 # Licensed under the MIT License.
 
-import logging
-import requests
 import pandas as pd
+import requests
+import logging
 from retrying import retry
-from functools import lru_cache
+import functools
 
 
 logger = logging.getLogger(__name__)
@@ -16,23 +16,46 @@ API_URL_WIKIDATA = "https://query.wikidata.org/sparql"
 SESSION = None
 
 
-def log_retries(func):
-    """Decorator that logs retry attempts. Must be applied AFTER the @retry decorator.
+def retry_with_logging(**kwargs):
+    """Custom retry decorator that logs retry attempts
     
-    Example usage:
-        @retry(wait_random_min=1000, wait_random_max=5000, stop_max_attempt_number=3)
-        @log_retries
-        def my_function():
-            # Function implementation
-            pass
+    Args:
+        **kwargs: Arguments to pass to the retry decorator
+        
+    Returns:
+        Decorator function that adds logging to retries
     """
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception as e:
-            logger.warning(f"Retrying {func.__name__} due to: {e}")
-            raise
-    return wrapper
+    retry_decorator = retry(**kwargs)
+    
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            attempt = [0]
+            
+            def on_retry(retry_state):
+                attempt[0] += 1
+                logger.warning(
+                    f"Retrying {func.__name__}: attempt {attempt[0]} after {retry_state.retry_object.statistics['delay_since_first_attempt_ms']/1000:.2f}s"
+                )
+                return True
+                
+            # Apply the retry decorator with our custom on_retry callback
+            wrapped = retry(
+                wait_func=kwargs.get('wait_func', None),
+                wait_random_min=kwargs.get('wait_random_min', 1000),
+                wait_random_max=kwargs.get('wait_random_max', 5000),
+                stop_max_attempt_number=kwargs.get('stop_max_attempt_number', 5),
+                retry_on_result=kwargs.get('retry_on_result', None),
+                retry_on_exception=kwargs.get('retry_on_exception', None),
+                wrap_exception=kwargs.get('wrap_exception', False),
+                stop_func=kwargs.get('stop_func', None),
+                wait_jitter_max=kwargs.get('wait_jitter_max', None),
+                on_retry=on_retry
+            )(func)
+            
+            return wrapped(*args, **kwargs)
+        return wrapper
+    return decorator
 
 
 def get_session(session=None):
@@ -54,9 +77,7 @@ def get_session(session=None):
     return session
 
 
-@lru_cache(maxsize=1024)
-@retry(wait_random_min=1000, wait_random_max=5000, stop_max_attempt_number=3)
-@log_retries
+@retry_with_logging(wait_random_min=1000, wait_random_max=5000, stop_max_attempt_number=5)
 def find_wikidata_id(name, limit=1, session=None):
     """Find the entity ID in wikidata from a title string.
 
@@ -82,17 +103,11 @@ def find_wikidata_id(name, limit=1, session=None):
 
     try:
         response = session.get(API_URL_WIKIPEDIA, params=params)
-        response.raise_for_status()  # Raise HTTPError for bad responses
-        response_json = response.json()
-        try:
-            search_results = response_json["query"]["search"]
-            page_id = search_results[0]["pageid"]
-        except (KeyError, IndexError):
-            logger.warning(f"Entity '{name}' not found (search)")
-            return "entityNotFound"
-    except Exception as e:
-        logger.warning(f"REQUEST FAILED or unexpected error during search for {name}: {e}")
-        raise  # Re-raise for retry
+        page_id = response.json()["query"]["search"][0]["pageid"]
+    except Exception:
+        # TODO: distinguish between connection error and entity not found
+        logger.warning("ENTITY NOT FOUND")
+        return "entityNotFound"
 
     params = dict(
         action="query",
@@ -104,23 +119,18 @@ def find_wikidata_id(name, limit=1, session=None):
 
     try:
         response = session.get(API_URL_WIKIPEDIA, params=params)
-        response.raise_for_status()
-        response_json = response.json()
-        try:
-            entity_id = response_json["query"]["pages"][str(page_id)]["pageprops"]["wikibase_item"]
-        except KeyError:
-            logger.warning(f"Entity '{name}' not found (pageprops)")
-            return "entityNotFound"
-    except Exception as e:
-        logger.warning(f"REQUEST FAILED or unexpected error during pageprops fetch for {name}: {e}")
-        raise  # Re-raise for retry
+        entity_id = response.json()["query"]["pages"][str(page_id)]["pageprops"][
+            "wikibase_item"
+        ]
+    except Exception:
+        # TODO: distinguish between connection error and entity not found
+        logger.warning("ENTITY NOT FOUND")
+        return "entityNotFound"
 
     return entity_id
 
 
-@lru_cache(maxsize=1024)
-@retry(wait_random_min=1000, wait_random_max=5000, stop_max_attempt_number=3)
-@log_retries
+@retry_with_logging(wait_random_min=1000, wait_random_max=5000, stop_max_attempt_number=5)
 def query_entity_links(entity_id, session=None):
     """Query all linked pages from a wikidata entityID
 
@@ -168,18 +178,15 @@ def query_entity_links(entity_id, session=None):
     session = get_session(session=session)
 
     try:
-        response = session.get(API_URL_WIKIDATA, params=dict(query=query, format="json"))
-        response.raise_for_status()
-        try:
-            data = response.json()  
-        except ValueError as e:  
-            logger.warning(f"ENTITY LINKS NOT FOUND (missing keys): {entity_id}")
-            return {}  # Return empty dict, do not retry
-    except Exception as e:
-        logger.warning(f"REQUEST FAILED or unexpected error querying links for {entity_id}: {e}")
-        raise  # Re-raise for retry
+        data = session.get(
+            API_URL_WIKIDATA, params=dict(query=query, format="json")
+        ).json()
+    except Exception as e:  # noqa: F841
+        logger.warning("ENTITY NOT FOUND")
+        return {}
 
     return data
+
 
 def read_linked_entities(data):
     """Obtain lists of liken entities (IDs and names) from dictionary
@@ -202,9 +209,7 @@ def read_linked_entities(data):
     ]
 
 
-@lru_cache(maxsize=1024)
-@retry(wait_random_min=1000, wait_random_max=5000, stop_max_attempt_number=3)
-@log_retries
+@retry_with_logging(wait_random_min=1000, wait_random_max=5000, stop_max_attempt_number=5)
 def query_entity_description(entity_id, session=None):
     """Query entity wikidata description from entityID
 
@@ -233,52 +238,43 @@ def query_entity_description(entity_id, session=None):
     )
 
     session = get_session(session=session)
+
     try:
-        response = session.get(API_URL_WIKIDATA, params=dict(query=query, format="json"))
-        response.raise_for_status()
-        response_json = response.json()
-        try:
-            description = response_json["results"]["bindings"][0]["o"]["value"]
-        except (KeyError, IndexError):
-            logger.warning(f"Description for '{entity_id}' not found")
-            return "descriptionNotFound"
-    except Exception as e:
-        logger.warning(f"REQUEST FAILED or unexpected error querying description for {entity_id}: {e}")
-        raise  # Re-raise for retry
-    
+        r = session.get(API_URL_WIKIDATA, params=dict(query=query, format="json"))
+        description = r.json()["results"]["bindings"][0]["o"]["value"]
+    except Exception as e:  # noqa: F841
+        logger.warning("DESCRIPTION NOT FOUND")
+        return "descriptionNotFound"
+
     return description
 
-def search_wikidata(names, extras=None, describe=True):
+
+def search_wikidata(names, extras=None, describe=True, verbose=False):
     """Create DataFrame of Wikidata search results
 
     Args:
         names (list[str]): List of names to search for
         extras (dict(str: list)): Optional extra items to assign to results for corresponding name
         describe (bool): Optional flag to include description of entity
+        verbose (bool): Optional flag to print out intermediate data
 
     Returns:
         pandas.DataFrame: Wikipedia results for all names with found entities
 
     """
+
     results = []
     for idx, name in enumerate(names):
-        try:
-            entity_id = find_wikidata_id(name)
-            logger.info(f"Name: {name}, entity_id: {id}")
-        except Exception as e:
-            logger.warning(f"Error finding entity ID for '{name}': {e}")
-            continue
+        entity_id = find_wikidata_id(name)
+        if verbose:
+            print("name: {name}, entity_id: {id}".format(name=name, id=entity_id))
 
         if entity_id == "entityNotFound":
             continue
 
-        try:
-            json_links = query_entity_links(entity_id)
-            related_links = read_linked_entities(json_links)
-            description = query_entity_description(entity_id) if describe else ""
-        except Exception as e:
-            logger.warning(f"Error querying entity links or description for '{entity_id}': {e}")
-            continue
+        json_links = query_entity_links(entity_id)
+        related_links = read_linked_entities(json_links)
+        description = query_entity_description(entity_id) if describe else ""
 
         for related_entity, related_name in related_links:
             result = dict(
