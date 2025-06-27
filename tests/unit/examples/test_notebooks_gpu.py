@@ -17,8 +17,8 @@ def test_gpu_vm():
 
 @pytest.mark.notebooks
 @pytest.mark.gpu
-def test_embdotbias(notebooks, output_notebook, kernel_name):
-    notebook_path = notebooks["embdotbias"]
+def test_fastai(notebooks, output_notebook, kernel_name):
+    notebook_path = notebooks["fastai"]
     execute_notebook(
         notebook_path,
         output_notebook,
