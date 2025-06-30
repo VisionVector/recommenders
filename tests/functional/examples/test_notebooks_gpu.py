@@ -128,10 +128,10 @@ def test_ncf_deep_dive_functional(
         # ("10m", 5, ), # it gets an OOM on pred = learner.model.forward(u, m)
     ],
 )
-def test_embdotbias_functional(
+def test_fastai_functional(
     notebooks, output_notebook, kernel_name, size, epochs, expected_values
 ):
-    notebook_path = notebooks["embdotbias"]
+    notebook_path = notebooks["fastai"]
     execute_notebook(
         notebook_path,
         output_notebook,
@@ -661,7 +661,7 @@ def test_sasrec_quickstart_functional(
     [
         (
             ["100k"],
-            ["ncf", "embdotbias", "bivae", "lightgcn"],
+            ["ncf", "fastai", "bivae", "lightgcn"],
             [0.382793, 0.147583, 0.471722, 0.412664],
         ),
     ],
