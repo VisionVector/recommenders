@@ -89,8 +89,6 @@ To contributors: please add your name to the list when you submit a patch to the
 * **[Jianjie Liu](https://github.com/laserprec/)**
    * GitHub Action Migration
    * Test Infrastructure Optimization
-* **[Jose Arrieta](https://github.com/jmarrietar)**
-   * Embedding Dot Bias	algorithm and notebook quickstart
 * **[Kaisar Mussalim](https://github.com/kmussalim)**
    * Multinomial VAE algorithm
    * Standard VAE algorithm
