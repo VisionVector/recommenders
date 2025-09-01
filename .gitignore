@@ -126,11 +126,8 @@ spark-warehouse/
 .~*
 Untitled*.ipynb
 *-Copy*.ipynb
-*copy*.ipynb
 ~$*
 output.ipynb
-Playground*.ipynb
-PLAYGROUND*.ipynb
 conda*.yaml
 reco_*.yaml
 .idea/

@@ -24,6 +24,7 @@ In this document we show our test infrastructure and how to contribute tests to 
     - [How to add tests to the AzureML pipeline](#how-to-add-tests-to-the-azureml-pipeline)
     - [Setup GitHub Actions with AzureML compute clusters](#setup-github-actions-with-azureml-compute-clusters)
 - [How to execute tests in your local environment](#how-to-execute-tests-in-your-local-environment)
+- [Other relevant information](#other-relevant-information)
 
 ## Test workflows
 
@@ -331,4 +332,50 @@ Example:
     @pytest.mark.skipif(sys.platform == 'win32', reason="Not implemented on Windows")
     def test_to_skip():
         assert False
+
+## Other relevant information
+
+### Remove old container registry images
+First make sure that you have the role of `Container Registry Repository Contributor`. 
+
+To [delete](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-delete) a specific repository: 
+
+```bash
+az acr repository delete --name myregistry --repository acr-helloworld
+```
+
+To verify the usage of the container registry:
+
+```bash
+az acr show-usage --name myregistry
+```
+
+To list all images older than a specific date (without deleting) with the name `azureml/azureml_XXXXXXXX`. (See [more details](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-auto-purge)):
+
+```bash
+az acr run --cmd "acr purge --filter 'azureml/.*:.*' --ago 15d --dry-run" --registry myregistry /dev/null
+```
+
+To delete all the images older than a specific date with the name `azureml/azureml_XXXXXXXX`:
+
+```bash
+az acr run --cmd "acr purge --filter 'azureml/.*:.*' --ago 15d" --registry myregistry --timeout 3600 /dev/null
+```
+*NOTE: the default timeout is 600s.*
+
+
+To schedule the purge command, you can use the `--schedule` parameter. The task will appear in the Services/Tasks menu. For example, to schedule the purge command to run every day at 12:00 PM UTC:
+
+```bash
+az acr task create --name purge_images_15dago --cmd "acr purge --filter 'azureml/.*:.*' --ago 15d" --registry myregistry --schedule "0 12 * * *" --context /dev/null
+```
+
+To delete all the empty repositories (repositories without tags):
+
+```bash
+az acr repository list --name myregistry --output tsv | while read repo; do if [ -z "$(az acr repository show-tags --name myregistry --repository "$repo" --output tsv 2>/dev/null)" ]; then az acr repository delete --name myregistry --repository "$repo" --yes; echo "Deleted empty repository: $repo"; else echo "Repository $repo is not empty, skipping..."; fi; done
+```
+
+To schedule a task to delete all the empty repositories:
+
 

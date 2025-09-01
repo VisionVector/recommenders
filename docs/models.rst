@@ -9,9 +9,7 @@ Cornac utilities
 ******************************
 .. automodule:: recommenders.models.cornac.cornac_utils
     :members:
-.. automodule:: recommenders.models.cornac.bpr
-    :members:
-    :special-members: __init__
+
 
 DeepRec utilities
 ******************************
@@ -138,18 +136,9 @@ SLIRec
     :special-members: __init__
 
 
-EmbDotBias utilities
+FastAI utilities
 ******************************
-.. automodule:: recommenders.models.embdotbias.data_loader
-    :members:
-    :special-members: __init__
-.. automodule:: recommenders.models.embdotbias.model
-    :members:
-    :special-members: __init__
-.. automodule:: recommenders.models.embdotbias.training_utils
-    :members:
-    :special-members: __init__
-.. automodule:: recommenders.models.embdotbias.utils
+.. automodule:: recommenders.models.fastai.fastai_utils
     :members:
 
 
